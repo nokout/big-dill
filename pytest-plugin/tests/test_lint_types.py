@@ -28,3 +28,14 @@ def test_interpolated_scenario_fields():
     assert len(s.steps) == 1
     assert s.tags == ["smoke"]
     assert s.line_number == 5
+
+
+def test_lint_hookspecs_registered(pytestconfig):
+    """The plugin registers the lint hookspecs without errors."""
+    pm = pytestconfig.pluginmanager
+    assert pm.has_plugin("pytest-bdd-orama"), "pytest-bdd-orama plugin not loaded"
+    hook = pm.hook
+    assert hasattr(hook, "pytest_bdd_orama_lint_scenario"), \
+        "pytest_bdd_orama_lint_scenario hookspec missing"
+    assert hasattr(hook, "pytest_bdd_orama_lint_outline"), \
+        "pytest_bdd_orama_lint_outline hookspec missing"

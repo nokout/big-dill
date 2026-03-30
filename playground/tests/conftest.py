@@ -135,3 +135,34 @@ class AustralianState(StepEnum):
                        extra_types={"AustralianState": AustralianState}))
 def visit_state_capital(state):
     pass  # step passes for any valid state; invalid states fail lint, not runtime
+
+
+# ---------------------------------------------------------------------------
+# pytest-bdd-orama hook — lint checks (demonstrates lint hookspecs)
+# ---------------------------------------------------------------------------
+from pytest_bdd_orama.lint_types import LintDiagnostic
+
+
+def pytest_bdd_orama_lint_outline(scenario, examples):
+    """Warn when an outline has duplicate example rows or a very large table."""
+    diagnostics = []
+    for block in examples:
+        seen = []
+        for row in block.rows:
+            row_key = tuple(sorted(row.items()))
+            if row_key in seen:
+                diagnostics.append(
+                    LintDiagnostic(
+                        message=f"Duplicate example row in '{scenario.name}': {dict(row)}",
+                        severity="warning",
+                    )
+                )
+            seen.append(row_key)
+        if len(block.rows) > 20:
+            diagnostics.append(
+                LintDiagnostic(
+                    message=f"Example table in '{scenario.name}' has {len(block.rows)} rows — consider splitting",
+                    severity="warning",
+                )
+            )
+    return diagnostics
