@@ -53,18 +53,18 @@ class BddOramaHookSpec:
         """Lint a single scenario and return diagnostics.
 
         Called for every plain ``Scenario``, and also for each interpolated row
-        of a ``Scenario Outline`` (after placeholder substitution).  The
-        ``scenario`` argument is either a pytest-bdd ``ScenarioTemplate`` (plain
-        scenarios) or an ``InterpolatedScenario`` (outline rows).
+        of a ``Scenario Outline`` (after placeholder substitution).
 
-        Both types expose:
-            scenario.name          -- scenario display name
-            scenario.steps         -- list of steps with .keyword and .name/.text
-            scenario.tags          -- list of tag strings (no ``@`` prefix)
-            scenario.line_number   -- line in the .feature file
+        Args:
+            scenario: A pytest-bdd ``ScenarioTemplate`` (for plain scenarios) or an
+                      ``InterpolatedScenario`` (for each outline row).  Both expose:
+                      - ``scenario.name``        -- scenario display name
+                      - ``scenario.steps``       -- list of steps, each with ``.keyword`` and ``.text``
+                      - ``scenario.tags``        -- list of tag strings (no ``@`` prefix)
+                      - ``scenario.line_number`` -- line in the .feature file
 
         Returns:
-            A list of LintDiagnostic objects (return [] or None for no issues).
+            A list of LintDiagnostic objects (return an empty list for no issues).
         """
 
     @pytest.hookspec
@@ -86,5 +86,5 @@ class BddOramaHookSpec:
                        and ``line_number``.
 
         Returns:
-            A list of LintDiagnostic objects (return [] or None for no issues).
+            A list of LintDiagnostic objects (return an empty list for no issues).
         """

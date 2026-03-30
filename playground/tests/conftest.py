@@ -147,7 +147,7 @@ def pytest_bdd_orama_lint_outline(scenario, examples):
     """Warn when an outline has duplicate example rows or a very large table."""
     diagnostics = []
     for block in examples:
-        seen = []
+        seen = set()
         for row in block.rows:
             row_key = tuple(sorted(row.items()))
             if row_key in seen:
@@ -157,7 +157,7 @@ def pytest_bdd_orama_lint_outline(scenario, examples):
                         severity="warning",
                     )
                 )
-            seen.append(row_key)
+            seen.add(row_key)
         if len(block.rows) > 20:
             diagnostics.append(
                 LintDiagnostic(
