@@ -112,3 +112,34 @@ def pytest_bdd_orama_custom_status(report, config):
         return "otherbadthing"
 
     return None
+
+
+# ---------------------------------------------------------------------------
+# Step definitions — typed_steps.feature (demonstrates StepType/StepEnum)
+# ---------------------------------------------------------------------------
+from pytest_bdd_orama import StepEnum
+
+
+class AustralianState(StepEnum):
+    NSW = "NSW"
+    VIC = "Victoria"
+    QLD = "Queensland"
+    WA = "Western Australia"
+    SA = "South Australia"
+    TAS = "Tasmania"
+    ACT = "Australian Capital Territory"
+    NT = "Northern Territory"
+
+
+def convert_state(state_value: str) -> str:
+    """Convert and validate state value against AustralianState enum."""
+    # This validates the value is in the enum; validate() returns None if valid
+    validation_error = AustralianState.validate(state_value)
+    if validation_error:
+        raise ValueError(validation_error)
+    return state_value
+
+
+@given(parsers.parse("the capital of {state} is visited", extra_types=dict(state=convert_state)))
+def visit_state_capital(state):
+    pass  # step passes for any valid state; invalid states fail lint, not runtime
