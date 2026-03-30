@@ -2,12 +2,8 @@
 """Enumerate registered pytest-bdd step definitions and extract type metadata."""
 from __future__ import annotations
 import re
-from typing import TYPE_CHECKING
 
 from .step_types import StepType
-
-if TYPE_CHECKING:
-    pass
 
 _PARAM_RE = re.compile(r'\{(\w+)(?::(\w+))?\}')
 
@@ -77,6 +73,7 @@ def collect_step_definitions(session) -> list[dict]:
     if fm is None:
         return definitions
 
+    # pytest-bdd can register the same step under multiple fixture names (e.g. _1 suffixes)
     seen_patterns: set[tuple[str, str]] = set()
 
     for fixturedefs in fm._arg2fixturedefs.values():
@@ -105,7 +102,7 @@ def collect_step_definitions(session) -> list[dict]:
                         'name': param_name,
                         'type_name': type_name,
                         'suggested_values': cls.suggested_values(),
-                        'has_validator': cls.validate is not StepType.validate,
+                        'has_validator': cls.validate.__func__ is not StepType.validate.__func__,
                     })
                 else:
                     parameters.append({
