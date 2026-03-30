@@ -131,15 +131,7 @@ class AustralianState(StepEnum):
     NT = "Northern Territory"
 
 
-def convert_state(state_value: str) -> str:
-    """Convert and validate state value against AustralianState enum."""
-    # This validates the value is in the enum; validate() returns None if valid
-    validation_error = AustralianState.validate(state_value)
-    if validation_error:
-        raise ValueError(validation_error)
-    return state_value
-
-
-@given(parsers.parse("the capital of {state} is visited", extra_types=dict(state=convert_state)))
+@given(parsers.cfparse("the capital of {state:AustralianState} is visited",
+                       extra_types={"AustralianState": AustralianState}))
 def visit_state_capital(state):
     pass  # step passes for any valid state; invalid states fail lint, not runtime
