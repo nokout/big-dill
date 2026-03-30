@@ -1,0 +1,83 @@
+{
+  "name": "pytest-bdd-orama",
+  "displayName": "pytest-bdd-orama Test Runner",
+  "description": "pytest-bdd-orama test runner: feature-file tree, custom display names, configurable status mapping.",
+  "version": "0.1.0",
+  "publisher": "pytest-bdd-orama",
+  "engines": {
+    "vscode": "^1.87.0"
+  },
+  "categories": [
+    "Testing"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pytest-bdd-orama/pytest-bdd-orama"
+  },
+  "main": "./dist/extension.js",
+  "extensionDependencies": [
+    "ms-python.python"
+  ],
+  "contributes": {
+    "configuration": {
+      "title": "pytest-bdd-orama Runner",
+      "properties": {
+        "pytest-bdd-orama.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable the pytest-bdd-orama test runner."
+        },
+        "pytest-bdd-orama.pytestArgs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Additional arguments passed to pytest."
+        },
+        "pytest-bdd-orama.cwd": {
+          "type": "string",
+          "default": "",
+          "description": "Working directory for pytest discovery and execution. Overrides python.testing.cwd. Defaults to the workspace root when neither is set."
+        },
+        "pytest-bdd-orama.outcomeMapping": {
+          "type": "object",
+          "description": "Map pytest custom status strings to VSCode test run states. Valid values: passed, failed, errored, skipped, enqueued. Unmapped custom statuses default to errored.",
+          "additionalProperties": {
+            "type": "string",
+            "enum": [
+              "passed",
+              "failed",
+              "errored",
+              "skipped",
+              "enqueued"
+            ]
+          },
+          "default": {}
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p tsconfig.json",
+    "watch": "tsc -watch -p tsconfig.json",
+    "package": "vsce package",
+    "test": "jest",
+    "vscode:prepublish": "npm run compile"
+  },
+  "overrides": {
+    "cheerio": "1.0.0-rc.12"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.87.0",
+    "@vscode/vsce": "2.24.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.4.6",
+    "typescript": "^5.3.0"
+  }
+}
