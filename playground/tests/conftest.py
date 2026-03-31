@@ -134,3 +134,57 @@ def pytest_bdd_orama_custom_status(report, config):
         return "otherbadthing"
 
     return None
+
+
+# ---------------------------------------------------------------------------
+# Step definitions — typed_steps.feature (demonstrates StepType/StepEnum)
+# ---------------------------------------------------------------------------
+from pytest_bdd_orama import StepEnum
+
+
+class AustralianState(StepEnum):
+    NSW = "NSW"
+    VIC = "Victoria"
+    QLD = "Queensland"
+    WA = "Western Australia"
+    SA = "South Australia"
+    TAS = "Tasmania"
+    ACT = "Australian Capital Territory"
+    NT = "Northern Territory"
+
+
+@given(parsers.cfparse("the capital of {state:AustralianState} is visited",
+                       extra_types={"AustralianState": AustralianState}))
+def visit_state_capital(state):
+    pass  # step passes for any valid state; invalid states fail lint, not runtime
+
+
+# ---------------------------------------------------------------------------
+# pytest-bdd-orama hook — lint checks (demonstrates lint hookspecs)
+# ---------------------------------------------------------------------------
+from pytest_bdd_orama.lint_types import LintDiagnostic
+
+
+def pytest_bdd_orama_lint_outline(scenario, examples):
+    """Warn when an outline has duplicate example rows or a very large table."""
+    diagnostics = []
+    for block in examples:
+        seen = set()
+        for row in block.rows:
+            row_key = tuple(sorted(row.items()))
+            if row_key in seen:
+                diagnostics.append(
+                    LintDiagnostic(
+                        message=f"Duplicate example row in '{scenario.name}': {dict(row)}",
+                        severity="warning",
+                    )
+                )
+            seen.add(row_key)
+        if len(block.rows) > 20:
+            diagnostics.append(
+                LintDiagnostic(
+                    message=f"Example table in '{scenario.name}' has {len(block.rows)} rows — consider splitting",
+                    severity="warning",
+                )
+            )
+    return diagnostics

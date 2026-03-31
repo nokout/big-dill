@@ -12,6 +12,9 @@ dependencies = [
     "pytest-bdd>=6",
 ]
 
+[project.scripts]
+pytest-bdd-orama = "pytest_bdd_orama.metadata_gen:main"
+
 [project.entry-points.pytest11]
 pytest-bdd-orama = "pytest_bdd_orama.hooks"
 

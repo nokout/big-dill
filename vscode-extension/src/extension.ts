@@ -5,10 +5,68 @@
 import * as vscode from 'vscode';
 import { BddResultResolver } from './testController/resultResolver';
 import { discoverTests, runTests } from './testController/pytestRunner';
+import { StepCache } from './stepCache';
+import { FeatureCompletionProvider } from './featureCompletion';
+import { FeatureDiagnostics } from './featureDiagnostics';
 
 let testController: vscode.TestController | undefined;
 const resolvers = new Map<string, BddResultResolver>();
 export let outputChannel: vscode.OutputChannel;
+const stepCache = new StepCache();
+
+async function loadDistributedStepMetadata(
+    workspaceUri: vscode.Uri,
+    interpreterPath: string,
+    cache: StepCache,
+): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const cp = require('child_process') as typeof import('child_process');
+    const script = [
+        'import json, sys',
+        'try:',
+        '    from importlib.metadata import entry_points',
+        '    eps = entry_points(group="pytest_bdd_orama.steps")',
+        '    result = []',
+        '    for ep in eps:',
+        '        pkg, filename = ep.value.split(":", 1)',
+        '        import importlib.resources, pathlib',
+        '        path = pathlib.Path(str(importlib.resources.files(pkg))) / filename',
+        '        data = json.loads(path.read_text())',
+        '        result.append(data)',
+        '    print(json.dumps(result))',
+        'except Exception:',
+        '    print(json.dumps([]))',
+    ].join('\n');
+
+    return new Promise((resolve) => {
+        const proc = cp.spawn(interpreterPath, ['-c', script], {
+            cwd: workspaceUri.fsPath,
+        });
+        let stdout = '';
+        proc.stdout.on('data', (d: Buffer) => { stdout += d.toString(); });
+        proc.on('close', () => {
+            try {
+                type DistEntry = { version: number; step_types: Record<string, { suggested_values: string[]; has_validator: boolean }> };
+                const entries: DistEntry[] = JSON.parse(stdout);
+                const stepDefs = entries.flatMap((e) =>
+                    Object.entries(e.step_types).map(([name, meta]) => ({
+                        keyword: 'step' as const,
+                        pattern: `{param:${name}}`,
+                        parameters: [{
+                            name: 'param',
+                            type_name: name,
+                            suggested_values: meta.suggested_values,
+                            has_validator: meta.has_validator,
+                        }],
+                    }))
+                );
+                cache.updateDistributed(stepDefs);
+            } catch { /* ignore */ }
+            resolve();
+        });
+        proc.on('error', () => resolve());
+    });
+}
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
     const enabled = vscode.workspace.getConfiguration('pytest-bdd-orama').get<boolean>('enabled', true);
@@ -36,6 +94,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         await refreshAllWorkspaces(token);
     };
 
+    // Load distributed step metadata from installed packages
+    const firstFolder = vscode.workspace.workspaceFolders?.[0];
+    if (firstFolder) {
+        const interp = await getPythonInterpreter(firstFolder.uri);
+        await loadDistributedStepMetadata(firstFolder.uri, interp, stepCache);
+    }
+
     // Auto-discover on activation
     await refreshAllWorkspaces();
 
@@ -54,6 +119,34 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     featureWatcher.onDidChange(() => refreshAllWorkspaces());
     featureWatcher.onDidDelete(() => refreshAllWorkspaces());
     context.subscriptions.push(featureWatcher);
+
+    // Re-discover when step definition files are created, changed, or deleted
+    const stepDefGlob = vscode.workspace.getConfiguration('pytest-bdd-orama')
+        .get<string>('stepDefinitionGlob', '{**/step_defs/**/*.py,**/steps/**/*.py}');
+    const stepFileWatcher = vscode.workspace.createFileSystemWatcher(stepDefGlob);
+    stepFileWatcher.onDidChange(() => refreshAllWorkspaces());
+    stepFileWatcher.onDidCreate(() => refreshAllWorkspaces());
+    stepFileWatcher.onDidDelete(() => refreshAllWorkspaces());
+    context.subscriptions.push(stepFileWatcher);
+
+    const completionProvider = vscode.languages.registerCompletionItemProvider(
+        { pattern: '**/*.feature', scheme: 'file' },
+        new FeatureCompletionProvider(stepCache),
+        ' ',  // trigger on space after keyword
+    );
+    context.subscriptions.push(completionProvider);
+
+    const featureDiagnostics = new FeatureDiagnostics(
+        () => vscode.workspace.workspaceFolders?.[0]?.uri,
+        (uri) => getPythonInterpreter(uri),
+    );
+    context.subscriptions.push(featureDiagnostics);
+
+    vscode.workspace.onDidSaveTextDocument((doc) => {
+        if (doc.fileName.endsWith('.feature')) {
+            featureDiagnostics.schedule(doc.uri);
+        }
+    }, null, context.subscriptions);
 }
 
 export function deactivate(): void {
@@ -98,10 +191,14 @@ async function refreshWorkspace(workspaceUri: vscode.Uri, token?: vscode.Cancell
         resolvers.set(workspaceUri.fsPath, resolver);
     }
 
+    outputChannel.appendLine(`[discovery] interpreter: ${interpreterPath}`);
     try {
-        const payload = await discoverTests(workspaceUri, interpreterPath, token);
-        resolver.resolveDiscovery(payload, testController, token);
+        const { discovery, stepDefinitions } = await discoverTests(workspaceUri, interpreterPath, token);
+        outputChannel.appendLine(`[discovery] status=${discovery.status} stepDefs=${stepDefinitions.length}`);
+        resolver.resolveDiscovery(discovery, testController, token);
+        stepCache.update(stepDefinitions);
     } catch (err) {
+        outputChannel.appendLine(`[discovery] ERROR: ${err}`);
         const errorItem = testController.createTestItem('discovery-error', 'Discovery error');
         errorItem.error = String(err);
         testController.items.add(errorItem);

@@ -19,3 +19,27 @@ export const Uri = {
 export const Position = jest.fn();
 export const Range = jest.fn();
 export const CancellationToken = {};
+
+// Completion API mocks
+export const CompletionItemKind = {
+    Snippet: 14,
+    EnumMember: 19,
+};
+
+export class SnippetString {
+    value: string;
+    constructor(value: string) {
+        this.value = value;
+    }
+}
+
+export class CompletionItem {
+    label: string;
+    kind?: number;
+    insertText?: string | SnippetString;
+    detail?: string;
+    constructor(label: string, kind?: number) {
+        this.label = label;
+        this.kind = kind;
+    }
+}
