@@ -6,6 +6,7 @@ import * as vscode from 'vscode';
 import { BddResultResolver } from './testController/resultResolver';
 import { discoverTests, runTests } from './testController/pytestRunner';
 import { StepCache } from './stepCache';
+import { FeatureCompletionProvider } from './featureCompletion';
 
 let testController: vscode.TestController | undefined;
 const resolvers = new Map<string, BddResultResolver>();
@@ -65,6 +66,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     stepFileWatcher.onDidCreate(() => refreshAllWorkspaces());
     stepFileWatcher.onDidDelete(() => refreshAllWorkspaces());
     context.subscriptions.push(stepFileWatcher);
+
+    const completionProvider = vscode.languages.registerCompletionItemProvider(
+        { language: 'feature', scheme: 'file' },
+        new FeatureCompletionProvider(stepCache),
+        ' ',  // trigger on space after keyword
+    );
+    context.subscriptions.push(completionProvider);
 }
 
 export function deactivate(): void {
