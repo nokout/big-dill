@@ -191,11 +191,14 @@ async function refreshWorkspace(workspaceUri: vscode.Uri, token?: vscode.Cancell
         resolvers.set(workspaceUri.fsPath, resolver);
     }
 
+    outputChannel.appendLine(`[discovery] interpreter: ${interpreterPath}`);
     try {
         const { discovery, stepDefinitions } = await discoverTests(workspaceUri, interpreterPath, token);
+        outputChannel.appendLine(`[discovery] status=${discovery.status} stepDefs=${stepDefinitions.length}`);
         resolver.resolveDiscovery(discovery, testController, token);
         stepCache.update(stepDefinitions);
     } catch (err) {
+        outputChannel.appendLine(`[discovery] ERROR: ${err}`);
         const errorItem = testController.createTestItem('discovery-error', 'Discovery error');
         errorItem.error = String(err);
         testController.items.add(errorItem);

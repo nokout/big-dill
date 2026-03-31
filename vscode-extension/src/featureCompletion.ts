@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { StepCache } from './stepCache';
+import { outputChannel } from './extension';
 
 const KEYWORD_RE = /^\s*(Given|When|Then|And|But|\*)\s+/i;
 const PARAM_RE = /\{(\w+)(?::[^}]+)?\}/g;
@@ -89,6 +90,8 @@ export class FeatureCompletionProvider implements vscode.CompletionItemProvider 
         const column = position.character;
         const stepText = extractStepText(rawLine);
         if (!stepText) return [];
+
+        outputChannel.appendLine(`[completions] keyword=${stepText.keyword} text="${stepText.text}" cacheSize=${this.cache.getAll().length}`);
 
         // Level 2: domain values if cursor is inside a param value
         const stepTextStart = rawLine.indexOf(stepText.text);
