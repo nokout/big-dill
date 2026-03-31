@@ -99,8 +99,9 @@ async function refreshWorkspace(workspaceUri: vscode.Uri, token?: vscode.Cancell
     }
 
     try {
-        const payload = await discoverTests(workspaceUri, interpreterPath, token);
-        resolver.resolveDiscovery(payload, testController, token);
+        const { discovery, stepDefinitions } = await discoverTests(workspaceUri, interpreterPath, token);
+        resolver.resolveDiscovery(discovery, testController, token);
+        void(stepDefinitions); // TODO: stepCache.update(stepDefinitions);  // wired in Task 9
     } catch (err) {
         const errorItem = testController.createTestItem('discovery-error', 'Discovery error');
         errorItem.error = String(err);

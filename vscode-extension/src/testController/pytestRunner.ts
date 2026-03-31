@@ -9,7 +9,7 @@ import * as os from 'os';
 import * as path from 'path';
 import { CancellationToken, Uri, workspace } from 'vscode';
 import { createIpcServer } from './ipc';
-import { DiscoveredTestPayload, ExecutionTestPayload } from './types';
+import { DiscoveredTestPayload, ExecutionTestPayload, LintDiagnosticEntry, LintDiagnosticPayload, StepDefinition, StepDefinitionPayload } from './types';
 import { outputChannel } from '../extension';
 
 const PYTHON_FILES_DIR = path.join(__dirname, '..', '..', 'python_files');
@@ -38,11 +38,16 @@ function resolveCwd(workspaceUri: Uri): string {
     return workspaceUri.fsPath;
 }
 
+export type DiscoveryResult = {
+    discovery: DiscoveredTestPayload;
+    stepDefinitions: StepDefinition[];
+};
+
 export async function discoverTests(
     workspaceUri: Uri,
     interpreterPath: string,
     token?: CancellationToken,
-): Promise<DiscoveredTestPayload> {
+): Promise<DiscoveryResult> {
     const ipc = await createIpcServer();
     const cwd = resolveCwd(workspaceUri);
     const extraArgs = workspace.getConfiguration('pytest-bdd-orama').get<string[]>('pytestArgs', []);
@@ -63,14 +68,17 @@ export async function discoverTests(
         ...extraArgs,
     ];
 
-    return new Promise<DiscoveredTestPayload>((resolve, reject) => {
-        let resolved = false;
+    let discoveryPayload: DiscoveredTestPayload | null = null;
+    const stepDefinitions: StepDefinition[] = [];
 
+    return new Promise<DiscoveryResult>((resolve, reject) => {
         ipc.onMessage((data) => {
-            if (!resolved) {
-                resolved = true;
-                ipc.dispose();
-                resolve(data as unknown as DiscoveredTestPayload);
+            const payload = data as Record<string, unknown>;
+            if (payload['type'] === 'stepDefinitions') {
+                const p = payload as unknown as StepDefinitionPayload;
+                stepDefinitions.push(...p.stepDefinitions);
+            } else if ('cwd' in payload) {
+                discoveryPayload = payload as unknown as DiscoveredTestPayload;
             }
         });
 
@@ -93,15 +101,18 @@ export async function discoverTests(
         });
 
         proc.on('close', (code) => {
-            if (!resolved) {
-                ipc.dispose();
-                if (code !== 0 && code !== 1 && code !== 5) {
-                    reject(new Error(`pytest exited with code ${code}:\n${stderr.join('')}`));
-                } else {
-                    // Timed out waiting for the IPC message — treat as empty
-                    resolve({ cwd, status: 'error', error: stderr });
-                }
-            }
+            ipc.dispose();
+            const discovery = discoveryPayload ?? {
+                cwd,
+                status: 'error' as const,
+                error: code !== 0 ? stderr : [],
+            };
+            resolve({ discovery, stepDefinitions });
+        });
+
+        proc.on('error', (err) => {
+            ipc.dispose();
+            reject(err);
         });
     });
 }
@@ -175,4 +186,62 @@ export async function runTests(
 function buildPythonPath(extraDir: string): string {
     const existing = process.env.PYTHONPATH ?? '';
     return existing ? `${extraDir}${path.delimiter}${existing}` : extraDir;
+}
+
+export async function runBddLint(
+    featureFilePath: string,
+    workspaceUri: Uri,
+    interpreterPath: string,
+    token?: CancellationToken,
+): Promise<LintDiagnosticEntry[]> {
+    const ipc = await createIpcServer();
+    const cwd = resolveCwd(workspaceUri);
+    const extraArgs = workspace.getConfiguration('pytest-bdd-orama').get<string[]>('pytestArgs', []);
+
+    const env: NodeJS.ProcessEnv = {
+        ...process.env,
+        TEST_RUN_PIPE: ipc.pipeName,
+        PYTHONPATH: buildPythonPath(PYTHON_FILES_DIR),
+    };
+
+    const args = [
+        '-m', 'pytest',
+        '--bdd-lint', featureFilePath,
+        '--rootdir', cwd,
+        '--import-mode=importlib',
+        '-p', 'vscode_pytest',
+        ...extraArgs,
+    ];
+
+    const entries: LintDiagnosticEntry[] = [];
+
+    return new Promise<LintDiagnosticEntry[]>((resolve, reject) => {
+        ipc.onMessage((data) => {
+            const payload = data as Record<string, unknown>;
+            if (payload['type'] === 'lintDiagnostics') {
+                const p = payload as unknown as LintDiagnosticPayload;
+                entries.push(...p.diagnostics);
+            }
+        });
+
+        const proc = cp.spawn(getPythonPath(interpreterPath), args, { cwd, env });
+
+        proc.stderr.on('data', (chunk) => outputChannel.append(chunk.toString()));
+
+        token?.onCancellationRequested(() => {
+            proc.kill();
+            ipc.dispose();
+            reject(new Error('Lint cancelled'));
+        });
+
+        proc.on('close', () => {
+            ipc.dispose();
+            resolve(entries);
+        });
+
+        proc.on('error', (err) => {
+            ipc.dispose();
+            reject(err);
+        });
+    });
 }

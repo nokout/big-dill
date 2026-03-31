@@ -75,3 +75,37 @@ export interface ITestResultResolver {
     resolveDiscovery(payload: DiscoveredTestPayload, testController: TestController, token?: CancellationToken): void;
     resolveExecution(payload: ExecutionTestPayload, run: TestRun): void;
 }
+
+// ── Step definition types (for completions and validation) ─────────────────
+
+export type StepParameter = {
+    name: string;
+    type_name: string;
+    suggested_values: string[];
+    has_validator: boolean;
+};
+
+export type StepDefinition = {
+    keyword: 'given' | 'when' | 'then' | 'step';
+    pattern: string;
+    parameters: StepParameter[];
+};
+
+export type StepDefinitionPayload = {
+    type: 'stepDefinitions';
+    stepDefinitions: StepDefinition[];
+};
+
+// ── Lint diagnostic types ───────────────────────────────────────────────────
+
+export type LintDiagnosticEntry = {
+    path: string;
+    message: string;
+    severity: 'error' | 'warning' | 'info';
+    line: number | null;
+};
+
+export type LintDiagnosticPayload = {
+    type: 'lintDiagnostics';
+    diagnostics: LintDiagnosticEntry[];
+};
