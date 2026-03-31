@@ -7,6 +7,7 @@ any per-feature registration.
 """
 import pytest
 from pytest_bdd import given, parsers, then, when
+from pytest_bdd_orama import StepEnum
 
 
 # ---------------------------------------------------------------------------
@@ -77,6 +78,27 @@ def process_record(input_a, input_b, input_c):
 def check_result(expected):
     if expected == "failure":
         raise AssertionError("Expected failure outcome for this example row")
+
+
+# ---------------------------------------------------------------------------
+# Step definitions — typed steps (demonstrates StepType/StepEnum completions)
+# ---------------------------------------------------------------------------
+
+class AustralianState(StepEnum):
+    NSW = "NSW"
+    VIC = "Victoria"
+    QLD = "Queensland"
+    WA = "Western Australia"
+    SA = "South Australia"
+    TAS = "Tasmania"
+    ACT = "Australian Capital Territory"
+    NT = "Northern Territory"
+
+
+@given(parsers.cfparse("the capital of {state:AustralianState} is visited",
+                       extra_types={"AustralianState": AustralianState}))
+def visit_state_capital(state):
+    pass  # step passes for any valid state; invalid states fail lint, not runtime
 
 
 # ---------------------------------------------------------------------------

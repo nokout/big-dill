@@ -1,4 +1,4 @@
-Feature: Complex outlines
+Feature: Complex outline
 
   Scenario Outline: Process complex data
     When processed with <input_a>, <input_b>, <input_c>
@@ -9,3 +9,5 @@ Feature: Complex outlines
       | alpha   | 100     | true    | success  |
       | beta    | 200     | false   | failure  |
       | gamma   | 300     | true    | success  |
+
+  Scenario: things and stuff

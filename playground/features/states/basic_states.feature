@@ -6,14 +6,15 @@ Feature: Basic test states
   @fails
   Scenario: A failing scenario
     Given a step that fails
-  
+    
   @skipped
   Scenario: A skipped scenario
     Given a step that is skipped
-  
+ 
   @waits
   Scenario: A waiting scenario
     Given a step that is waiting
+    
 
   @bad
   Scenario: Something bad happens
