@@ -31,18 +31,23 @@ function patternToRegex(pattern: string): RegExp {
 
 export class StepCache {
     private steps: StepDefinition[] = [];
+    private distributedSteps: StepDefinition[] = [];
 
     update(steps: StepDefinition[]): void {
         this.steps = steps;
     }
 
+    updateDistributed(steps: StepDefinition[]): void {
+        this.distributedSteps = steps;
+    }
+
     getAll(): StepDefinition[] {
-        return this.steps;
+        return [...this.distributedSteps, ...this.steps];
     }
 
     getForKeyword(keyword: string): StepDefinition[] {
         const norm = keyword.toLowerCase();
-        return this.steps.filter(
+        return this.getAll().filter(
             (s) => s.keyword === norm || s.keyword === 'step'
         );
     }

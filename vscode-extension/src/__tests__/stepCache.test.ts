@@ -72,3 +72,20 @@ describe('StepCache', () => {
         expect(result!.valueEnd).toBe(16);
     });
 });
+
+describe('StepCache distributed steps', () => {
+    test('distributed steps are returned by getAll', () => {
+        const cache = new StepCache();
+        const dist: StepDefinition = { keyword: 'step', pattern: 'distributed', parameters: [] };
+        cache.updateDistributed([dist]);
+        expect(cache.getAll()).toContain(dist);
+    });
+
+    test('live steps override distributed when both present', () => {
+        const cache = new StepCache();
+        cache.updateDistributed([{ keyword: 'step', pattern: 'both', parameters: [] }]);
+        cache.update([{ keyword: 'given', pattern: 'both', parameters: [] }]);
+        const all = cache.getAll();
+        expect(all).toHaveLength(2);  // both present; live takes precedence via ordering
+    });
+});

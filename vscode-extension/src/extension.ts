@@ -14,6 +14,60 @@ const resolvers = new Map<string, BddResultResolver>();
 export let outputChannel: vscode.OutputChannel;
 const stepCache = new StepCache();
 
+async function loadDistributedStepMetadata(
+    workspaceUri: vscode.Uri,
+    interpreterPath: string,
+    cache: StepCache,
+): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const cp = require('child_process') as typeof import('child_process');
+    const script = [
+        'import json, sys',
+        'try:',
+        '    from importlib.metadata import entry_points',
+        '    eps = entry_points(group="pytest_bdd_orama.steps")',
+        '    result = []',
+        '    for ep in eps:',
+        '        pkg, filename = ep.value.split(":", 1)',
+        '        import importlib.resources, pathlib',
+        '        path = pathlib.Path(str(importlib.resources.files(pkg))) / filename',
+        '        data = json.loads(path.read_text())',
+        '        result.append(data)',
+        '    print(json.dumps(result))',
+        'except Exception:',
+        '    print(json.dumps([]))',
+    ].join('\n');
+
+    return new Promise((resolve) => {
+        const proc = cp.spawn(interpreterPath, ['-c', script], {
+            cwd: workspaceUri.fsPath,
+        });
+        let stdout = '';
+        proc.stdout.on('data', (d: Buffer) => { stdout += d.toString(); });
+        proc.on('close', () => {
+            try {
+                type DistEntry = { version: number; step_types: Record<string, { suggested_values: string[]; has_validator: boolean }> };
+                const entries: DistEntry[] = JSON.parse(stdout);
+                const stepDefs = entries.flatMap((e) =>
+                    Object.entries(e.step_types).map(([name, meta]) => ({
+                        keyword: 'step' as const,
+                        pattern: `{param:${name}}`,
+                        parameters: [{
+                            name: 'param',
+                            type_name: name,
+                            suggested_values: meta.suggested_values,
+                            has_validator: meta.has_validator,
+                        }],
+                    }))
+                );
+                cache.updateDistributed(stepDefs);
+            } catch { /* ignore */ }
+            resolve();
+        });
+        proc.on('error', () => resolve());
+    });
+}
+
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
     const enabled = vscode.workspace.getConfiguration('pytest-bdd-orama').get<boolean>('enabled', true);
     if (!enabled) {
@@ -39,6 +93,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     testController.refreshHandler = async (token) => {
         await refreshAllWorkspaces(token);
     };
+
+    // Load distributed step metadata from installed packages
+    const firstFolder = vscode.workspace.workspaceFolders?.[0];
+    if (firstFolder) {
+        const interp = await getPythonInterpreter(firstFolder.uri);
+        await loadDistributedStepMetadata(firstFolder.uri, interp, stepCache);
+    }
 
     // Auto-discover on activation
     await refreshAllWorkspaces();
