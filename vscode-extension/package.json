@@ -43,6 +43,11 @@
           "default": "",
           "description": "Working directory for pytest discovery and execution. Overrides python.testing.cwd. Defaults to the workspace root when neither is set."
         },
+        "pytest-bdd-orama.stepDefinitionGlob": {
+          "type": "string",
+          "default": "{**/step_defs/**/*.py,**/steps/**/*.py}",
+          "markdownDescription": "Glob pattern for Python step definition files. Saves to matching files trigger step rediscovery."
+        },
         "pytest-bdd-orama.outcomeMapping": {
           "type": "object",
           "description": "Map pytest custom status strings to VSCode test run states. Valid values: passed, failed, errored, skipped, enqueued. Unmapped custom statuses default to errored.",

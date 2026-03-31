@@ -5,10 +5,12 @@
 import * as vscode from 'vscode';
 import { BddResultResolver } from './testController/resultResolver';
 import { discoverTests, runTests } from './testController/pytestRunner';
+import { StepCache } from './stepCache';
 
 let testController: vscode.TestController | undefined;
 const resolvers = new Map<string, BddResultResolver>();
 export let outputChannel: vscode.OutputChannel;
+const stepCache = new StepCache();
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
     const enabled = vscode.workspace.getConfiguration('pytest-bdd-orama').get<boolean>('enabled', true);
@@ -54,6 +56,15 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     featureWatcher.onDidChange(() => refreshAllWorkspaces());
     featureWatcher.onDidDelete(() => refreshAllWorkspaces());
     context.subscriptions.push(featureWatcher);
+
+    // Re-discover when step definition files are created, changed, or deleted
+    const stepDefGlob = vscode.workspace.getConfiguration('pytest-bdd-orama')
+        .get<string>('stepDefinitionGlob', '{**/step_defs/**/*.py,**/steps/**/*.py}');
+    const stepFileWatcher = vscode.workspace.createFileSystemWatcher(stepDefGlob);
+    stepFileWatcher.onDidChange(() => refreshAllWorkspaces());
+    stepFileWatcher.onDidCreate(() => refreshAllWorkspaces());
+    stepFileWatcher.onDidDelete(() => refreshAllWorkspaces());
+    context.subscriptions.push(stepFileWatcher);
 }
 
 export function deactivate(): void {
@@ -101,7 +112,7 @@ async function refreshWorkspace(workspaceUri: vscode.Uri, token?: vscode.Cancell
     try {
         const { discovery, stepDefinitions } = await discoverTests(workspaceUri, interpreterPath, token);
         resolver.resolveDiscovery(discovery, testController, token);
-        void(stepDefinitions); // TODO: stepCache.update(stepDefinitions);  // wired in Task 9
+        stepCache.update(stepDefinitions);
     } catch (err) {
         const errorItem = testController.createTestItem('discovery-error', 'Discovery error');
         errorItem.error = String(err);
