@@ -22,6 +22,13 @@
     "ms-python.python"
   ],
   "contributes": {
+    "languages": [
+      {
+        "id": "feature",
+        "aliases": ["Gherkin", "Cucumber"],
+        "extensions": [".feature"]
+      }
+    ],
     "configuration": {
       "title": "pytest-bdd-orama Runner",
       "properties": {
@@ -45,7 +52,7 @@
         },
         "pytest-bdd-orama.stepDefinitionGlob": {
           "type": "string",
-          "default": "{**/step_defs/**/*.py,**/steps/**/*.py}",
+          "default": "{**/step_defs/**/*.py,**/steps/**/*.py,**/conftest.py}",
           "markdownDescription": "Glob pattern for Python step definition files. Saves to matching files trigger step rediscovery."
         },
         "pytest-bdd-orama.outcomeMapping": {
