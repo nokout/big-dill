@@ -130,7 +130,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     context.subscriptions.push(stepFileWatcher);
 
     const completionProvider = vscode.languages.registerCompletionItemProvider(
-        { language: 'feature', scheme: 'file' },
+        { pattern: '**/*.feature', scheme: 'file' },
         new FeatureCompletionProvider(stepCache),
         ' ',  // trigger on space after keyword
     );
