@@ -139,7 +139,7 @@ def _lint_feature_file(
         from pytest_bdd.parser import FeatureParser
         feature = FeatureParser(basedir=str(path.parent), filename=path.name).parse()
     except Exception as exc:
-        return [LintDiagnostic(message=f"Failed to parse {path.name}: {exc}")]
+        return [LintDiagnostic(message=f"Failed to parse {path}: {exc}")]
 
     diagnostics: list[LintDiagnostic] = []
 
