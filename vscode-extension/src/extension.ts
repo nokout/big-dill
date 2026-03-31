@@ -7,6 +7,7 @@ import { BddResultResolver } from './testController/resultResolver';
 import { discoverTests, runTests } from './testController/pytestRunner';
 import { StepCache } from './stepCache';
 import { FeatureCompletionProvider } from './featureCompletion';
+import { FeatureDiagnostics } from './featureDiagnostics';
 
 let testController: vscode.TestController | undefined;
 const resolvers = new Map<string, BddResultResolver>();
@@ -73,6 +74,18 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         ' ',  // trigger on space after keyword
     );
     context.subscriptions.push(completionProvider);
+
+    const featureDiagnostics = new FeatureDiagnostics(
+        () => vscode.workspace.workspaceFolders?.[0]?.uri,
+        (uri) => getPythonInterpreter(uri),
+    );
+    context.subscriptions.push(featureDiagnostics);
+
+    vscode.workspace.onDidSaveTextDocument((doc) => {
+        if (doc.fileName.endsWith('.feature')) {
+            featureDiagnostics.schedule(doc.uri);
+        }
+    }, null, context.subscriptions);
 }
 
 export function deactivate(): void {
