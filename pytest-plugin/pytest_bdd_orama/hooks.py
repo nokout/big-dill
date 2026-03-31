@@ -225,3 +225,25 @@ def _emit_ipc(diagnostics: list[tuple[str, LintDiagnostic]]) -> None:
         ],
     }
     send_message(payload)
+
+
+def pytest_collection_finish(session) -> None:
+    """Emit step definitions over IPC after collection (VS Code mode only)."""
+    import os
+    if not os.environ.get('TEST_RUN_PIPE'):
+        return
+
+    step_defs = collect_step_definitions(session)
+    if not step_defs:
+        return
+
+    try:
+        from vscode_pytest import send_message
+    except ImportError:
+        return
+
+    payload = {
+        "type": "stepDefinitions",
+        "stepDefinitions": step_defs,
+    }
+    send_message(payload)  # type: ignore[arg-type]
