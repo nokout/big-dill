@@ -43,3 +43,39 @@ export class CompletionItem {
         this.kind = kind;
     }
 }
+
+export class SemanticTokensLegend {
+    tokenTypes: string[];
+    tokenModifiers: string[];
+    constructor(tokenTypes: string[], tokenModifiers: string[]) {
+        this.tokenTypes = tokenTypes;
+        this.tokenModifiers = tokenModifiers;
+    }
+}
+
+export class SemanticTokensBuilder {
+    private entries: Array<{ line: number; char: number; len: number; type: number; mod: number }> = [];
+    constructor(public legend?: SemanticTokensLegend) {}
+    push(line: number, char: number, len: number, type: number, mod: number): void {
+        this.entries.push({ line, char, len, type, mod });
+    }
+    build() { return { data: this.entries }; }
+}
+
+export const DiagnosticSeverity = { Error: 0, Warning: 1, Information: 2, Hint: 3 };
+
+export class Diagnostic {
+    constructor(
+        public range: any,
+        public message: string,
+        public severity?: number,
+    ) {}
+}
+
+export const languages = {
+    createDiagnosticCollection: jest.fn(() => ({
+        set: jest.fn(),
+        delete: jest.fn(),
+        dispose: jest.fn(),
+    })),
+};
