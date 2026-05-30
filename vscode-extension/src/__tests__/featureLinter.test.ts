@@ -152,4 +152,14 @@ describe('checkPhrasingRules', () => {
         ]);
         expect(diags).toHaveLength(2);
     });
+
+    it('flags steps in Background blocks', () => {
+        const bgSource = `Feature: F\n  Background:\n    Given click setup step\n  Scenario: S\n    Given normal step`;
+        const { doc } = parseSource(bgSource);
+        const diags = checkPhrasingRules(doc!, bgSource.split('\n'), [
+            { pattern: '^click', message: 'click not allowed' },
+        ]);
+        expect(diags).toHaveLength(1);
+        expect(diags[0].message).toBe('click not allowed');
+    });
 });
