@@ -28,7 +28,7 @@
     "prefix": "outline",
     "body": [
       "Scenario Outline: ${1:Scenario name}",
-      "  Given ${2:a precondition with}} <${3:param}>",
+      "  Given ${2:a precondition with} <${3:param}>",
       "  When ${4:an action}",
       "  Then ${5:an outcome}",
       "",
