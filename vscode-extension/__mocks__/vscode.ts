@@ -5,9 +5,12 @@
 export const TestMessage = jest.fn().mockImplementation((message: string) => ({ message }));
 
 export const workspace = {
-    getConfiguration: jest.fn().mockReturnValue({
-        get: jest.fn().mockReturnValue({}),
-    }),
+    getConfiguration: jest.fn(() => ({
+        get: jest.fn(() => []),
+    })),
+    onDidOpenTextDocument: jest.fn(() => ({ dispose: jest.fn() })),
+    onDidChangeTextDocument: jest.fn(() => ({ dispose: jest.fn() })),
+    onDidCloseTextDocument: jest.fn(() => ({ dispose: jest.fn() })),
 };
 
 // Stub the remaining named exports so TypeScript's import resolution is happy

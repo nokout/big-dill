@@ -87,6 +87,36 @@ export function checkEmptyExamplesBody(doc: GherkinDocument, _lines: string[]): 
     return diags;
 }
 
+export function checkTagAllowlist(
+    doc: GherkinDocument,
+    _lines: string[],
+    allowedTags: string[],
+): DiagnosticEntry[] {
+    if (allowedTags.length === 0) return [];
+
+    const allowed = new Set(allowedTags.map((t) => t.startsWith('@') ? t : `@${t}`));
+    const diags: DiagnosticEntry[] = [];
+
+    function checkTags(tags: ReadonlyArray<{ name: string; location?: { line?: number } }>) {
+        for (const tag of tags) {
+            if (!allowed.has(tag.name)) {
+                diags.push({
+                    line: (tag.location?.line ?? 1) - 1,
+                    message: `Tag ${tag.name} is not in the allowed tags list`,
+                    severity: 'warning',
+                });
+            }
+        }
+    }
+
+    checkTags(doc.feature?.tags ?? []);
+    for (const child of doc.feature?.children ?? []) {
+        checkTags(child.scenario?.tags ?? []);
+    }
+
+    return diags;
+}
+
 const RULES = [
     checkEmptyComments,
     checkDuplicateExampleRows,
@@ -115,7 +145,13 @@ export class FeatureLinter {
         if (!doc) { this.collection.delete(document.uri); return; }
 
         const lines = document.getText().split('\n');
-        const entries = RULES.flatMap((rule) => rule(doc, lines));
+        const config = vscode.workspace.getConfiguration('pytest-bdd-orama');
+        const allowedTags: string[] = config.get('allowedTags') ?? [];
+
+        const entries = [
+            ...RULES.flatMap((rule) => rule(doc, lines)),
+            ...checkTagAllowlist(doc, lines, allowedTags),
+        ];
 
         this.collection.set(
             document.uri,

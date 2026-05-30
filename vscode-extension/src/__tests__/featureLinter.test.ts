@@ -5,6 +5,7 @@ import {
     checkOversizedExampleTable,
     checkOutlineMissingExamples,
     checkEmptyExamplesBody,
+    checkTagAllowlist,
     DiagnosticEntry,
 } from '../featureLinter';
 import { parseSource } from '../gherkinParser';
@@ -79,5 +80,35 @@ describe('checkEmptyExamplesBody', () => {
     it('does not flag Examples with data rows', () => {
         const source = `Feature: F\n  Scenario Outline: S\n    Given <x>\n    Examples:\n      | x |\n      | 1 |`;
         expect(run(source, checkEmptyExamplesBody)).toHaveLength(0);
+    });
+});
+
+describe('checkTagAllowlist', () => {
+    const featureWithTags = `Feature: F\n  @smoke @regression\n  Scenario: S\n    Given a step`;
+
+    it('returns no diagnostics when allowedTags is empty', () => {
+        const { doc } = parseSource(featureWithTags);
+        expect(checkTagAllowlist(doc!, featureWithTags.split('\n'), [])).toHaveLength(0);
+    });
+
+    it('returns no diagnostics when all tags are allowed', () => {
+        const { doc } = parseSource(featureWithTags);
+        const diags = checkTagAllowlist(doc!, featureWithTags.split('\n'), ['@smoke', '@regression']);
+        expect(diags).toHaveLength(0);
+    });
+
+    it('flags tags not in the allowlist', () => {
+        const { doc } = parseSource(featureWithTags);
+        const diags = checkTagAllowlist(doc!, featureWithTags.split('\n'), ['@smoke']);
+        expect(diags).toHaveLength(1);
+        expect(diags[0].message).toMatch(/@regression/);
+        expect(diags[0].severity).toBe('warning');
+    });
+
+    it('checks tags on both feature and scenario', () => {
+        const source = `@featuretag\nFeature: F\n  @scenariotag\n  Scenario: S\n    Given a step`;
+        const { doc } = parseSource(source);
+        const diags = checkTagAllowlist(doc!, source.split('\n'), ['@featuretag']);
+        expect(diags.map(d => d.message)).toEqual(expect.arrayContaining([expect.stringContaining('@scenariotag')]));
     });
 });
