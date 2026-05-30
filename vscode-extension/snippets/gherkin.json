@@ -1,0 +1,58 @@
+{
+  "Feature": {
+    "prefix": "feature",
+    "body": [
+      "Feature: ${1:Feature name}",
+      "  ${2:As a user}",
+      "  ${3:I want to}",
+      "  ${4:So that}",
+      "",
+      "  Scenario: ${5:Scenario name}",
+      "    Given ${6:a precondition}",
+      "    When ${7:an action}",
+      "    Then ${8:an outcome}"
+    ],
+    "description": "Gherkin Feature template"
+  },
+  "Scenario": {
+    "prefix": "scenario",
+    "body": [
+      "Scenario: ${1:Scenario name}",
+      "  Given ${2:a precondition}",
+      "  When ${3:an action}",
+      "  Then ${4:an outcome}"
+    ],
+    "description": "Gherkin Scenario template"
+  },
+  "Scenario Outline": {
+    "prefix": "outline",
+    "body": [
+      "Scenario Outline: ${1:Scenario name}",
+      "  Given ${2:a precondition with}} <${3:param}>",
+      "  When ${4:an action}",
+      "  Then ${5:an outcome}",
+      "",
+      "  Examples:",
+      "    | ${3:param} |",
+      "    | ${6:value} |"
+    ],
+    "description": "Gherkin Scenario Outline template"
+  },
+  "Background": {
+    "prefix": "background",
+    "body": [
+      "Background:",
+      "  Given ${1:a precondition}"
+    ],
+    "description": "Gherkin Background template"
+  },
+  "Examples": {
+    "prefix": "examples",
+    "body": [
+      "Examples:",
+      "  | ${1:column} |",
+      "  | ${2:value}  |"
+    ],
+    "description": "Gherkin Examples table template"
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "comments": {
+    "lineComment": "#"
+  },
+  "brackets": [
+    ["{", "}"],
+    ["[", "]"],
+    ["\"", "\""]
+  ],
+  "autoClosingPairs": [
+    { "open": "\"", "close": "\"" },
+    { "open": "'", "close": "'" },
+    { "open": "{", "close": "}" }
+  ],
+  "indentationRules": {
+    "increaseIndentPattern": "^\\s*(Feature|Rule|Background|Scenario(\\s+Outline)?|Examples)\\s*:",
+    "decreaseIndentPattern": "^\\s*$"
+  },
+  "wordPattern": "[\\w@]+"
+}

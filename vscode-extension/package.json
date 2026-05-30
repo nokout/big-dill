@@ -25,12 +25,40 @@
     "languages": [
       {
         "id": "feature",
-        "aliases": ["Gherkin", "Cucumber"],
-        "extensions": [".feature"]
+        "aliases": ["Gherkin", "feature"],
+        "extensions": [".feature"],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icons/feature-light.svg",
+          "dark": "./icons/feature-dark.svg"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "feature",
+        "scopeName": "text.gherkin",
+        "path": "./syntaxes/gherkin.tmLanguage.json",
+        "embeddedLanguages": {
+          "meta.embedded.yaml": "yaml",
+          "meta.embedded.json": "json",
+          "meta.embedded.python": "python",
+          "meta.embedded.xml": "xml",
+          "meta.embedded.sql": "sql",
+          "meta.embedded.javascript": "javascript",
+          "meta.embedded.typescript": "typescript",
+          "meta.embedded.plaintext": "plaintext"
+        }
+      }
+    ],
+    "snippets": [
+      {
+        "language": "feature",
+        "path": "./snippets/gherkin.json"
       }
     ],
     "configuration": {
-      "title": "pytest-bdd-orama Runner",
+      "title": "pytest-bdd-orama",
       "properties": {
         "pytest-bdd-orama.enabled": {
           "type": "boolean",
@@ -69,6 +97,25 @@
             ]
           },
           "default": {}
+        },
+        "pytest-bdd-orama.allowedTags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "If non-empty, any @tag not in this list will be flagged as a warning. Leave empty to disable tag validation."
+        },
+        "pytest-bdd-orama.phrasingRules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "pattern": { "type": "string", "description": "Regex tested against the step text (excluding the Given/When/Then keyword)" },
+              "message": { "type": "string", "description": "Diagnostic message shown when the pattern matches" }
+            },
+            "required": ["pattern", "message"]
+          },
+          "default": [],
+          "description": "Step text phrasing rules. Each rule flags steps whose text matches the regex pattern."
         }
       }
     }
