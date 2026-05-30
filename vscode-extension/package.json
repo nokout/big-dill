@@ -42,12 +42,7 @@
         "embeddedLanguages": {
           "meta.embedded.yaml": "yaml",
           "meta.embedded.json": "json",
-          "meta.embedded.python": "python",
-          "meta.embedded.xml": "xml",
-          "meta.embedded.sql": "sql",
-          "meta.embedded.javascript": "javascript",
-          "meta.embedded.typescript": "typescript",
-          "meta.embedded.plaintext": "plaintext"
+          "meta.embedded.python": "python"
         }
       }
     ],
