@@ -78,4 +78,10 @@ export const languages = {
         delete: jest.fn(),
         dispose: jest.fn(),
     })),
+    registerDocumentSemanticTokensProvider: jest.fn(),
+    registerDocumentFormattingEditProvider: jest.fn(),
+};
+
+export const TextEdit = {
+    replace: jest.fn((range: any, newText: string) => ({ range, newText })),
 };
