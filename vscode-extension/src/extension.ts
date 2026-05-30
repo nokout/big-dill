@@ -8,6 +8,10 @@ import { discoverTests, runTests } from './testController/pytestRunner';
 import { StepCache } from './stepCache';
 import { FeatureCompletionProvider } from './featureCompletion';
 import { FeatureDiagnostics } from './featureDiagnostics';
+import { GherkinParseCache } from './gherkinParser';
+import { FeatureSemanticTokensProvider, legend } from './featureSemanticTokens';
+import { FeatureFormattingProvider } from './featureFormatter';
+import { FeatureLinter } from './featureLinter';
 
 let testController: vscode.TestController | undefined;
 const resolvers = new Map<string, BddResultResolver>();
@@ -146,6 +150,31 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         if (doc.fileName.endsWith('.feature')) {
             featureDiagnostics.schedule(doc.uri);
         }
+    }, null, context.subscriptions);
+
+    const parseCache = new GherkinParseCache();
+
+    context.subscriptions.push(
+        vscode.languages.registerDocumentSemanticTokensProvider(
+            { language: 'feature' },
+            new FeatureSemanticTokensProvider(parseCache),
+            legend,
+        ),
+        vscode.languages.registerDocumentFormattingEditProvider(
+            { language: 'feature' },
+            new FeatureFormattingProvider(parseCache),
+        ),
+    );
+
+    const featureLinter = new FeatureLinter(parseCache);
+    context.subscriptions.push(featureLinter);
+
+    vscode.workspace.onDidOpenTextDocument((doc) => {
+        if (doc.fileName.endsWith('.feature')) featureLinter.schedule(doc);
+    }, null, context.subscriptions);
+
+    vscode.workspace.onDidChangeTextDocument((e) => {
+        if (e.document.fileName.endsWith('.feature')) featureLinter.schedule(e.document);
     }, null, context.subscriptions);
 }
 

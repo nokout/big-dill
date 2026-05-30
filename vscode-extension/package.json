@@ -129,7 +129,29 @@
           "description": "Step text phrasing rules. Each rule flags steps whose text matches the regex pattern."
         }
       }
-    }
+    },
+    "semanticTokenTypes": [
+      { "id": "gherkinDatatablePipe",       "description": "Pipe characters in step datatables" },
+      { "id": "gherkinDatatableCell",       "description": "Cell content in step datatables" },
+      { "id": "gherkinDatatableCellString", "description": "Quoted string cell content in step datatables" },
+      { "id": "gherkinExamplesPipe",        "description": "Pipe characters in Examples tables" },
+      { "id": "gherkinExamplesCell",        "description": "Cell content in Examples table body" },
+      { "id": "gherkinExamplesCellString",  "description": "Quoted string cell content in Examples body" },
+      { "id": "gherkinExamplesHeaderCell",  "description": "Cell content in Examples header row" }
+    ],
+    "semanticTokenScopes": [
+      {
+        "scopes": {
+          "gherkinDatatablePipe":       ["punctuation.separator"],
+          "gherkinDatatableCell":       ["string.unquoted"],
+          "gherkinDatatableCellString": ["string.quoted.double"],
+          "gherkinExamplesPipe":        ["punctuation.separator"],
+          "gherkinExamplesCell":        ["variable.other"],
+          "gherkinExamplesCellString":  ["string.quoted.double"],
+          "gherkinExamplesHeaderCell":  ["entity.name.tag"]
+        }
+      }
+    ]
   },
   "scripts": {
     "compile": "tsc -p tsconfig.json",
