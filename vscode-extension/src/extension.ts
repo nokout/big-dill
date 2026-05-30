@@ -12,6 +12,7 @@ import { GherkinParseCache } from './gherkinParser';
 import { FeatureSemanticTokensProvider, legend } from './featureSemanticTokens';
 import { FeatureFormattingProvider } from './featureFormatter';
 import { FeatureLinter } from './featureLinter';
+import { FeatureSymbolsProvider } from './featureSymbols';
 
 let testController: vscode.TestController | undefined;
 const resolvers = new Map<string, BddResultResolver>();
@@ -163,6 +164,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         vscode.languages.registerDocumentFormattingEditProvider(
             { language: 'feature' },
             new FeatureFormattingProvider(parseCache),
+        ),
+        vscode.languages.registerDocumentSymbolProvider(
+            { language: 'feature' },
+            new FeatureSymbolsProvider(parseCache),
         ),
     );
 
