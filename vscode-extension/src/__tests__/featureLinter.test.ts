@@ -1,13 +1,15 @@
+import { GherkinDocument } from '@cucumber/messages';
 import {
     checkEmptyComments,
     checkDuplicateExampleRows,
     checkOversizedExampleTable,
     checkOutlineMissingExamples,
     checkEmptyExamplesBody,
+    DiagnosticEntry,
 } from '../featureLinter';
 import { parseSource } from '../gherkinParser';
 
-function run(source: string, rule: (doc: any, lines: string[]) => any[]) {
+function run(source: string, rule: (doc: GherkinDocument, lines: string[]) => DiagnosticEntry[]) {
     const { doc } = parseSource(source);
     return doc ? rule(doc, source.split('\n')) : [];
 }

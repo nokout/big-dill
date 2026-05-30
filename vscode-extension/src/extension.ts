@@ -176,6 +176,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     vscode.workspace.onDidChangeTextDocument((e) => {
         if (e.document.fileName.endsWith('.feature')) featureLinter.schedule(e.document);
     }, null, context.subscriptions);
+
+    vscode.workspace.onDidCloseTextDocument((doc) => {
+        if (doc.fileName.endsWith('.feature')) parseCache.invalidate(doc.uri);
+    }, null, context.subscriptions);
 }
 
 export function deactivate(): void {
