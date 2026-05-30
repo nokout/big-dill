@@ -1,0 +1,137 @@
+import type { GherkinDocument } from '@cucumber/messages';
+import * as vscode from 'vscode';
+import { GherkinParseCache } from './gherkinParser';
+
+export interface DiagnosticEntry {
+    line: number;      // 0-indexed
+    message: string;
+    severity: 'error' | 'warning' | 'info';
+}
+
+export function checkEmptyComments(doc: GherkinDocument, _lines: string[]): DiagnosticEntry[] {
+    return (doc.comments ?? [])
+        .filter((c) => c.text.trim() === '#')
+        .map((c) => ({
+            line: (c.location?.line ?? 1) - 1,
+            message: 'Empty comment not allowed',
+            severity: 'warning' as const,
+        }));
+}
+
+export function checkDuplicateExampleRows(doc: GherkinDocument, _lines: string[]): DiagnosticEntry[] {
+    const diags: DiagnosticEntry[] = [];
+    for (const child of doc.feature?.children ?? []) {
+        for (const examples of child.scenario?.examples ?? []) {
+            const seen = new Set<string>();
+            for (const row of examples.tableBody) {
+                const key = row.cells.map((c) => c.value).join('\0');
+                if (seen.has(key)) {
+                    diags.push({
+                        line: (row.location?.line ?? 1) - 1,
+                        message: `Duplicate example row: ${row.cells.map((c) => c.value).join(', ')}`,
+                        severity: 'warning',
+                    });
+                }
+                seen.add(key);
+            }
+        }
+    }
+    return diags;
+}
+
+export function checkOversizedExampleTable(doc: GherkinDocument, _lines: string[]): DiagnosticEntry[] {
+    const diags: DiagnosticEntry[] = [];
+    for (const child of doc.feature?.children ?? []) {
+        for (const examples of child.scenario?.examples ?? []) {
+            if (examples.tableBody.length > 20) {
+                diags.push({
+                    line: (examples.location?.line ?? 1) - 1,
+                    message: `Examples table has ${examples.tableBody.length} rows — consider splitting (limit: 20)`,
+                    severity: 'warning',
+                });
+            }
+        }
+    }
+    return diags;
+}
+
+export function checkOutlineMissingExamples(doc: GherkinDocument, _lines: string[]): DiagnosticEntry[] {
+    const diags: DiagnosticEntry[] = [];
+    for (const child of doc.feature?.children ?? []) {
+        const scenario = child.scenario;
+        if (!scenario) continue;
+        if (scenario.keyword.trim().toLowerCase().includes('outline') && scenario.examples.length === 0) {
+            diags.push({
+                line: (scenario.location?.line ?? 1) - 1,
+                message: `Scenario Outline '${scenario.name}' has no Examples block`,
+                severity: 'error',
+            });
+        }
+    }
+    return diags;
+}
+
+export function checkEmptyExamplesBody(doc: GherkinDocument, _lines: string[]): DiagnosticEntry[] {
+    const diags: DiagnosticEntry[] = [];
+    for (const child of doc.feature?.children ?? []) {
+        for (const examples of child.scenario?.examples ?? []) {
+            if (examples.tableHeader && examples.tableBody.length === 0) {
+                diags.push({
+                    line: (examples.location?.line ?? 1) - 1,
+                    message: 'Examples block has no data rows',
+                    severity: 'error',
+                });
+            }
+        }
+    }
+    return diags;
+}
+
+const RULES = [
+    checkEmptyComments,
+    checkDuplicateExampleRows,
+    checkOversizedExampleTable,
+    checkOutlineMissingExamples,
+    checkEmptyExamplesBody,
+];
+
+export class FeatureLinter {
+    private readonly collection: vscode.DiagnosticCollection;
+    private readonly pending = new Map<string, ReturnType<typeof setTimeout>>();
+
+    constructor(private readonly cache: GherkinParseCache) {
+        this.collection = vscode.languages.createDiagnosticCollection('pytest-bdd-orama-gherkin');
+    }
+
+    schedule(document: vscode.TextDocument): void {
+        const key = document.uri.fsPath;
+        const existing = this.pending.get(key);
+        if (existing) clearTimeout(existing);
+        this.pending.set(key, setTimeout(() => { this.lint(document); }, 300));
+    }
+
+    lint(document: vscode.TextDocument): void {
+        const { doc } = this.cache.parse(document);
+        if (!doc) { this.collection.delete(document.uri); return; }
+
+        const lines = document.getText().split('\n');
+        const entries = RULES.flatMap((rule) => rule(doc, lines));
+
+        this.collection.set(
+            document.uri,
+            entries.map((e) => new vscode.Diagnostic(
+                new vscode.Range(e.line, 0, e.line, Number.MAX_SAFE_INTEGER),
+                e.message,
+                e.severity === 'error' ? vscode.DiagnosticSeverity.Error
+                    : e.severity === 'warning' ? vscode.DiagnosticSeverity.Warning
+                    : vscode.DiagnosticSeverity.Information,
+            )),
+        );
+    }
+
+    dispose(): void {
+        this.collection.dispose();
+        for (const t of this.pending.values()) clearTimeout(t);
+        this.pending.clear();
+    }
+}
