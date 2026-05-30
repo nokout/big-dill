@@ -117,6 +117,41 @@ export function checkTagAllowlist(
     return diags;
 }
 
+export interface PhrasingRule {
+    pattern: string;
+    message: string;
+}
+
+export function checkPhrasingRules(
+    doc: GherkinDocument,
+    _lines: string[],
+    rules: PhrasingRule[],
+): DiagnosticEntry[] {
+    if (rules.length === 0) return [];
+
+    const compiled = rules.map((r) => ({ re: new RegExp(r.pattern, 'i'), message: r.message }));
+    const diags: DiagnosticEntry[] = [];
+
+    for (const child of doc.feature?.children ?? []) {
+        const steps = child.scenario?.steps ?? child.background?.steps ?? [];
+        for (const step of steps) {
+            const text = step.text ?? '';
+            for (const { re, message } of compiled) {
+                if (re.test(text)) {
+                    diags.push({
+                        line: (step.location?.line ?? 1) - 1,
+                        message,
+                        severity: 'warning',
+                    });
+                    break; // one diagnostic per step per pass
+                }
+            }
+        }
+    }
+
+    return diags;
+}
+
 const RULES = [
     checkEmptyComments,
     checkDuplicateExampleRows,
@@ -147,10 +182,12 @@ export class FeatureLinter {
         const lines = document.getText().split('\n');
         const config = vscode.workspace.getConfiguration('pytest-bdd-orama');
         const allowedTags: string[] = config.get('allowedTags') ?? [];
+        const phrasingRules: PhrasingRule[] = config.get('phrasingRules') ?? [];
 
         const entries = [
             ...RULES.flatMap((rule) => rule(doc, lines)),
             ...checkTagAllowlist(doc, lines, allowedTags),
+            ...checkPhrasingRules(doc, lines, phrasingRules),
         ];
 
         this.collection.set(

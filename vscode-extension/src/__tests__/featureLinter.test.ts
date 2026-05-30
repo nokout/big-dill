@@ -6,7 +6,9 @@ import {
     checkOutlineMissingExamples,
     checkEmptyExamplesBody,
     checkTagAllowlist,
+    checkPhrasingRules,
     DiagnosticEntry,
+    PhrasingRule,
 } from '../featureLinter';
 import { parseSource } from '../gherkinParser';
 
@@ -110,5 +112,44 @@ describe('checkTagAllowlist', () => {
         const { doc } = parseSource(source);
         const diags = checkTagAllowlist(doc!, source.split('\n'), ['@featuretag']);
         expect(diags.map(d => d.message)).toEqual(expect.arrayContaining([expect.stringContaining('@scenariotag')]));
+    });
+});
+
+describe('checkPhrasingRules', () => {
+    const source = `Feature: F\n  Scenario: S\n    Given the user clicks the button\n    When the form is submitted\n    Then the result should appear`;
+
+    const noActionInGiven: PhrasingRule = {
+        pattern: '^the user (click|press|navigate)',
+        message: 'Given steps should describe state, not action',
+    };
+
+    it('flags a step whose text matches the pattern', () => {
+        const { doc } = parseSource(source);
+        const diags = checkPhrasingRules(doc!, source.split('\n'), [noActionInGiven]);
+        expect(diags).toHaveLength(1);
+        expect(diags[0].message).toBe('Given steps should describe state, not action');
+        expect(diags[0].severity).toBe('warning');
+    });
+
+    it('does not flag steps that do not match the pattern', () => {
+        const { doc } = parseSource(source);
+        const diags = checkPhrasingRules(doc!, source.split('\n'), [
+            { pattern: '^nonexistent', message: 'nope' },
+        ]);
+        expect(diags).toHaveLength(0);
+    });
+
+    it('returns no diagnostics when phrasingRules is empty', () => {
+        const { doc } = parseSource(source);
+        expect(checkPhrasingRules(doc!, source.split('\n'), [])).toHaveLength(0);
+    });
+
+    it('flags multiple steps when multiple match', () => {
+        const multiSource = `Feature: F\n  Scenario: S\n    Given click one\n    Given click two\n    Then done`;
+        const { doc } = parseSource(multiSource);
+        const diags = checkPhrasingRules(doc!, multiSource.split('\n'), [
+            { pattern: '^click', message: 'click not allowed' },
+        ]);
+        expect(diags).toHaveLength(2);
     });
 });
