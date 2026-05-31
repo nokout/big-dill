@@ -29,16 +29,46 @@ function patternToRegex(pattern: string): RegExp {
     return new RegExp(`^${regexStr}$`);
 }
 
+/** Strip Gherkin keyword prefix from a raw feature file step line. */
+const KEYWORD_RE = /^\s*(?:Given|When|Then|And|But|\*)\s+/i;
+function stripKeyword(line: string): string | null {
+    const m = KEYWORD_RE.exec(line);
+    return m ? line.slice(m[0].length) : null;
+}
+
 export class StepCache {
     private steps: StepDefinition[] = [];
     private distributedSteps: StepDefinition[] = [];
 
     update(steps: StepDefinition[]): void {
-        this.steps = steps;
+        this.steps = steps.map(s => ({ ...s, usage_count: s.usage_count ?? 0 }));
     }
 
     updateDistributed(steps: StepDefinition[]): void {
-        this.distributedSteps = steps;
+        this.distributedSteps = steps.map(s => ({ ...s, usage_count: s.usage_count ?? 0 }));
+    }
+
+    /**
+     * Scan *lines* (raw text lines from .feature files) and set `usage_count`
+     * on each step in the cache to the number of times that step pattern matches.
+     * Resets all counts to 0 before counting.
+     */
+    updateUsageCounts(lines: string[]): void {
+        // Reset
+        for (const s of [...this.steps, ...this.distributedSteps]) {
+            s.usage_count = 0;
+        }
+
+        for (const line of lines) {
+            const stepText = stripKeyword(line);
+            if (!stepText) continue;
+            for (const step of [...this.steps, ...this.distributedSteps]) {
+                const rx = patternToRegex(step.pattern);
+                if (rx.test(stepText.trim())) {
+                    step.usage_count = (step.usage_count ?? 0) + 1;
+                }
+            }
+        }
     }
 
     getAll(): StepDefinition[] {
@@ -59,6 +89,21 @@ export class StepCache {
             const m = rx.exec(stepText);
             if (m?.groups) {
                 return { step, params: { ...m.groups } };
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Return the step definition whose pattern matches *stepText* (no keyword prefix),
+     * or null if no pattern matches. Used by hover, definition, and linting.
+     */
+    matchPattern(stepText: string): StepDefinition | null {
+        const trimmed = stepText.trim();
+        for (const step of this.getAll()) {
+            const rx = patternToRegex(step.pattern);
+            if (rx.test(trimmed)) {
+                return step;
             }
         }
         return null;

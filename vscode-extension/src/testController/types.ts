@@ -89,6 +89,18 @@ export type StepDefinition = {
     keyword: 'given' | 'when' | 'then' | 'step';
     pattern: string;
     parameters: StepParameter[];
+    /** Absolute path to the Python file where this step is defined (from Plan B). */
+    file?: string;
+    /** 1-indexed line number in the Python file (from Plan B). */
+    line?: number;
+    /** First line of the function docstring (from Plan B). */
+    summary?: string;
+    /** Tags from the Tags: docstring section (from Plan B). */
+    tags?: string[];
+    /** StepType/StepEnum class names used as parameter types (from Plan B). */
+    param_types?: string[];
+    /** Number of times this step pattern appears across workspace .feature files. Tracked by StepCache. */
+    usage_count?: number;
 };
 
 export type StepDefinitionPayload = {
