@@ -94,3 +94,25 @@ describe('buildDomainCompletions', () => {
         expect(buildDomainCompletions('unrelated text', 5, cache)).toHaveLength(0);
     });
 });
+
+describe('buildStepCompletions usage-frequency ranking', () => {
+    test('returns steps sorted by usage_count descending', () => {
+        const cache = new StepCache();
+        const low: StepDefinition = { keyword: 'given', pattern: 'the alpha step', parameters: [], usage_count: 1 };
+        const high: StepDefinition = { keyword: 'given', pattern: 'the beta step', parameters: [], usage_count: 5 };
+        const zero: StepDefinition = { keyword: 'given', pattern: 'the gamma step', parameters: [], usage_count: 0 };
+        cache.update([low, high, zero]);
+        const items = buildStepCompletions('the', 'given', cache);
+        expect(items[0].label).toBe('the beta step');
+        expect(items[1].label).toBe('the alpha step');
+        expect(items[2].label).toBe('the gamma step');
+    });
+
+    test('sortText property is set on each completion item', () => {
+        const cache = new StepCache();
+        cache.update([{ keyword: 'given', pattern: 'a step', parameters: [], usage_count: 3 }]);
+        const items = buildStepCompletions('', 'given', cache);
+        // sortText encodes inverted count so VS Code sorts ascending by sortText
+        expect(items[0].sortText).toBeDefined();
+    });
+});

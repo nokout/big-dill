@@ -29,18 +29,24 @@ export function buildStepCompletions(
     cache: StepCache,
 ): vscode.CompletionItem[] {
     const lower = partialText.toLowerCase();
-    return cache
+    const matched = cache
         .getForKeyword(keyword)
-        .filter((s) => s.pattern.toLowerCase().startsWith(lower))
-        .map((s) => {
-            const item = new vscode.CompletionItem(s.pattern, vscode.CompletionItemKind.Snippet);
-            const snippet = patternToSnippet(s.pattern);
-            item.insertText = snippet === s.pattern
-                ? s.pattern  // no parameters — plain string
-                : new vscode.SnippetString(snippet);
-            item.detail = `${s.keyword} step`;
-            return item;
-        });
+        .filter((s) => s.pattern.toLowerCase().startsWith(lower));
+
+    // Sort by usage_count descending before building items
+    matched.sort((a, b) => (b.usage_count ?? 0) - (a.usage_count ?? 0));
+
+    return matched.map((s, index) => {
+        const item = new vscode.CompletionItem(s.pattern, vscode.CompletionItemKind.Snippet);
+        const snippet = patternToSnippet(s.pattern);
+        item.insertText = snippet === s.pattern
+            ? s.pattern  // no parameters — plain string
+            : new vscode.SnippetString(snippet);
+        item.detail = `${s.keyword} step`;
+        // Encode position as zero-padded string so VS Code sorts ascending by sortText
+        item.sortText = String(index).padStart(6, '0');
+        return item;
+    });
 }
 
 /**
