@@ -77,6 +77,16 @@ describe('StepCache', () => {
         expect(result!.valueStart).toBe(13);
         expect(result!.valueEnd).toBe(16);
     });
+
+    test('paramPositionAt resolves correct span when placeholder text matches literal word', () => {
+        // "the state is state" — the parameter value "state" starts at col 13,
+        // not col 4 where the literal word "state" appears first.
+        const result = cache.paramPositionAt('the state is state', 16);
+        expect(result).not.toBeNull();
+        expect(result!.parameter.name).toBe('state');
+        expect(result!.valueStart).toBe(13);
+        expect(result!.valueEnd).toBe(18);
+    });
 });
 
 describe('StepCache distributed steps', () => {

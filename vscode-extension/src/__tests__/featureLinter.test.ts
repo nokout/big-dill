@@ -5,6 +5,7 @@ import {
     checkOversizedExampleTable,
     checkOutlineMissingExamples,
     checkEmptyExamplesBody,
+    checkScenarioShouldBeOutline,
     checkTagAllowlist,
     checkPhrasingRules,
     DiagnosticEntry,
@@ -82,6 +83,31 @@ describe('checkEmptyExamplesBody', () => {
     it('does not flag Examples with data rows', () => {
         const source = `Feature: F\n  Scenario Outline: S\n    Given <x>\n    Examples:\n      | x |\n      | 1 |`;
         expect(run(source, checkEmptyExamplesBody)).toHaveLength(0);
+    });
+});
+
+describe('checkScenarioShouldBeOutline', () => {
+    it('flags a Scenario whose step contains <param> syntax', () => {
+        const source = `Feature: F\n  Scenario: S\n    Given value is <x>`;
+        const diags = run(source, checkScenarioShouldBeOutline);
+        expect(diags).toHaveLength(1);
+        expect(diags[0].message).toMatch(/Scenario Outline/);
+        expect(diags[0].severity).toBe('warning');
+    });
+
+    it('does not flag a Scenario Outline', () => {
+        const source = `Feature: F\n  Scenario Outline: S\n    Given value is <x>\n    Examples:\n      | x |\n      | 1 |`;
+        expect(run(source, checkScenarioShouldBeOutline)).toHaveLength(0);
+    });
+
+    it('does not flag a Scenario with no <param> syntax', () => {
+        const source = `Feature: F\n  Scenario: S\n    Given a plain step`;
+        expect(run(source, checkScenarioShouldBeOutline)).toHaveLength(0);
+    });
+
+    it('reports at most one diagnostic per scenario even with multiple params', () => {
+        const source = `Feature: F\n  Scenario: S\n    Given <a> and <b>`;
+        expect(run(source, checkScenarioShouldBeOutline)).toHaveLength(1);
     });
 });
 

@@ -39,12 +39,15 @@ export function buildStepCompletions(
     return matched.map((s, index) => {
         const item = new vscode.CompletionItem(s.pattern, vscode.CompletionItemKind.Snippet);
         const snippet = patternToSnippet(s.pattern);
-        item.insertText = snippet === s.pattern
-            ? s.pattern  // no parameters — plain string
-            : new vscode.SnippetString(snippet);
+        const hasParams = snippet !== s.pattern;
+        item.insertText = hasParams ? new vscode.SnippetString(snippet) : s.pattern;
         item.detail = `${s.keyword} step`;
-        // Encode position as zero-padded string so VS Code sorts ascending by sortText
         item.sortText = String(index).padStart(6, '0');
+        if (hasParams) {
+            // After inserting the snippet, immediately open the suggestion list so
+            // the user can pick a domain value for the first highlighted parameter.
+            item.command = { command: 'editor.action.triggerSuggest', title: '' };
+        }
         return item;
     });
 }

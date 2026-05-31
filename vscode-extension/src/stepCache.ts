@@ -116,6 +116,10 @@ export class StepCache {
     /**
      * Return the parameter the cursor (at *column*) sits inside on *lineText*,
      * or null if the cursor is not inside a parameter value.
+     *
+     * Positions are computed by walking literal segment lengths so that a
+     * placeholder value that also appears in the literal prefix (e.g. "state"
+     * in "the state is {state:AustralianState}") resolves to the correct span.
      */
     paramPositionAt(lineText: string, column: number): ParamAtPosition | null {
         for (const step of this.steps) {
@@ -123,17 +127,33 @@ export class StepCache {
             const m = rx.exec(lineText);
             if (!m?.groups) continue;
 
-            let searchFrom = 0;
-            for (const param of step.parameters) {
-                const value = m.groups[param.name];
-                if (value === undefined) continue;
-                const idx = lineText.indexOf(value, searchFrom);
-                if (idx === -1) continue;
-                const end = idx + value.length;
-                if (column >= idx && column <= end) {
-                    return { parameter: param, valueStart: idx, valueEnd: end };
+            // Split pattern into alternating [literal, placeholder, literal, ...]
+            const segments = step.pattern.split(/(\{[^}]+\})/);
+
+            let pos = 0;      // cursor into lineText as we consume each segment
+            let paramIdx = 0; // index into step.parameters
+
+            for (let i = 0; i < segments.length; i++) {
+                if (i % 2 === 0) {
+                    // literal segment — advance pos by its length
+                    pos += segments[i].length;
+                } else {
+                    // parameter placeholder — the captured value starts at pos
+                    const name = segments[i].replace(/^\{(\w+)(?::[^}]+)?\}$/, '$1');
+                    const value = m.groups[name];
+                    if (value !== undefined) {
+                        const valueStart = pos;
+                        const valueEnd = pos + value.length;
+                        if (column >= valueStart && column <= valueEnd) {
+                            const param = step.parameters[paramIdx];
+                            if (param) {
+                                return { parameter: param, valueStart, valueEnd };
+                            }
+                        }
+                        pos = valueEnd;
+                    }
+                    paramIdx++;
                 }
-                searchFrom = end;
             }
         }
         return null;

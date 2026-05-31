@@ -104,8 +104,8 @@ export class FeatureFormattingProvider implements vscode.DocumentFormattingEditP
     constructor(private readonly cache: GherkinParseCache) {}
 
     provideDocumentFormattingEdits(document: vscode.TextDocument): vscode.TextEdit[] {
-        const { doc, errors } = this.cache.parse(document);
-        if (!doc || errors.length > 0) return [];
+        const { doc } = this.cache.parse(document);
+        if (!doc) return [];
 
         const lines = document.getText().split('\n');
         return formatTables(doc, lines).map((e) =>

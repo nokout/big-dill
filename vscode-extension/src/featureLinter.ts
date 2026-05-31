@@ -117,6 +117,28 @@ export function checkTagAllowlist(
     return diags;
 }
 
+const EXAMPLE_PARAM_RE = /<[^>]+>/;
+
+export function checkScenarioShouldBeOutline(doc: GherkinDocument, _lines: string[]): DiagnosticEntry[] {
+    const diags: DiagnosticEntry[] = [];
+    for (const child of doc.feature?.children ?? []) {
+        const scenario = child.scenario;
+        if (!scenario) continue;
+        if (scenario.keyword.trim().toLowerCase().includes('outline')) continue;
+        for (const step of scenario.steps) {
+            if (EXAMPLE_PARAM_RE.test(step.text ?? '')) {
+                diags.push({
+                    line: (scenario.location?.line ?? 1) - 1,
+                    message: `Scenario '${scenario.name}' uses <param> syntax — use Scenario Outline`,
+                    severity: 'warning',
+                });
+                break;
+            }
+        }
+    }
+    return diags;
+}
+
 export interface PhrasingRule {
     pattern: string;
     message: string;
@@ -158,6 +180,7 @@ const RULES = [
     checkOversizedExampleTable,
     checkOutlineMissingExamples,
     checkEmptyExamplesBody,
+    checkScenarioShouldBeOutline,
 ];
 
 export class FeatureLinter {

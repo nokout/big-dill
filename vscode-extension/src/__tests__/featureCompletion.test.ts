@@ -112,7 +112,21 @@ describe('buildStepCompletions usage-frequency ranking', () => {
         const cache = new StepCache();
         cache.update([{ keyword: 'given', pattern: 'a step', parameters: [], usage_count: 3 }]);
         const items = buildStepCompletions('', 'given', cache);
-        // sortText encodes inverted count so VS Code sorts ascending by sortText
         expect(items[0].sortText).toBeDefined();
+    });
+
+    test('parameterised steps have triggerSuggest command; plain steps do not', () => {
+        const cache = new StepCache();
+        const param: StepDefinition = {
+            keyword: 'given', pattern: 'the state is {state:AustralianState}',
+            parameters: [{ name: 'state', type_name: 'AustralianState', suggested_values: ['NSW'], has_validator: false }],
+        };
+        const plain: StepDefinition = { keyword: 'given', pattern: 'a plain step', parameters: [] };
+        cache.update([param, plain]);
+        const items = buildStepCompletions('', 'given', cache);
+        const paramItem = items.find(i => i.label === param.pattern)!;
+        const plainItem = items.find(i => i.label === plain.pattern)!;
+        expect(paramItem.command?.command).toBe('editor.action.triggerSuggest');
+        expect(plainItem.command).toBeUndefined();
     });
 });
