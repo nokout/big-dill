@@ -57,6 +57,9 @@ def main() -> None:
     from .step_registry import collect_step_type_classes
 
     step_types = collect_step_type_classes()
+    # collect_step_definitions requires a live pytest session; the CLI entry point
+    # only exports step_type metadata (suggested values, validators).  Step-level
+    # enrichment (file, line, summary, tags) is produced during pytest collection.
     metadata = _build_metadata([], step_types)
 
     output.write_text(json.dumps(metadata, indent=2))

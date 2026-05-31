@@ -108,9 +108,14 @@ def collect_step_definitions(session) -> list[dict]:
     """Return a list of step definition dicts suitable for JSON serialisation.
 
     Each dict has:
-        keyword:    "given" | "when" | "then" | "step"
-        pattern:    raw format string, e.g. "the state is {state:AustralianState}"
-        parameters: list of {name, type_name, suggested_values, has_validator}
+        keyword:     "given" | "when" | "then" | "step"
+        pattern:     raw format string, e.g. "the state is {state:AustralianState}"
+        parameters:  list of {name, type_name, suggested_values, has_validator}
+        file:        absolute path to the file containing the step function
+        line:        first line number of the step function
+        summary:     first non-empty docstring line, or None
+        tags:        list of lowercased tag strings from the Tags: section
+        param_types: deduplicated list of StepType/StepEnum class names
 
     In pytest-bdd 8.x, step definitions are registered as fixtures whose
     names start with ``pytestbdd_stepdef_``.  The fixture function
