@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { StepCache } from './stepCache';
+import { StepParameter } from './testController/types';
 import { outputChannel } from './extension';
 
 const KEYWORD_RE = /^\s*(Given|When|Then|And|But|\*)\s+/i;
@@ -14,10 +15,31 @@ export function extractStepText(line: string): KeywordAndText | null {
     return { keyword: m[1].toLowerCase(), text: line.slice(m[0].length) };
 }
 
-/** Convert a step pattern to a VS Code snippet string with numbered tab stops. */
-function patternToSnippet(pattern: string): string {
+/**
+ * Escape a string for use inside a VS Code snippet choice list.
+ * The characters `,`, `|`, `\`, `$`, `}` are special inside `${N|...|}.
+ */
+function escapeChoice(v: string): string {
+    return v.replace(/[\\|,$}]/g, '\\$&');
+}
+
+/**
+ * Convert a step pattern to a VS Code snippet string.
+ * Parameters with suggested_values become choice tab stops (${1|NSW,VIC,...|})
+ * so VS Code shows the inline choice picker as soon as the tab stop activates.
+ * Parameters without suggested_values fall back to a plain placeholder (${1:name}).
+ */
+function patternToSnippet(pattern: string, parameters: StepParameter[]): string {
     let i = 0;
-    return pattern.replace(PARAM_RE, (_match, name) => `\${${++i}:${name}}`);
+    let paramIdx = 0;
+    return pattern.replace(PARAM_RE, (_match, name) => {
+        const param = parameters[paramIdx++];
+        const values = param?.suggested_values ?? [];
+        if (values.length > 0) {
+            return `\${${++i}|${values.map(escapeChoice).join(',')}|}`;
+        }
+        return `\${${++i}:${name}}`;
+    });
 }
 
 /**
@@ -38,16 +60,10 @@ export function buildStepCompletions(
 
     return matched.map((s, index) => {
         const item = new vscode.CompletionItem(s.pattern, vscode.CompletionItemKind.Snippet);
-        const snippet = patternToSnippet(s.pattern);
-        const hasParams = snippet !== s.pattern;
-        item.insertText = hasParams ? new vscode.SnippetString(snippet) : s.pattern;
+        const snippet = patternToSnippet(s.pattern, s.parameters ?? []);
+        item.insertText = snippet !== s.pattern ? new vscode.SnippetString(snippet) : s.pattern;
         item.detail = `${s.keyword} step`;
         item.sortText = String(index).padStart(6, '0');
-        if (hasParams) {
-            // After inserting the snippet, immediately open the suggestion list so
-            // the user can pick a domain value for the first highlighted parameter.
-            item.command = { command: 'editor.action.triggerSuggest', title: '' };
-        }
         return item;
     });
 }

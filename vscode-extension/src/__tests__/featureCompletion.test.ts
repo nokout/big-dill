@@ -51,8 +51,8 @@ describe('buildStepCompletions', () => {
         const items = buildStepCompletions('', 'given', cache);
         expect(items).toHaveLength(1);
         expect(items[0].label).toBe('the state is {state:AustralianState}');
-        // insertText is a SnippetString — check its value property
-        expect((items[0].insertText as { value: string }).value).toBe('the state is ${1:state}');
+        // parameter has suggested_values → choice snippet, not plain placeholder
+        expect((items[0].insertText as { value: string }).value).toBe('the state is ${1|NSW,Victoria,Queensland|}');
     });
 
     test('filters by partial text', () => {
@@ -115,18 +115,27 @@ describe('buildStepCompletions usage-frequency ranking', () => {
         expect(items[0].sortText).toBeDefined();
     });
 
-    test('parameterised steps have triggerSuggest command; plain steps do not', () => {
+    test('parameter with suggested_values uses snippet choice syntax', () => {
         const cache = new StepCache();
-        const param: StepDefinition = {
+        const step: StepDefinition = {
             keyword: 'given', pattern: 'the state is {state:AustralianState}',
-            parameters: [{ name: 'state', type_name: 'AustralianState', suggested_values: ['NSW'], has_validator: false }],
+            parameters: [{ name: 'state', type_name: 'AustralianState', suggested_values: ['NSW', 'VIC'], has_validator: false }],
         };
-        const plain: StepDefinition = { keyword: 'given', pattern: 'a plain step', parameters: [] };
-        cache.update([param, plain]);
+        cache.update([step]);
         const items = buildStepCompletions('', 'given', cache);
-        const paramItem = items.find(i => i.label === param.pattern)!;
-        const plainItem = items.find(i => i.label === plain.pattern)!;
-        expect(paramItem.command?.command).toBe('editor.action.triggerSuggest');
-        expect(plainItem.command).toBeUndefined();
+        const insertText = items[0].insertText as import('vscode').SnippetString;
+        expect(insertText.value).toBe('the state is ${1|NSW,VIC|}');
+    });
+
+    test('parameter without suggested_values falls back to plain placeholder', () => {
+        const cache = new StepCache();
+        const step: StepDefinition = {
+            keyword: 'given', pattern: 'the value is {n}',
+            parameters: [{ name: 'n', type_name: '', suggested_values: [], has_validator: false }],
+        };
+        cache.update([step]);
+        const items = buildStepCompletions('', 'given', cache);
+        const insertText = items[0].insertText as import('vscode').SnippetString;
+        expect(insertText.value).toBe('the value is ${1:n}');
     });
 });
