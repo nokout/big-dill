@@ -2,5 +2,8 @@
   "recommendations": [
     "ms-python.python",
     "pytest-bdd-orama.pytest-bdd-runner"
+  ],
+  "unwantedRecommendations": [
+    "alexkrechik.cucumberautocomplete"
   ]
 }

@@ -249,6 +249,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     vscode.workspace.onDidCloseTextDocument((doc) => {
         if (doc.fileName.endsWith('.feature')) parseCache.invalidate(doc.uri);
     }, null, context.subscriptions);
+
+    // Lint .feature files that were already open before the extension activated
+    for (const doc of vscode.workspace.textDocuments) {
+        if (doc.fileName.endsWith('.feature')) {
+            featureLinter.schedule(doc);
+        }
+    }
 }
 
 export function deactivate(): void {

@@ -1,10 +1,17 @@
 {
-  "python.testing.pytestEnabled": false,
+  "python.testing.pytestEnabled": true,
   "python.testing.unittestEnabled": false,
   "python.testing.autoTestDiscoverOnSaveEnabled": false,
   "pytest-bdd-orama.enabled": true,
   "pytest-bdd-orama.outcomeMapping": {
     "waiting": "enqueued",
     "knownError": "errored"
+  },
+  "python.testing.pytestArgs": [
+    "tests"
+  ],
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+  "[feature]": {
+    "editor.defaultFormatter": "pytest-bdd-orama.pytest-bdd-orama"
   }
 }
