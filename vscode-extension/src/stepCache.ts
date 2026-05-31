@@ -59,12 +59,16 @@ export class StepCache {
             s.usage_count = 0;
         }
 
+        // Precompile one regex per step (not per line)
+        const allSteps = [...this.steps, ...this.distributedSteps];
+        const compiled = allSteps.map(s => ({ step: s, rx: patternToRegex(s.pattern) }));
+
         for (const line of lines) {
             const stepText = stripKeyword(line);
             if (!stepText) continue;
-            for (const step of [...this.steps, ...this.distributedSteps]) {
-                const rx = patternToRegex(step.pattern);
-                if (rx.test(stepText.trim())) {
+            const trimmed = stepText.trim();
+            for (const { step, rx } of compiled) {
+                if (rx.test(trimmed)) {
                     step.usage_count = (step.usage_count ?? 0) + 1;
                 }
             }

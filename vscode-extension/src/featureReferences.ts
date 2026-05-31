@@ -41,6 +41,8 @@ export class FeatureReferencesProvider implements vscode.ReferenceProvider {
     async provideReferences(
         document: vscode.TextDocument,
         position: vscode.Position,
+        _context: vscode.ReferenceContext,
+        token: vscode.CancellationToken,
     ): Promise<vscode.Location[]> {
         let step: StepDefinition | null = null;
 
@@ -64,6 +66,7 @@ export class FeatureReferencesProvider implements vscode.ReferenceProvider {
         const locations: vscode.Location[] = [];
 
         for (const uri of featureUris) {
+            if (token.isCancellationRequested) break;
             const doc = await vscode.workspace.openTextDocument(uri);
             const lines = Array.from({ length: doc.lineCount }, (_, i) => doc.lineAt(i).text);
             const matchedLines = findReferencesInLines(lines, step);

@@ -82,10 +82,9 @@ export class FeatureCodeActionsProvider implements vscode.CodeActionProvider {
             ].join('\n');
 
             const edit = new vscode.WorkspaceEdit();
-            const newFileUri = vscode.Uri.file(
-                document.uri.fsPath.replace(/[^/\\]+\.feature$/, 'steps_stub.py'),
-            );
-            edit.insert(newFileUri, new vscode.Position(0, 0), stubWithImport);
+            // Write stub into a new untitled document — user must review and save
+            const untitledUri = vscode.Uri.parse('untitled:step_stub.py');
+            edit.insert(untitledUri, new vscode.Position(0, 0), stubWithImport);
             action.edit = edit;
 
             actions.push(action);

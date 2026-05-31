@@ -15,7 +15,7 @@ export function buildHoverContent(
 
 function renderStepHover(step: StepDefinition): vscode.MarkdownString {
     const md = new vscode.MarkdownString();
-    (md as any).isTrusted = true;
+    md.isTrusted = true;
 
     // Pattern heading
     md.appendMarkdown(`**\`${step.pattern}\`**\n\n`);
