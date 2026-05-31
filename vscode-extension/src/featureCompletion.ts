@@ -111,12 +111,24 @@ export class FeatureCompletionProvider implements vscode.CompletionItemProvider 
         document: vscode.TextDocument,
         position: vscode.Position,
     ): vscode.CompletionItem[] {
+        try {
+            return this._provideCompletionItems(document, position);
+        } catch (err) {
+            outputChannel?.appendLine(`[completions] ERROR: ${err}`);
+            return [];
+        }
+    }
+
+    private _provideCompletionItems(
+        document: vscode.TextDocument,
+        position: vscode.Position,
+    ): vscode.CompletionItem[] {
         const rawLine = document.lineAt(position).text;
         const column = position.character;
         const stepText = extractStepText(rawLine);
         if (!stepText) return [];
 
-        outputChannel.appendLine(`[completions] keyword=${stepText.keyword} text="${stepText.text}" cacheSize=${this.cache.getAll().length}`);
+        outputChannel?.appendLine(`[completions] keyword=${stepText.keyword} text="${stepText.text}" cacheSize=${this.cache.getAll().length}`);
 
         // Level 2: domain values if cursor is inside a param value
         const stepTextStart = rawLine.indexOf(stepText.text);
