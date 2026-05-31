@@ -6,6 +6,7 @@ import {
     checkOutlineMissingExamples,
     checkEmptyExamplesBody,
     checkScenarioShouldBeOutline,
+    checkScenarioHasExamplesNotOutline,
     checkTagAllowlist,
     checkPhrasingRules,
     DiagnosticEntry,
@@ -108,6 +109,33 @@ describe('checkScenarioShouldBeOutline', () => {
     it('reports at most one diagnostic per scenario even with multiple params', () => {
         const source = `Feature: F\n  Scenario: S\n    Given <a> and <b>`;
         expect(run(source, checkScenarioShouldBeOutline)).toHaveLength(1);
+    });
+});
+
+describe('checkScenarioHasExamplesNotOutline', () => {
+    it('flags an Examples table under a plain Scenario as error', () => {
+        const source = `Feature: F\n  Scenario: S\n    Given a step\n    Examples:\n      | x |\n      | 1 |`;
+        const diags = run(source, checkScenarioHasExamplesNotOutline);
+        expect(diags).toHaveLength(1);
+        expect(diags[0].message).toMatch(/Scenario Outline/);
+        expect(diags[0].severity).toBe('error');
+    });
+
+    it('diagnostic points to the Examples line, not the Scenario line', () => {
+        const source = `Feature: F\n  Scenario: S\n    Given a step\n    Examples:\n      | x |\n      | 1 |`;
+        const diags = run(source, checkScenarioHasExamplesNotOutline);
+        // "Examples:" is on line 4 (1-indexed) → 3 (0-indexed)
+        expect(diags[0].line).toBe(3);
+    });
+
+    it('does not flag a Scenario Outline with Examples', () => {
+        const source = `Feature: F\n  Scenario Outline: S\n    Given value is <x>\n    Examples:\n      | x |\n      | 1 |`;
+        expect(run(source, checkScenarioHasExamplesNotOutline)).toHaveLength(0);
+    });
+
+    it('does not flag a Scenario with no Examples', () => {
+        const source = `Feature: F\n  Scenario: S\n    Given a plain step`;
+        expect(run(source, checkScenarioHasExamplesNotOutline)).toHaveLength(0);
     });
 });
 

@@ -139,6 +139,23 @@ export function checkScenarioShouldBeOutline(doc: GherkinDocument, _lines: strin
     return diags;
 }
 
+export function checkScenarioHasExamplesNotOutline(doc: GherkinDocument, _lines: string[]): DiagnosticEntry[] {
+    const diags: DiagnosticEntry[] = [];
+    for (const child of doc.feature?.children ?? []) {
+        const scenario = child.scenario;
+        if (!scenario) continue;
+        if (scenario.keyword.trim().toLowerCase().includes('outline')) continue;
+        if (scenario.examples.length > 0) {
+            diags.push({
+                line: (scenario.examples[0].location?.line ?? scenario.location?.line ?? 1) - 1,
+                message: `Examples table found under Scenario '${scenario.name}' — change keyword to Scenario Outline`,
+                severity: 'error',
+            });
+        }
+    }
+    return diags;
+}
+
 export interface PhrasingRule {
     pattern: string;
     message: string;
@@ -181,6 +198,7 @@ const RULES = [
     checkOutlineMissingExamples,
     checkEmptyExamplesBody,
     checkScenarioShouldBeOutline,
+    checkScenarioHasExamplesNotOutline,
 ];
 
 export class FeatureLinter {
