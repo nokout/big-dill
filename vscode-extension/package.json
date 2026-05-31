@@ -130,6 +130,51 @@
         }
       }
     },
+    "views": {
+      "explorer": [
+        {
+          "id": "pytest-bdd-orama.stepBrowser",
+          "name": "Step Browser",
+          "when": "pytest-bdd-orama.enabled"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "pytest-bdd-orama.stepBrowser.groupByFile",
+        "title": "Group by File",
+        "icon": "$(file)"
+      },
+      {
+        "command": "pytest-bdd-orama.stepBrowser.groupByStepType",
+        "title": "Group by Step Type",
+        "icon": "$(symbol-class)"
+      },
+      {
+        "command": "pytest-bdd-orama.stepBrowser.groupByTag",
+        "title": "Group by Tag",
+        "icon": "$(tag)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "pytest-bdd-orama.stepBrowser.groupByFile",
+          "when": "view == pytest-bdd-orama.stepBrowser",
+          "group": "navigation"
+        },
+        {
+          "command": "pytest-bdd-orama.stepBrowser.groupByStepType",
+          "when": "view == pytest-bdd-orama.stepBrowser",
+          "group": "navigation"
+        },
+        {
+          "command": "pytest-bdd-orama.stepBrowser.groupByTag",
+          "when": "view == pytest-bdd-orama.stepBrowser",
+          "group": "navigation"
+        }
+      ]
+    },
     "semanticTokenTypes": [
       { "id": "gherkinDatatablePipe",       "description": "Pipe characters in step datatables" },
       { "id": "gherkinDatatableCell",       "description": "Cell content in step datatables" },

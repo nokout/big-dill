@@ -13,11 +13,17 @@ import { FeatureSemanticTokensProvider, legend } from './featureSemanticTokens';
 import { FeatureFormattingProvider } from './featureFormatter';
 import { FeatureLinter } from './featureLinter';
 import { FeatureSymbolsProvider } from './featureSymbols';
+import { FeatureHoverProvider } from './featureHover';
+import { FeatureDefinitionProvider } from './featureDefinition';
+import { FeatureReferencesProvider } from './featureReferences';
+import { FeatureCodeActionsProvider } from './featureCodeActions';
+import { StepBrowserProvider, GroupingMode } from './stepBrowserView';
 
 let testController: vscode.TestController | undefined;
 const resolvers = new Map<string, BddResultResolver>();
 export let outputChannel: vscode.OutputChannel;
 const stepCache = new StepCache();
+let stepBrowserProvider: StepBrowserProvider | undefined;
 
 async function loadDistributedStepMetadata(
     workspaceUri: vscode.Uri,
@@ -141,9 +147,67 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     );
     context.subscriptions.push(completionProvider);
 
+    // Hover provider
+    context.subscriptions.push(
+        vscode.languages.registerHoverProvider(
+            { pattern: '**/*.feature', scheme: 'file' },
+            new FeatureHoverProvider(stepCache),
+        ),
+    );
+
+    // Go-to-definition provider
+    context.subscriptions.push(
+        vscode.languages.registerDefinitionProvider(
+            { pattern: '**/*.feature', scheme: 'file' },
+            new FeatureDefinitionProvider(stepCache),
+        ),
+    );
+
+    // Find references provider (works from both .feature and .py files)
+    context.subscriptions.push(
+        vscode.languages.registerReferenceProvider(
+            [
+                { pattern: '**/*.feature', scheme: 'file' },
+                { pattern: '**/*.py', scheme: 'file' },
+            ],
+            new FeatureReferencesProvider(stepCache),
+        ),
+    );
+
+    // Code actions provider (step stub generation)
+    context.subscriptions.push(
+        vscode.languages.registerCodeActionsProvider(
+            { pattern: '**/*.feature', scheme: 'file' },
+            new FeatureCodeActionsProvider(stepCache),
+            { providedCodeActionKinds: [vscode.CodeActionKind.QuickFix] },
+        ),
+    );
+
+    // Step browser panel
+    stepBrowserProvider = new StepBrowserProvider(stepCache);
+    const stepBrowserView = vscode.window.createTreeView('pytest-bdd-orama.stepBrowser', {
+        treeDataProvider: stepBrowserProvider,
+        showCollapseAll: true,
+    });
+    context.subscriptions.push(stepBrowserView);
+
+    // Grouping mode toggle commands
+    context.subscriptions.push(
+        vscode.commands.registerCommand('pytest-bdd-orama.stepBrowser.groupByFile', () => {
+            stepBrowserProvider?.setGroupingMode(GroupingMode.ByFile);
+        }),
+        vscode.commands.registerCommand('pytest-bdd-orama.stepBrowser.groupByStepType', () => {
+            stepBrowserProvider?.setGroupingMode(GroupingMode.ByStepType);
+        }),
+        vscode.commands.registerCommand('pytest-bdd-orama.stepBrowser.groupByTag', () => {
+            stepBrowserProvider?.setGroupingMode(GroupingMode.ByTag);
+        }),
+    );
+
     const featureDiagnostics = new FeatureDiagnostics(
         () => vscode.workspace.workspaceFolders?.[0]?.uri,
         (uri) => getPythonInterpreter(uri),
+        () => stepCache,
     );
     context.subscriptions.push(featureDiagnostics);
 
@@ -235,6 +299,20 @@ async function refreshWorkspace(workspaceUri: vscode.Uri, token?: vscode.Cancell
         outputChannel.appendLine(`[discovery] status=${discovery.status} stepDefs=${stepDefinitions.length}`);
         resolver.resolveDiscovery(discovery, testController, token);
         stepCache.update(stepDefinitions);
+        // Scan feature files to update usage counts for frequency-ranked completions
+        void vscode.workspace.findFiles('**/*.feature', '**/node_modules/**').then(async (uris) => {
+            const lines: string[] = [];
+            for (const uri of uris) {
+                try {
+                    const doc = await vscode.workspace.openTextDocument(uri);
+                    for (let i = 0; i < doc.lineCount; i++) {
+                        lines.push(doc.lineAt(i).text);
+                    }
+                } catch { /* skip unreadable files */ }
+            }
+            stepCache.updateUsageCounts(lines);
+            stepBrowserProvider?.refresh();
+        });
     } catch (err) {
         outputChannel.appendLine(`[discovery] ERROR: ${err}`);
         const errorItem = testController.createTestItem('discovery-error', 'Discovery error');
