@@ -208,3 +208,15 @@ export class FeatureLinter {
         this.pending.clear();
     }
 }
+
+/**
+ * Return the appropriate diagnostic severity for a phrasing violation on *stepText*.
+ * - 'warning' if the step has no matching implementation (proposing new wording)
+ * - 'information' if the step matches a known implementation (existing convention violation)
+ */
+export function graduatePhrasingSeverity(
+    stepText: string,
+    cache: import('./stepCache').StepCache,
+): 'warning' | 'information' {
+    return cache.matchPattern(stepText) ? 'information' : 'warning';
+}
