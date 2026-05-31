@@ -109,3 +109,99 @@ export class DocumentSymbol {
         public selectionRange: any,
     ) {}
 }
+
+export class MarkdownString {
+    value: string;
+    isTrusted?: boolean;
+    constructor(value = '') {
+        this.value = value;
+    }
+    appendMarkdown(text: string): this {
+        this.value += text;
+        return this;
+    }
+    appendCodeblock(text: string, language?: string): this {
+        this.value += `\`\`\`${language ?? ''}\n${text}\n\`\`\`\n`;
+        return this;
+    }
+}
+
+export class Hover {
+    contents: MarkdownString[];
+    range?: unknown;
+    constructor(contents: MarkdownString | MarkdownString[], range?: unknown) {
+        this.contents = Array.isArray(contents) ? contents : [contents];
+        this.range = range;
+    }
+}
+
+export class Location {
+    uri: unknown;
+    range: unknown;
+    constructor(uri: unknown, range: unknown) {
+        this.uri = uri;
+        this.range = range;
+    }
+}
+
+export class CodeAction {
+    title: string;
+    edit?: unknown;
+    diagnostics?: unknown[];
+    kind?: string;
+    constructor(title: string, kind?: string) {
+        this.title = title;
+        this.kind = kind;
+    }
+}
+
+export const CodeActionKind = {
+    QuickFix: 'quickfix',
+    Refactor: 'refactor',
+};
+
+export class WorkspaceEdit {
+    private _edits: Array<{ uri: unknown; range: unknown; newText: string }> = [];
+    replace(uri: unknown, range: unknown, newText: string): void {
+        this._edits.push({ uri, range, newText });
+    }
+    insert(uri: unknown, position: unknown, text: string): void {
+        this._edits.push({ uri, range: position, newText: text });
+    }
+    getEdits(): Array<{ uri: unknown; range: unknown; newText: string }> {
+        return this._edits;
+    }
+}
+
+export class TreeItem {
+    label: string;
+    collapsibleState?: number;
+    description?: string;
+    tooltip?: string;
+    command?: unknown;
+    contextValue?: string;
+    constructor(label: string, collapsibleState?: number) {
+        this.label = label;
+        this.collapsibleState = collapsibleState;
+    }
+}
+
+export const TreeItemCollapsibleState = {
+    None: 0,
+    Collapsed: 1,
+    Expanded: 2,
+};
+
+export class EventEmitter<T = void> {
+    private listeners: Array<(e: T) => void> = [];
+    readonly event = (listener: (e: T) => void): { dispose: () => void } => {
+        this.listeners.push(listener);
+        return { dispose: () => { this.listeners = this.listeners.filter(l => l !== listener); } };
+    };
+    fire(data: T): void {
+        this.listeners.forEach(l => l(data));
+    }
+    dispose(): void {
+        this.listeners = [];
+    }
+}
