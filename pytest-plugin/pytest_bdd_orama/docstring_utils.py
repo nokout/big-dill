@@ -6,10 +6,17 @@ _SECTION_RE = re.compile(r'^[ \t]*([A-Z][A-Za-z]*):\s*$', re.MULTILINE)
 
 
 def get_summary(docstring: str | None) -> str | None:
-    """Return the first non-empty line of *docstring*, stripped of whitespace."""
+    """Return the first non-empty line before any section header, stripped of whitespace.
+
+    Returns None if no such line exists (empty docstring, or docstring starts
+    with a section header like ``Tags:``).
+    """
     if not docstring:
         return None
     for line in docstring.splitlines():
+        # Stop at the first section header — summary must precede sections
+        if _SECTION_RE.match(line):
+            return None
         stripped = line.strip()
         if stripped:
             return stripped
