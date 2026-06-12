@@ -19,7 +19,10 @@ echo "==> Compiling TypeScript..."
 npm run compile
 
 echo "==> Packaging extension..."
-./node_modules/.bin/vsce package --no-dependencies
+# NOTE: do NOT pass --no-dependencies — the extension is built with tsc (not a
+# bundler), so runtime deps like @cucumber/gherkin must be packaged into the
+# VSIX. Omitting them makes activation fail with "Cannot find module".
+./node_modules/.bin/vsce package
 
 VSIX=$(ls -t pytest-bdd-orama-*.vsix 2>/dev/null | head -1)
 if [[ -z "$VSIX" ]]; then
