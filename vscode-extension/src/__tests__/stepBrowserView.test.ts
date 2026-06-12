@@ -116,4 +116,43 @@ describe('StepBrowserProvider', () => {
             expect(roots[0].label).toBe('Awaiting discovery...');
         });
     });
+
+    describe('keyword filter', () => {
+        beforeEach(() => provider.setGroupingMode(GroupingMode.ByFile));
+
+        test('setFilter narrows root groups to files containing matching steps', async () => {
+            provider.setFilter('state is');
+            const roots = await provider.getChildren(undefined);
+            const labels = roots.map(n => n.label);
+            expect(labels).toContain('state_steps.py');
+            expect(labels).not.toContain('auth_steps.py');
+        });
+
+        test('filter is case-insensitive', async () => {
+            provider.setFilter('STATE IS');
+            const roots = await provider.getChildren(undefined);
+            expect(roots.map(n => n.label)).toContain('state_steps.py');
+        });
+
+        test('filter with no matches returns no-match placeholder', async () => {
+            provider.setFilter('xyzzy-nonexistent');
+            const roots = await provider.getChildren(undefined);
+            expect(roots).toHaveLength(1);
+            expect((roots[0].label as string)).toMatch(/No steps match/);
+        });
+
+        test('clearing filter restores all steps', async () => {
+            provider.setFilter('state is');
+            provider.setFilter('');
+            const roots = await provider.getChildren(undefined);
+            const labels = roots.map(n => n.label);
+            expect(labels).toContain('state_steps.py');
+            expect(labels).toContain('auth_steps.py');
+        });
+
+        test('getFilter returns the current filter text', () => {
+            provider.setFilter('hello');
+            expect(provider.getFilter()).toBe('hello');
+        });
+    });
 });

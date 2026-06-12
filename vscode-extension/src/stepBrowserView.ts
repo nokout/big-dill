@@ -44,6 +44,7 @@ export class StepBrowserProvider implements vscode.TreeDataProvider<StepBrowserI
     readonly onDidChangeTreeData = this._onDidChangeTreeData.event;
 
     private groupingMode: GroupingMode = GroupingMode.ByFile;
+    private filterText: string = '';
 
     constructor(private readonly cache: StepCache) {}
 
@@ -54,6 +55,15 @@ export class StepBrowserProvider implements vscode.TreeDataProvider<StepBrowserI
 
     getGroupingMode(): GroupingMode {
         return this.groupingMode;
+    }
+
+    setFilter(text: string): void {
+        this.filterText = text.toLowerCase().trim();
+        this._onDidChangeTreeData.fire();
+    }
+
+    getFilter(): string {
+        return this.filterText;
     }
 
     refresh(): void {
@@ -74,11 +84,20 @@ export class StepBrowserProvider implements vscode.TreeDataProvider<StepBrowserI
 
         if (element?.stepDefinition) return [];
 
-        if (!element) {
-            return this.buildGroups(allSteps);
+        const visibleSteps = this.filterText
+            ? allSteps.filter(s => s.pattern.toLowerCase().includes(this.filterText))
+            : allSteps;
+
+        if (visibleSteps.length === 0) {
+            if (element) return [];
+            return [new StepBrowserItem(`No steps match "${this.filterText}"`, vscode.TreeItemCollapsibleState.None)];
         }
 
-        return this.buildStepItems(allSteps, element.label as string);
+        if (!element) {
+            return this.buildGroups(visibleSteps);
+        }
+
+        return this.buildStepItems(visibleSteps, element.label as string);
     }
 
     private buildGroups(steps: StepDefinition[]): StepBrowserItem[] {
