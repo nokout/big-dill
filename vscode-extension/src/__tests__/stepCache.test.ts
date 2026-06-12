@@ -87,6 +87,22 @@ describe('StepCache', () => {
         expect(result!.valueStart).toBe(13);
         expect(result!.valueEnd).toBe(18);
     });
+
+    test('paramPositionAt works for mid-sentence param where name does not appear in prefix', () => {
+        // Pattern: "the capital of {state:AustralianState} is visited"
+        // "state" does NOT appear in the literal prefix "the capital of"
+        const capital: StepDefinition = {
+            keyword: 'given',
+            pattern: 'the capital of {state:AustralianState} is visited',
+            parameters: [{ name: 'state', type_name: 'AustralianState', suggested_values: ['NSW'], has_validator: true }],
+        };
+        const cache2 = new StepCache();
+        cache2.update([capital]);
+        const result = cache2.paramPositionAt('the capital of state is visited', 16);
+        expect(result).not.toBeNull();
+        expect(result!.valueStart).toBe(15);
+        expect(result!.valueEnd).toBe(20);
+    });
 });
 
 describe('StepCache distributed steps', () => {

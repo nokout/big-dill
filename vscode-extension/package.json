@@ -78,6 +78,11 @@
           "default": "",
           "description": "Working directory for pytest discovery and execution. Overrides python.testing.cwd. Defaults to the workspace root when neither is set."
         },
+        "pytest-bdd-orama.tagNamespace": {
+          "type": "string",
+          "default": "bdd",
+          "markdownDescription": "Namespace prefix shown before Gherkin tags in the Test Explorer filter (e.g. `bdd` → `@bdd:smoke`). Takes effect after a window reload."
+        },
         "pytest-bdd-orama.stepDefinitionGlob": {
           "type": "string",
           "default": "{**/step_defs/**/*.py,**/steps/**/*.py,**/conftest.py}",

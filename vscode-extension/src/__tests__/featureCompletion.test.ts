@@ -1,6 +1,9 @@
-import { buildStepCompletions, buildDomainCompletions, extractStepText } from '../featureCompletion';
+import { buildStepCompletions, buildDomainCompletions, extractStepText, FeatureCompletionProvider } from '../featureCompletion';
 import { StepCache } from '../stepCache';
 import { StepDefinition } from '../testController/types';
+import * as vscode from 'vscode';
+
+jest.mock('../extension', () => ({ outputChannel: { appendLine: jest.fn() } }));
 
 const STATE_STEP: StepDefinition = {
     keyword: 'given',
@@ -50,7 +53,8 @@ describe('buildStepCompletions', () => {
     test('returns snippet completion for step with parameter', () => {
         const items = buildStepCompletions('', 'given', cache);
         expect(items).toHaveLength(1);
-        expect(items[0].label).toBe('the state is {state:AustralianState}');
+        // label is normalized (type annotation stripped)
+        expect(items[0].label).toBe('the state is {state}');
         // parameter has suggested_values → choice snippet, not plain placeholder
         expect((items[0].insertText as { value: string }).value).toBe('the state is ${1|NSW,Victoria,Queensland|}');
     });
@@ -67,13 +71,13 @@ describe('buildStepCompletions', () => {
     test('matches when partial text contains a typed value in a param position', () => {
         const items = buildStepCompletions('the state is NSW', 'given', cache);
         expect(items).toHaveLength(1);
-        expect(items[0].label).toBe('the state is {state:AustralianState}');
+        expect(items[0].label).toBe('the state is {state}');
     });
 
     test('matches when partial text contains a partial value in a param position', () => {
         const items = buildStepCompletions('the state is NS', 'given', cache);
         expect(items).toHaveLength(1);
-        expect(items[0].label).toBe('the state is {state:AustralianState}');
+        expect(items[0].label).toBe('the state is {state}');
     });
 
     test('does not match unrelated text even if it starts with the same word', () => {
@@ -153,5 +157,36 @@ describe('buildStepCompletions usage-frequency ranking', () => {
         const items = buildStepCompletions('', 'given', cache);
         const insertText = items[0].insertText as import('vscode').SnippetString;
         expect(insertText.value).toBe('the value is ${1:n}');
+    });
+});
+
+describe('FeatureCompletionProvider', () => {
+    function makeProvider(steps: StepDefinition[]): FeatureCompletionProvider {
+        const cache = new StepCache();
+        cache.update(steps);
+        return new FeatureCompletionProvider(cache);
+    }
+
+    function makeDoc(line: string): vscode.TextDocument {
+        return { lineAt: () => ({ text: line }) } as unknown as vscode.TextDocument;
+    }
+
+    function makePos(character: number): vscode.Position {
+        return { character } as unknown as vscode.Position;
+    }
+
+    test('returns all step patterns when nothing typed after keyword', () => {
+        const provider = makeProvider([STATE_STEP, PLAIN_STEP]);
+        const line = '  Given ';
+        const items = provider.provideCompletionItems(makeDoc(line), makePos(line.length));
+        // STATE_STEP is the only given-keyword step; label is normalized
+        expect(items.map((i) => i.label)).toEqual(['the state is {state}']);
+    });
+
+    test('returns domain values when cursor is right after parameter separator', () => {
+        const provider = makeProvider([STATE_STEP]);
+        const line = 'Given the state is ';
+        const items = provider.provideCompletionItems(makeDoc(line), makePos(line.length));
+        expect(items.map((i) => i.label)).toEqual(['NSW', 'Victoria', 'Queensland']);
     });
 });

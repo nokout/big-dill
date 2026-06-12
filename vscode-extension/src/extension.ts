@@ -88,7 +88,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     outputChannel = vscode.window.createOutputChannel('pytest-bdd-orama');
     context.subscriptions.push(outputChannel);
 
-    testController = vscode.tests.createTestController('pytest-bdd-orama', 'pytest-bdd');
+    const tagNamespace = vscode.workspace.getConfiguration('pytest-bdd-orama').get<string>('tagNamespace', 'bdd');
+    testController = vscode.tests.createTestController(tagNamespace, 'pytest-bdd');
     context.subscriptions.push(testController);
 
     // Run profile
@@ -118,7 +119,16 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     // Re-discover when workspace settings change
     context.subscriptions.push(
         vscode.workspace.onDidChangeConfiguration(async (e) => {
-            if (e.affectsConfiguration('pytest-bdd-orama')) {
+            if (e.affectsConfiguration('pytest-bdd-orama.tagNamespace')) {
+                vscode.window.showInformationMessage(
+                    'pytest-bdd-orama: Reload the window to apply the new tag namespace.',
+                    'Reload Window',
+                ).then((action) => {
+                    if (action === 'Reload Window') {
+                        vscode.commands.executeCommand('workbench.action.reloadWindow');
+                    }
+                });
+            } else if (e.affectsConfiguration('pytest-bdd-orama')) {
                 await refreshAllWorkspaces();
             }
         }),
