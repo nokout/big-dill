@@ -1,9 +1,11 @@
 # pytest-plugin/pytest_bdd_orama/step_registry.py
 """Enumerate registered pytest-bdd step definitions and extract type metadata."""
 from __future__ import annotations
+import inspect
 import re
 
 from .step_types import StepType
+from .docstring_utils import get_summary, parse_tags
 
 _PARAM_RE = re.compile(r'\{(\w+)(?::(\w+))?\}')
 
@@ -53,13 +55,67 @@ def collect_step_type_classes() -> dict[str, type[StepType]]:
     return result
 
 
+def _enrich_step_func(step_func, parameters: list[dict]) -> dict:
+    """Return enrichment fields for step_func given its already-built parameters list."""
+    code = step_func.__code__
+    file = code.co_filename
+    line = code.co_firstlineno
+
+    # Use raw __doc__ to preserve leading blank lines (inspect.getdoc strips them,
+    # which would cause a blank-first-line docstring to return a section header as summary).
+    raw_doc = step_func.__doc__
+    summary = get_summary(raw_doc)
+    tags = parse_tags(raw_doc)
+
+    # Pass 1: annotations that are StepType subclasses
+    seen: set[str] = set()
+    param_types: list[str] = []
+
+    hints = {}
+    try:
+        hints = inspect.get_annotations(step_func)
+    except Exception:
+        try:
+            hints = step_func.__annotations__
+        except AttributeError:
+            pass
+
+    for annotation in hints.values():
+        if isinstance(annotation, type) and issubclass(annotation, StepType):
+            name = annotation.__name__
+            if name not in seen:
+                seen.add(name)
+                param_types.append(name)
+
+    # Pass 2: type names from parameters list (pattern-based)
+    if not param_types:
+        for param in parameters:
+            type_name = param.get('type_name', '')
+            if type_name and type_name not in seen:
+                seen.add(type_name)
+                param_types.append(type_name)
+
+    return {
+        'file': file,
+        'line': line,
+        'summary': summary,
+        'tags': tags,
+        'param_types': param_types,
+    }
+
+
 def collect_step_definitions(session) -> list[dict]:
     """Return a list of step definition dicts suitable for JSON serialisation.
 
     Each dict has:
-        keyword:    "given" | "when" | "then" | "step"
-        pattern:    raw format string, e.g. "the state is {state:AustralianState}"
-        parameters: list of {name, type_name, suggested_values, has_validator}
+        keyword:     "given" | "when" | "then" | "step"
+        pattern:     raw format string, e.g. "the state is {state:AustralianState}"
+        parameters:  list of {name, type_name, suggested_values, has_validator}
+        file:        absolute path to the file containing the step function
+        line:        first line number of the step function
+        summary:     first non-empty docstring line, or None
+        tags:        list of lowercased tag strings from the Tags: section
+        param_types: deduplicated list of StepType/StepEnum class names
 
     In pytest-bdd 8.x, step definitions are registered as fixtures whose
     names start with ``pytestbdd_stepdef_``.  The fixture function
@@ -112,10 +168,14 @@ def collect_step_definitions(session) -> list[dict]:
                         'has_validator': False,
                     })
 
+            # Use the original step function (from context) for enrichment metadata
+            step_func = getattr(ctx, 'step_func', fd.func)
+            enrichment = _enrich_step_func(step_func, parameters)
             definitions.append({
                 'keyword': keyword,
                 'pattern': pattern,
                 'parameters': parameters,
+                **enrichment,
             })
 
     return definitions

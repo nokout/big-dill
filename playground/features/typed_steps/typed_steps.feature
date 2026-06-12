@@ -7,3 +7,4 @@ Feature: Typed step parameters
 
   Scenario: Visit another valid state
     Given the capital of Victoria is visited
+    Given the capital of the capital of TAS is visited

@@ -25,12 +25,40 @@
     "languages": [
       {
         "id": "feature",
-        "aliases": ["Gherkin", "Cucumber"],
-        "extensions": [".feature"]
+        "aliases": [
+          "Gherkin",
+          "feature"
+        ],
+        "extensions": [
+          ".feature"
+        ],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icons/feature-light.svg",
+          "dark": "./icons/feature-dark.svg"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "feature",
+        "scopeName": "text.gherkin",
+        "path": "./syntaxes/gherkin.tmLanguage.json",
+        "embeddedLanguages": {
+          "meta.embedded.yaml": "yaml",
+          "meta.embedded.json": "json",
+          "meta.embedded.python": "python"
+        }
+      }
+    ],
+    "snippets": [
+      {
+        "language": "feature",
+        "path": "./snippets/gherkin.json"
       }
     ],
     "configuration": {
-      "title": "pytest-bdd-orama Runner",
+      "title": "pytest-bdd-orama",
       "properties": {
         "pytest-bdd-orama.enabled": {
           "type": "boolean",
@@ -69,9 +97,106 @@
             ]
           },
           "default": {}
+        },
+        "pytest-bdd-orama.allowedTags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "If non-empty, any @tag not in this list will be flagged as a warning. Leave empty to disable tag validation."
+        },
+        "pytest-bdd-orama.phrasingRules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "pattern": {
+                "type": "string",
+                "description": "Regex tested against the step text (excluding the Given/When/Then keyword)"
+              },
+              "message": {
+                "type": "string",
+                "description": "Diagnostic message shown when the pattern matches"
+              }
+            },
+            "required": [
+              "pattern",
+              "message"
+            ]
+          },
+          "default": [],
+          "description": "Step text phrasing rules. Each rule flags steps whose text matches the regex pattern."
         }
       }
-    }
+    },
+    "views": {
+      "explorer": [
+        {
+          "id": "pytest-bdd-orama.stepBrowser",
+          "name": "Step Browser",
+          "when": "pytest-bdd-orama.enabled"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "pytest-bdd-orama.stepBrowser.groupByFile",
+        "title": "Group by File",
+        "icon": "$(file)"
+      },
+      {
+        "command": "pytest-bdd-orama.stepBrowser.groupByStepType",
+        "title": "Group by Step Type",
+        "icon": "$(symbol-class)"
+      },
+      {
+        "command": "pytest-bdd-orama.stepBrowser.groupByTag",
+        "title": "Group by Tag",
+        "icon": "$(tag)"
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "pytest-bdd-orama.stepBrowser.groupByFile",
+          "when": "view == pytest-bdd-orama.stepBrowser",
+          "group": "navigation"
+        },
+        {
+          "command": "pytest-bdd-orama.stepBrowser.groupByStepType",
+          "when": "view == pytest-bdd-orama.stepBrowser",
+          "group": "navigation"
+        },
+        {
+          "command": "pytest-bdd-orama.stepBrowser.groupByTag",
+          "when": "view == pytest-bdd-orama.stepBrowser",
+          "group": "navigation"
+        }
+      ]
+    },
+    "semanticTokenTypes": [
+      { "id": "gherkinDatatablePipe",       "description": "Pipe characters in step datatables" },
+      { "id": "gherkinDatatableCell",       "description": "Cell content in step datatables" },
+      { "id": "gherkinDatatableCellString", "description": "Quoted string cell content in step datatables" },
+      { "id": "gherkinExamplesPipe",        "description": "Pipe characters in Examples tables" },
+      { "id": "gherkinExamplesCell",        "description": "Cell content in Examples table body" },
+      { "id": "gherkinExamplesCellString",  "description": "Quoted string cell content in Examples body" },
+      { "id": "gherkinExamplesHeaderCell",  "description": "Cell content in Examples header row" }
+    ],
+    "semanticTokenScopes": [
+      {
+        "scopes": {
+          "gherkinDatatablePipe":       ["punctuation.separator"],
+          "gherkinDatatableCell":       ["string.unquoted"],
+          "gherkinDatatableCellString": ["string.quoted.double"],
+          "gherkinExamplesPipe":        ["punctuation.separator"],
+          "gherkinExamplesCell":        ["variable.other"],
+          "gherkinExamplesCellString":  ["string.quoted.double"],
+          "gherkinExamplesHeaderCell":  ["entity.name.tag"]
+        }
+      }
+    ]
   },
   "scripts": {
     "compile": "tsc -p tsconfig.json",
@@ -91,5 +216,8 @@
     "jest": "^29.7.0",
     "ts-jest": "^29.4.6",
     "typescript": "^5.3.0"
+  },
+  "dependencies": {
+    "@cucumber/gherkin": "^39.1.0"
   }
 }
