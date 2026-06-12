@@ -1,7 +1,9 @@
+@featureone
 Feature: Datatable examples
   Demonstrates step-level datatables. Unquoted values, quoted strings, and numerics
   should each appear with distinct colors when the extension is active.
 
+  @thisone
   Scenario: Configure system from table
     Given the system is configured with
       | key     | value   |

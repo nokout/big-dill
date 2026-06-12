@@ -12,19 +12,29 @@ Feature: Lint violation examples
       | 1 |
       | 1 |
 
+
+  Scenario Outline: Duplicate rows
+    Given value is <x>
+    Examples:
+      | id | x |
+      | 1  | a |
+      | 1  | b |
+
+
+
   Scenario Outline: Oversized table
     Given item <n>
     Examples:
       | n  |
-      | 1  |
-      | 2  |
-      | 3  |
-      | 4  |
-      | 5  |
-      | 6  |
-      | 7  |
-      | 8  |
-      | 9  |
+      |  1 |
+      |  2 |
+      |  3 |
+      |  4 |
+      |  5 |
+      |  6 |
+      |  7 |
+      |  8 |
+      |  9 |
       | 10 |
       | 11 |
       | 12 |
@@ -45,3 +55,12 @@ Feature: Lint violation examples
     Given value is <x>
     Examples:
       | x |
+ 
+  Scenario: Empty examples body
+    Given value is <x>
+    Examples:
+      | x   |
+      | abc |
+
+  Scenario: Interpolation without outline
+    Given value is <x>
