@@ -64,3 +64,11 @@ Feature: Lint violation examples
 
   Scenario: Interpolation without outline
     Given value is <x>
+
+  # The lowercase outline name below triggers the custom Python lint hook
+  # (pytest_bdd_orama_lint_outline in conftest.py). Run: pytest --bdd-lint
+  Scenario Outline: lowercase name violates the custom outline rule
+    Given value is <x>
+    Examples:
+      | x |
+      | 1 |
