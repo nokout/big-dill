@@ -1,11 +1,15 @@
 """
 Playground conftest.py — all hooks and step definitions in one place.
 
+
 pytest-bdd steps are discovered from conftest.py automatically, so a single
 test_features.py calling scenarios() can pick up all feature files without
 any per-feature registration.
 """
+import json
+
 import pytest
+import yaml
 from pytest_bdd import given, parsers, then, when
 from pytest_bdd_orama import StepEnum
 
@@ -165,6 +169,42 @@ def value_is(x):
 @given(parsers.parse("item {n}"))
 def item_n(n):
     # Demo step for lint violations visualization
+    pass
+
+
+# ---------------------------------------------------------------------------
+# Step definitions — docstrings.feature (JSON and YAML data blocks)
+# ---------------------------------------------------------------------------
+
+@given("the service is configured with the following JSON:")
+def service_configured_json(docstring):
+    config = json.loads(docstring)
+    assert isinstance(config, dict), "JSON config must be an object"
+
+
+@when("the service starts")
+def service_starts():
+    pass
+
+
+@then("the service is running")
+def service_running():
+    pass
+
+
+@given("the pipeline is seeded with the following YAML:")
+def pipeline_seeded_yaml(docstring):
+    config = yaml.safe_load(docstring)
+    assert isinstance(config, dict), "YAML config must be a mapping"
+
+
+@when("the pipeline runs")
+def pipeline_runs():
+    pass
+
+
+@then("the pipeline completes successfully")
+def pipeline_completes():
     pass
 
 
