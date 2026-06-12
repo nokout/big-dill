@@ -1,12 +1,16 @@
 # pytest-bdd-orama
 
-A VS Code test runner for [pytest-bdd](https://pytest-bdd.readthedocs.io/) that surfaces Gherkin scenarios as first-class citizens in the Testing panel — navigable by feature file, tagged, and with configurable outcome mapping for custom statuses.
+A VS Code extension for [pytest-bdd](https://pytest-bdd.readthedocs.io/) that surfaces Gherkin scenarios as first-class citizens in the Testing panel and provides a full authoring experience for testers writing `.feature` files.
+
+**Quick links:** [Overview](docs/overview.md) · [Tester guide](docs/tester-guide.md) · [Developer guide](docs/developer-guide.md)
 
 ---
 
 ## What it is
 
-pytest-bdd-orama connects VS Code's Testing API to pytest-bdd projects. In the Testing panel it provides:
+pytest-bdd-orama connects VS Code's Testing API to pytest-bdd projects and adds Gherkin authoring tools on top.
+
+**Testing panel:**
 
 - **Feature-file tree** — the test tree mirrors `.feature` file paths and feature names, not Python module hierarchy
 - **Scenario navigation** — clicking a scenario jumps to the correct line in the `.feature` file
@@ -14,6 +18,17 @@ pytest-bdd-orama connects VS Code's Testing API to pytest-bdd projects. In the T
 - **Custom display names** — scenario outline rows show user-defined identifiers via a hookspec
 - **Configurable status mapping** — custom pytest outcomes map to VS Code run states via workspace settings
 - **Live rediscovery** — the tree updates automatically when `.feature` files are saved
+
+**Authoring:**
+
+- **Step completions** — `Ctrl+Space` on a step line shows matching steps ranked by usage frequency; typed parameters show a pick-list of valid values
+- **Step browser** — sidebar panel listing all steps, grouped by file/step-type/tag, with keyword filter
+- **Hover docs** — step signature, description, and valid parameter values on hover
+- **Go to definition** — `F12` from a step jumps to the Python implementation
+- **Unimplemented step warnings** — steps with no matching implementation are flagged inline
+- **Structural linting** — empty Examples blocks, duplicate rows, oversized tables, and custom rules via hookspec
+- **Syntax highlighting** — Gherkin keywords, tags, placeholders, embedded JSON/YAML in docstring blocks
+- **Snippets** — Feature, Scenario, Outline, Background, Examples, and docstring block templates
 
 ---
 
