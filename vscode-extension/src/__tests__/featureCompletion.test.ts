@@ -64,6 +64,22 @@ describe('buildStepCompletions', () => {
         expect(buildStepCompletions('nonexistent', 'given', cache)).toHaveLength(0);
     });
 
+    test('matches when partial text contains a typed value in a param position', () => {
+        const items = buildStepCompletions('the state is NSW', 'given', cache);
+        expect(items).toHaveLength(1);
+        expect(items[0].label).toBe('the state is {state:AustralianState}');
+    });
+
+    test('matches when partial text contains a partial value in a param position', () => {
+        const items = buildStepCompletions('the state is NS', 'given', cache);
+        expect(items).toHaveLength(1);
+        expect(items[0].label).toBe('the state is {state:AustralianState}');
+    });
+
+    test('does not match unrelated text even if it starts with the same word', () => {
+        expect(buildStepCompletions('the state of', 'given', cache)).toHaveLength(0);
+    });
+
     test('plain step has non-snippet insertText', () => {
         const items = buildStepCompletions('', 'when', cache);
         expect(items).toHaveLength(1);

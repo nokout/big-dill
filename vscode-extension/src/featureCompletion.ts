@@ -43,7 +43,22 @@ function patternToSnippet(pattern: string, parameters: StepParameter[]): string 
 }
 
 /**
+ * Build a prefix-match regex for a step pattern: escape literal characters, replace
+ * `{param}` placeholders with `.*` wildcards, and omit the end anchor so the regex
+ * matches any partial text that could be the start of a completed step.
+ */
+function buildPrefixRegex(pattern: string): RegExp {
+    const escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const withWildcards = escaped.replace(/\\\{[^}]*\\\}/g, '.*');
+    return new RegExp(`^${withWildcards}`, 'i');
+}
+
+/**
  * Level 1: return snippet completion items for step patterns matching *partialText*.
+ * Matches when:
+ *  - the pattern starts with the partial text (user still typing the literal), OR
+ *  - the partial text matches the pattern with param placeholders as wildcards
+ *    (user has typed values into one or more param positions).
  */
 export function buildStepCompletions(
     partialText: string,
@@ -53,7 +68,7 @@ export function buildStepCompletions(
     const lower = partialText.toLowerCase();
     const matched = cache
         .getForKeyword(keyword)
-        .filter((s) => s.pattern.toLowerCase().startsWith(lower));
+        .filter((s) => s.pattern.toLowerCase().startsWith(lower) || buildPrefixRegex(s.pattern).test(partialText));
 
     // Sort by usage_count descending before building items
     matched.sort((a, b) => (b.usage_count ?? 0) - (a.usage_count ?? 0));
