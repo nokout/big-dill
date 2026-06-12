@@ -208,6 +208,78 @@ def pipeline_completes():
     pass
 
 
+@given("the transformation script is provided as:")
+def transformation_script(docstring):
+    """Accept a Python source docstring and verify it parses.
+
+    Demonstrates the ```python backtick docstring with embedded
+    syntax highlighting.
+
+    Tags:
+        docstring, python
+    """
+    compile(docstring, "<docstring>", "exec")
+
+
+# ---------------------------------------------------------------------------
+# Step definitions — background.feature (Background, Rule, And/But, hover tags)
+# ---------------------------------------------------------------------------
+
+@given("the application is installed")
+def app_installed():
+    """Ensure the application is present before each scenario.
+
+    Tags:
+        setup
+    """
+
+
+@given(parsers.parse("a registered user named {name}"))
+def registered_user(name):
+    """Register a user account.
+
+    Tags:
+        auth, setup
+    """
+    return {"name": name}
+
+
+@when("they sign in")
+def sign_in():
+    """Authenticate the current user.
+
+    Tags:
+        auth
+    """
+
+
+@then("they see the dashboard")
+def see_dashboard():
+    """Assert the dashboard is visible.
+
+    Tags:
+        ui
+    """
+
+
+@then("a welcome banner is shown")
+def welcome_banner():
+    """Assert the welcome banner is rendered.
+
+    Tags:
+        ui
+    """
+
+
+@then("no error is displayed")
+def no_error():
+    """Assert that no error message is present.
+
+    Tags:
+        ui
+    """
+
+
 # ---------------------------------------------------------------------------
 # pytest-bdd-orama hook — custom lint rule (demonstrates user-extensible hooks)
 #
