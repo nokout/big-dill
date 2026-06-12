@@ -1,11 +1,15 @@
 """
 Playground conftest.py — all hooks and step definitions in one place.
 
+
 pytest-bdd steps are discovered from conftest.py automatically, so a single
 test_features.py calling scenarios() can pick up all feature files without
 any per-feature registration.
 """
+import json
+
 import pytest
+import yaml
 from pytest_bdd import given, parsers, then, when
 from pytest_bdd_orama import StepEnum
 
@@ -137,54 +141,88 @@ def pytest_bdd_orama_custom_status(report, config):
 
 
 # ---------------------------------------------------------------------------
-# Step definitions — typed_steps.feature (demonstrates StepType/StepEnum)
+# Step definitions — datatables.feature (demo steps for visual inspection)
 # ---------------------------------------------------------------------------
-from pytest_bdd_orama import StepEnum
+
+@given("the system is configured with")
+def system_configured():
+    # Demo step for datatable visualization — table content is not tested
+    pass
 
 
-class AustralianState(StepEnum):
-    NSW = "NSW"
-    VIC = "Victoria"
-    QLD = "Queensland"
-    WA = "Western Australia"
-    SA = "South Australia"
-    TAS = "Tasmania"
-    ACT = "Australian Capital Territory"
-    NT = "Northern Territory"
-
-
-@given(parsers.cfparse("the capital of {state:AustralianState} is visited",
-                       extra_types={"AustralianState": AustralianState}))
-def visit_state_capital(state):
-    pass  # step passes for any valid state; invalid states fail lint, not runtime
+@given("the following records exist")
+def records_exist():
+    # Demo step for datatable visualization — table content is not tested
+    pass
 
 
 # ---------------------------------------------------------------------------
-# pytest-bdd-orama hook — lint checks (demonstrates lint hookspecs)
+# Step definitions — lint_examples.feature (demo steps for visual inspection)
+# ---------------------------------------------------------------------------
+
+@given(parsers.parse("value is {x}"))
+def value_is(x):
+    # Demo step for lint violations visualization
+    pass
+
+
+@given(parsers.parse("item {n}"))
+def item_n(n):
+    # Demo step for lint violations visualization
+    pass
+
+
+# ---------------------------------------------------------------------------
+# Step definitions — docstrings.feature (JSON and YAML data blocks)
+# ---------------------------------------------------------------------------
+
+@given("the service is configured with the following JSON:")
+def service_configured_json(docstring):
+    config = json.loads(docstring)
+    assert isinstance(config, dict), "JSON config must be an object"
+
+
+@when("the service starts")
+def service_starts():
+    pass
+
+
+@then("the service is running")
+def service_running():
+    pass
+
+
+@given("the pipeline is seeded with the following YAML:")
+def pipeline_seeded_yaml(docstring):
+    config = yaml.safe_load(docstring)
+    assert isinstance(config, dict), "YAML config must be a mapping"
+
+
+@when("the pipeline runs")
+def pipeline_runs():
+    pass
+
+
+@then("the pipeline completes successfully")
+def pipeline_completes():
+    pass
+
+
+# ---------------------------------------------------------------------------
+# pytest-bdd-orama hook — custom lint rule (demonstrates user-extensible hooks)
+#
+# Built-in TypeScript linter handles: empty comments, duplicate example rows,
+# oversized tables, missing Examples blocks, empty Examples bodies.
+# Use this hook for domain-specific rules that belong to your project.
 # ---------------------------------------------------------------------------
 from pytest_bdd_orama.lint_types import LintDiagnostic
 
 
 def pytest_bdd_orama_lint_outline(scenario, examples):
-    """Warn when an outline has duplicate example rows or a very large table."""
-    diagnostics = []
-    for block in examples:
-        seen = set()
-        for row in block.rows:
-            row_key = tuple(sorted(row.items()))
-            if row_key in seen:
-                diagnostics.append(
-                    LintDiagnostic(
-                        message=f"Duplicate example row in '{scenario.name}': {dict(row)}",
-                        severity="warning",
-                    )
-                )
-            seen.add(row_key)
-        if len(block.rows) > 20:
-            diagnostics.append(
-                LintDiagnostic(
-                    message=f"Example table in '{scenario.name}' has {len(block.rows)} rows — consider splitting",
-                    severity="warning",
-                )
-            )
-    return diagnostics
+    """Require that all Scenario Outline names begin with a capital letter."""
+    if scenario.name and not scenario.name[0].isupper():
+        return [LintDiagnostic(
+            message=f"Scenario Outline name must start with a capital letter: '{scenario.name}'",
+            severity="warning",
+        )]
+    return []

@@ -1,0 +1,117 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Gherkin",
+  "scopeName": "text.gherkin",
+  "patterns": [
+    { "include": "#comment" },
+    { "include": "#tag" },
+    { "include": "#feature-keyword" },
+    { "include": "#scenario-keyword" },
+    { "include": "#step-keyword" },
+    { "include": "#examples-keyword" },
+    { "include": "#docstring-backtick" },
+    { "include": "#docstring-triple-quote" },
+    { "include": "#table-row" },
+    { "include": "#placeholder" },
+    { "include": "#string-double" },
+    { "include": "#string-single" }
+  ],
+  "repository": {
+    "comment": {
+      "name": "comment.line.number-sign.gherkin",
+      "match": "^\\s*#.*$"
+    },
+    "tag": {
+      "name": "entity.name.tag.gherkin",
+      "match": "@[\\w-]+"
+    },
+    "feature-keyword": {
+      "match": "^(Feature|Rule|Background)\\s*(:)",
+      "captures": {
+        "1": { "name": "keyword.control.gherkin" },
+        "2": { "name": "punctuation.separator.gherkin" }
+      }
+    },
+    "scenario-keyword": {
+      "match": "^\\s*(Scenario(?:\\s+Outline)?|Example)\\s*(:)",
+      "captures": {
+        "1": { "name": "keyword.control.gherkin" },
+        "2": { "name": "punctuation.separator.gherkin" }
+      }
+    },
+    "step-keyword": {
+      "match": "^\\s*(Given|When|Then|And|But)\\b",
+      "captures": {
+        "1": { "name": "keyword.other.step.gherkin" }
+      }
+    },
+    "examples-keyword": {
+      "match": "^\\s*(Examples|Scenarios)\\s*(:)",
+      "captures": {
+        "1": { "name": "keyword.control.gherkin" },
+        "2": { "name": "punctuation.separator.gherkin" }
+      }
+    },
+    "docstring-backtick": {
+      "name": "meta.embedded.block.gherkin",
+      "begin": "^(\\s*)```(yaml|json|python|xml|sql|javascript|typescript|plaintext|[\\w-]+)?$",
+      "end": "^\\1```$",
+      "beginCaptures": {
+        "2": { "name": "entity.name.type.gherkin" }
+      },
+      "patterns": [
+        {
+          "begin": "(?<=```yaml\\n)",
+          "end": "(?=\\s*```)",
+          "name": "meta.embedded.yaml",
+          "contentName": "source.yaml",
+          "patterns": [{ "include": "source.yaml" }]
+        },
+        {
+          "begin": "(?<=```json\\n)",
+          "end": "(?=\\s*```)",
+          "name": "meta.embedded.json",
+          "contentName": "source.json",
+          "patterns": [{ "include": "source.json" }]
+        },
+        {
+          "begin": "(?<=```python\\n)",
+          "end": "(?=\\s*```)",
+          "name": "meta.embedded.python",
+          "contentName": "source.python",
+          "patterns": [{ "include": "source.python" }]
+        }
+      ]
+    },
+    "docstring-triple-quote": {
+      "name": "string.unquoted.docstring.gherkin",
+      "begin": "^\\s*\"\"\"(\\w+)?",
+      "end": "^\\s*\"\"\"",
+      "beginCaptures": {
+        "1": { "name": "entity.name.type.gherkin" }
+      },
+      "patterns": [
+        { "include": "#placeholder" }
+      ]
+    },
+    "table-row": {
+      "name": "meta.table.row.gherkin",
+      "match": "^\\s*\\|.*\\|\\s*$",
+      "captures": {
+        "0": { "name": "string.unquoted.table.gherkin" }
+      }
+    },
+    "placeholder": {
+      "name": "variable.parameter.gherkin",
+      "match": "<[^>]+>"
+    },
+    "string-double": {
+      "name": "string.quoted.double.gherkin",
+      "match": "\"[^\"]*\""
+    },
+    "string-single": {
+      "name": "string.quoted.single.gherkin",
+      "match": "'[^']*'"
+    }
+  }
+}

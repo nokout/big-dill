@@ -88,3 +88,23 @@ class BddOramaHookSpec:
         Returns:
             A list of LintDiagnostic objects (return an empty list for no issues).
         """
+
+    @pytest.hookspec(firstresult=True)
+    def pytest_bdd_orama_transform_docstring(
+        self,
+        docstring: str,
+        media_type: "str | None",
+    ) -> "object | None":
+        """Transform a step docstring argument before it reaches the step function.
+
+        Called when a step receives a Gherkin docstring argument. Return a non-None
+        value to replace the raw string with a parsed Python object.
+
+        Args:
+            docstring:  The raw docstring content as a string.
+            media_type: Optional content type identifier from the Gherkin source, or None.
+
+        Returns:
+            A non-None Python object to use in place of the raw string, or None to
+            leave the docstring unchanged.
+        """

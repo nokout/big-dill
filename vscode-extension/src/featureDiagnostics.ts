@@ -1,5 +1,32 @@
 import * as vscode from 'vscode';
 import { runBddLint } from './testController/pytestRunner';
+import { StepCache } from './stepCache';
+import { extractStepText } from './featureCompletion';
+
+export type UnimplementedStep = {
+    lineIndex: number;  // 0-indexed
+    stepText: string;   // text after keyword
+};
+
+const COMMENT_RE = /^\s*#/;
+
+/**
+ * Scan *lines* and return entries for steps that have no matching pattern in *cache*.
+ * Pure function — no I/O.
+ */
+export function findUnimplementedSteps(lines: string[], cache: StepCache): UnimplementedStep[] {
+    const results: UnimplementedStep[] = [];
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (COMMENT_RE.test(line)) continue;
+        const parsed = extractStepText(line);
+        if (!parsed) continue;
+        if (!cache.matchPattern(parsed.text)) {
+            results.push({ lineIndex: i, stepText: parsed.text });
+        }
+    }
+    return results;
+}
 
 export class FeatureDiagnostics {
     private readonly collection: vscode.DiagnosticCollection;
@@ -8,6 +35,7 @@ export class FeatureDiagnostics {
     constructor(
         private readonly getWorkspaceUri: () => vscode.Uri | undefined,
         private readonly getInterpreter: (uri: vscode.Uri) => Promise<string>,
+        private readonly getStepCache?: () => StepCache,
     ) {
         this.collection = vscode.languages.createDiagnosticCollection('pytest-bdd-orama');
     }
@@ -41,6 +69,24 @@ export class FeatureDiagnostics {
                 vscode.DiagnosticSeverity.Information;
             return new vscode.Diagnostic(range, e.message, severity);
         });
+
+        // Static pass: flag unimplemented steps when cache is available
+        if (this.getStepCache) {
+            try {
+                const doc = await vscode.workspace.openTextDocument(uri);
+                const lines = Array.from({ length: doc.lineCount }, (_, i) => doc.lineAt(i).text);
+                const cache = this.getStepCache();
+                const unimplemented = findUnimplementedSteps(lines, cache);
+                for (const u of unimplemented) {
+                    const range = new vscode.Range(u.lineIndex, 0, u.lineIndex, Number.MAX_SAFE_INTEGER);
+                    diagnostics.push(new vscode.Diagnostic(
+                        range,
+                        `Step not implemented: "${u.stepText}"`,
+                        vscode.DiagnosticSeverity.Warning,
+                    ));
+                }
+            } catch { /* ignore document read errors */ }
+        }
 
         this.collection.set(uri, diagnostics);
     }

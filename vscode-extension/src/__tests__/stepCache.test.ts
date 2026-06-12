@@ -43,9 +43,15 @@ describe('StepCache', () => {
     });
 
     test('getForKeyword includes keyword=step in all keyword queries', () => {
-        expect(cache.getForKeyword('given')).toContain(STEP_GENERIC);
-        expect(cache.getForKeyword('when')).toContain(STEP_GENERIC);
-        expect(cache.getForKeyword('then')).toContain(STEP_GENERIC);
+        expect(cache.getForKeyword('given')).toEqual(expect.arrayContaining([
+            expect.objectContaining({ pattern: STEP_GENERIC.pattern, keyword: STEP_GENERIC.keyword })
+        ]));
+        expect(cache.getForKeyword('when')).toEqual(expect.arrayContaining([
+            expect.objectContaining({ pattern: STEP_GENERIC.pattern, keyword: STEP_GENERIC.keyword })
+        ]));
+        expect(cache.getForKeyword('then')).toEqual(expect.arrayContaining([
+            expect.objectContaining({ pattern: STEP_GENERIC.pattern, keyword: STEP_GENERIC.keyword })
+        ]));
     });
 
     test('matchLine returns null for non-matching text', () => {
@@ -71,6 +77,16 @@ describe('StepCache', () => {
         expect(result!.valueStart).toBe(13);
         expect(result!.valueEnd).toBe(16);
     });
+
+    test('paramPositionAt resolves correct span when placeholder text matches literal word', () => {
+        // "the state is state" — the parameter value "state" starts at col 13,
+        // not col 4 where the literal word "state" appears first.
+        const result = cache.paramPositionAt('the state is state', 16);
+        expect(result).not.toBeNull();
+        expect(result!.parameter.name).toBe('state');
+        expect(result!.valueStart).toBe(13);
+        expect(result!.valueEnd).toBe(18);
+    });
 });
 
 describe('StepCache distributed steps', () => {
@@ -78,7 +94,9 @@ describe('StepCache distributed steps', () => {
         const cache = new StepCache();
         const dist: StepDefinition = { keyword: 'step', pattern: 'distributed', parameters: [] };
         cache.updateDistributed([dist]);
-        expect(cache.getAll()).toContain(dist);
+        expect(cache.getAll()).toEqual(expect.arrayContaining([
+            expect.objectContaining({ pattern: dist.pattern, keyword: dist.keyword })
+        ]));
     });
 
     test('live steps override distributed when both present', () => {

@@ -27,11 +27,11 @@ function getPythonPath(interpreterPath: string): string {
  *   3. workspaceUri.fsPath   — workspace root (default)
  */
 function resolveCwd(workspaceUri: Uri): string {
-    const ours = workspace.getConfiguration('pytest-bdd-orama').get<string>('cwd', '').trim();
+    const ours = (workspace.getConfiguration('pytest-bdd-orama').get<string | null>('cwd') ?? '').trim();
     if (ours) {
         return path.isAbsolute(ours) ? ours : path.join(workspaceUri.fsPath, ours);
     }
-    const shared = workspace.getConfiguration('python.testing').get<string>('cwd', '').trim();
+    const shared = (workspace.getConfiguration('python.testing').get<string | null>('cwd') ?? '').trim();
     if (shared) {
         return path.isAbsolute(shared) ? shared : path.join(workspaceUri.fsPath, shared);
     }

@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { StepCache } from './stepCache';
+import { StepParameter } from './testController/types';
 import { outputChannel } from './extension';
 
 const KEYWORD_RE = /^\s*(Given|When|Then|And|But|\*)\s+/i;
@@ -14,14 +15,50 @@ export function extractStepText(line: string): KeywordAndText | null {
     return { keyword: m[1].toLowerCase(), text: line.slice(m[0].length) };
 }
 
-/** Convert a step pattern to a VS Code snippet string with numbered tab stops. */
-function patternToSnippet(pattern: string): string {
+/**
+ * Escape a string for use inside a VS Code snippet choice list.
+ * The characters `,`, `|`, `\`, `$`, `}` are special inside `${N|...|}.
+ */
+function escapeChoice(v: string): string {
+    return v.replace(/[\\|,$}]/g, '\\$&');
+}
+
+/**
+ * Convert a step pattern to a VS Code snippet string.
+ * Parameters with suggested_values become choice tab stops (${1|NSW,VIC,...|})
+ * so VS Code shows the inline choice picker as soon as the tab stop activates.
+ * Parameters without suggested_values fall back to a plain placeholder (${1:name}).
+ */
+function patternToSnippet(pattern: string, parameters: StepParameter[]): string {
     let i = 0;
-    return pattern.replace(PARAM_RE, (_match, name) => `\${${++i}:${name}}`);
+    let paramIdx = 0;
+    return pattern.replace(PARAM_RE, (_match, name) => {
+        const param = parameters[paramIdx++];
+        const values = param?.suggested_values ?? [];
+        if (values.length > 0) {
+            return `\${${++i}|${values.map(escapeChoice).join(',')}|}`;
+        }
+        return `\${${++i}:${name}}`;
+    });
+}
+
+/**
+ * Build a prefix-match regex for a step pattern: escape literal characters, replace
+ * `{param}` placeholders with `.*` wildcards, and omit the end anchor so the regex
+ * matches any partial text that could be the start of a completed step.
+ */
+function buildPrefixRegex(pattern: string): RegExp {
+    const escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const withWildcards = escaped.replace(/\\\{[^}]*\\\}/g, '.*');
+    return new RegExp(`^${withWildcards}`, 'i');
 }
 
 /**
  * Level 1: return snippet completion items for step patterns matching *partialText*.
+ * Matches when:
+ *  - the pattern starts with the partial text (user still typing the literal), OR
+ *  - the partial text matches the pattern with param placeholders as wildcards
+ *    (user has typed values into one or more param positions).
  */
 export function buildStepCompletions(
     partialText: string,
@@ -29,18 +66,21 @@ export function buildStepCompletions(
     cache: StepCache,
 ): vscode.CompletionItem[] {
     const lower = partialText.toLowerCase();
-    return cache
+    const matched = cache
         .getForKeyword(keyword)
-        .filter((s) => s.pattern.toLowerCase().startsWith(lower))
-        .map((s) => {
-            const item = new vscode.CompletionItem(s.pattern, vscode.CompletionItemKind.Snippet);
-            const snippet = patternToSnippet(s.pattern);
-            item.insertText = snippet === s.pattern
-                ? s.pattern  // no parameters — plain string
-                : new vscode.SnippetString(snippet);
-            item.detail = `${s.keyword} step`;
-            return item;
-        });
+        .filter((s) => s.pattern.toLowerCase().startsWith(lower) || buildPrefixRegex(s.pattern).test(partialText));
+
+    // Sort by usage_count descending before building items
+    matched.sort((a, b) => (b.usage_count ?? 0) - (a.usage_count ?? 0));
+
+    return matched.map((s, index) => {
+        const item = new vscode.CompletionItem(s.pattern, vscode.CompletionItemKind.Snippet);
+        const snippet = patternToSnippet(s.pattern, s.parameters ?? []);
+        item.insertText = snippet !== s.pattern ? new vscode.SnippetString(snippet) : s.pattern;
+        item.detail = `${s.keyword} step`;
+        item.sortText = String(index).padStart(6, '0');
+        return item;
+    });
 }
 
 /**
@@ -86,12 +126,24 @@ export class FeatureCompletionProvider implements vscode.CompletionItemProvider 
         document: vscode.TextDocument,
         position: vscode.Position,
     ): vscode.CompletionItem[] {
+        try {
+            return this._provideCompletionItems(document, position);
+        } catch (err) {
+            outputChannel?.appendLine(`[completions] ERROR: ${err}`);
+            return [];
+        }
+    }
+
+    private _provideCompletionItems(
+        document: vscode.TextDocument,
+        position: vscode.Position,
+    ): vscode.CompletionItem[] {
         const rawLine = document.lineAt(position).text;
         const column = position.character;
         const stepText = extractStepText(rawLine);
         if (!stepText) return [];
 
-        outputChannel.appendLine(`[completions] keyword=${stepText.keyword} text="${stepText.text}" cacheSize=${this.cache.getAll().length}`);
+        outputChannel?.appendLine(`[completions] keyword=${stepText.keyword} text="${stepText.text}" cacheSize=${this.cache.getAll().length}`);
 
         // Level 2: domain values if cursor is inside a param value
         const stepTextStart = rawLine.indexOf(stepText.text);
