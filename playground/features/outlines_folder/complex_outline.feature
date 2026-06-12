@@ -5,6 +5,8 @@ Feature: Complex outline id
     Given a record with id <id>
     When processed with <input_a>, <input_b>, <input_c>
     Then result is <expected>
+    Then result is 
+    Given the capital of state is visited
 
     @alpha_examples
     Examples:

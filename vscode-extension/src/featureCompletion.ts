@@ -15,6 +15,11 @@ export function extractStepText(line: string): KeywordAndText | null {
     return { keyword: m[1].toLowerCase(), text: line.slice(m[0].length) };
 }
 
+/** Strip type annotations from parameter placeholders: {name:Type} → {name}. */
+function normalizePattern(pattern: string): string {
+    return pattern.replace(PARAM_RE, (_match, name) => `{${name}}`);
+}
+
 /**
  * Escape a string for use inside a VS Code snippet choice list.
  * The characters `,`, `|`, `\`, `$`, `}` are special inside `${N|...|}.
@@ -56,7 +61,7 @@ function buildPrefixRegex(pattern: string): RegExp {
 /**
  * Level 1: return snippet completion items for step patterns matching *partialText*.
  * Matches when:
- *  - the pattern starts with the partial text (user still typing the literal), OR
+ *  - the normalized pattern (type annotations stripped) starts with the partial text, OR
  *  - the partial text matches the pattern with param placeholders as wildcards
  *    (user has typed values into one or more param positions).
  */
@@ -68,13 +73,14 @@ export function buildStepCompletions(
     const lower = partialText.toLowerCase();
     const matched = cache
         .getForKeyword(keyword)
-        .filter((s) => s.pattern.toLowerCase().startsWith(lower) || buildPrefixRegex(s.pattern).test(partialText));
+        .filter((s) => normalizePattern(s.pattern).toLowerCase().startsWith(lower) || buildPrefixRegex(s.pattern).test(partialText));
 
     // Sort by usage_count descending before building items
     matched.sort((a, b) => (b.usage_count ?? 0) - (a.usage_count ?? 0));
 
     return matched.map((s, index) => {
-        const item = new vscode.CompletionItem(s.pattern, vscode.CompletionItemKind.Snippet);
+        const normalized = normalizePattern(s.pattern);
+        const item = new vscode.CompletionItem(normalized, vscode.CompletionItemKind.Snippet);
         const snippet = patternToSnippet(s.pattern, s.parameters ?? []);
         item.insertText = snippet !== s.pattern ? new vscode.SnippetString(snippet) : s.pattern;
         item.detail = `${s.keyword} step`;
@@ -146,7 +152,8 @@ export class FeatureCompletionProvider implements vscode.CompletionItemProvider 
         outputChannel?.appendLine(`[completions] keyword=${stepText.keyword} text="${stepText.text}" cacheSize=${this.cache.getAll().length}`);
 
         // Level 2: domain values if cursor is inside a param value
-        const stepTextStart = rawLine.indexOf(stepText.text);
+        // indexOf("") === 0 for any string, so handle empty text (nothing typed yet) explicitly
+        const stepTextStart = stepText.text ? rawLine.indexOf(stepText.text) : column;
         const colInStep = column - stepTextStart;
         const domainItems = buildDomainCompletions(stepText.text, colInStep, this.cache);
         if (domainItems.length > 0) return domainItems;

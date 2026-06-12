@@ -89,7 +89,7 @@ def check_result(expected):
 # ---------------------------------------------------------------------------
 
 class AustralianState(StepEnum):
-    NSW = "NSW"
+    NSW = "New South Wales"
     VIC = "Victoria"
     QLD = "Queensland"
     WA = "Western Australia"

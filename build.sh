@@ -4,6 +4,7 @@
 # Usage:
 #   ./build.sh           — compile + package → produces pytest-bdd-orama-*.vsix
 #   ./build.sh --install — compile + package + install into VSCode
+#   ./build.sh --reload  — compile + package + install + reload the open VSCode window
 
 set -euo pipefail
 
@@ -29,7 +30,17 @@ fi
 echo ""
 echo "Built: $EXT_DIR/$VSIX"
 
-if [[ "${1:-}" == "--install" ]]; then
+INSTALL=false
+RELOAD=false
+for arg in "$@"; do
+    case "$arg" in
+        --install) INSTALL=true ;;
+        --reload)  INSTALL=true; RELOAD=true ;;
+        *) echo "Unknown argument: $arg" >&2; exit 1 ;;
+    esac
+done
+
+if [[ "$INSTALL" == "true" ]]; then
     # Accept either 'code' or 'code-insiders'
     CODE_CLI=""
     for candidate in code code-insiders; do
@@ -44,12 +55,38 @@ if [[ "${1:-}" == "--install" ]]; then
     fi
     echo "==> Installing extension into VSCode (using $CODE_CLI)..."
     "$CODE_CLI" --install-extension "$VSIX" --force
+
+    if [[ "$RELOAD" == "true" ]]; then
+        echo "==> Reloading VSCode window..."
+        RELOADED=false
+
+        # On X11 Linux, xdotool is more reliable than code --command (which can open a new window).
+        if [[ -n "${DISPLAY:-}" ]] && command -v xdotool &>/dev/null; then
+            WID=$(xdotool search --name "Visual Studio Code" 2>/dev/null | head -1)
+            if [[ -n "$WID" ]]; then
+                xdotool windowactivate --sync "$WID"
+                sleep 0.2
+                xdotool key --window "$WID" ctrl+shift+p
+                sleep 0.4
+                xdotool type --clearmodifiers "Developer: Reload Window"
+                sleep 0.2
+                xdotool key --window "$WID" Return
+                RELOADED=true
+            fi
+        fi
+
+        if [[ "$RELOADED" == "false" ]]; then
+            "$CODE_CLI" --command workbench.action.reloadWindow 2>/dev/null || true
+        fi
+    fi
+
     echo ""
-    echo "Done. Reload the VSCode window (Ctrl+Shift+P → 'Developer: Reload Window') to activate."
+    echo "Done."
 else
     echo ""
     echo "To install manually, run:"
     echo "  code --install-extension $EXT_DIR/$VSIX"
     echo ""
-    echo "Or run './build.sh --install' to build and install in one step."
+    echo "Or run './build.sh --install'         to build and install."
+    echo "Or run './build.sh --install --reload' to build, install, and reload the window."
 fi

@@ -4,11 +4,8 @@
 // DiscoveredTestPayload produced by vscode_pytest/__init__.py.
 
 import * as path from 'path';
-import { Position, Range, TestController, TestItem, Uri } from 'vscode';
+import { Position, Range, TestController, TestItem, TestTag, Uri } from 'vscode';
 import { DiscoveredTestItem, DiscoveredTestNode, IBddTestItemIndex } from './types';
-
-export const RunTestTag = { id: 'pytest-bdd-run' };
-export const DebugTestTag = { id: 'pytest-bdd-debug' };
 
 function toSentenceCase(s: string): string {
     const spaced = s.replace(/_/g, ' ');
@@ -59,7 +56,7 @@ function ensureFolderPath(
             const folderUri = Uri.joinPath(baseUri, part);
             existing = testController.createTestItem(id, `${toSentenceCase(part)} 🗂`, folderUri);
             existing.canResolveChildren = true;
-            existing.tags = [RunTestTag, DebugTestTag];
+            existing.tags = [];
             children.add(existing);
         }
         current = existing;
@@ -123,7 +120,7 @@ export function buildTree(
             const featureId = featurePath; // unique per feature file
             featureFileItem = testController.createTestItem(featureId, `${leaf.feature_name ?? toSentenceCase(featureFileStem)} 🗒`, featureFileUri);
             featureFileItem.canResolveChildren = true;
-            featureFileItem.tags = [RunTestTag, DebugTestTag];
+            featureFileItem.tags = (leaf.feature_tags ?? []).map((t) => new TestTag(t));
             if (leaf.feature_tags?.length) {
                 featureFileItem.description = leaf.feature_tags.map((t) => `@${t}`).join(' ');
             }
@@ -140,7 +137,10 @@ export function buildTree(
         const leafId = `${featurePath}::${scenarioName}`;
         const scenarioItem = testController.createTestItem(leafId, scenarioName, featureFileUri);
         scenarioItem.canResolveChildren = false;
-        scenarioItem.tags = [RunTestTag, DebugTestTag];
+        scenarioItem.tags = [
+            ...(leaf.feature_tags ?? []).map((t) => new TestTag(t)),
+            ...(leaf.scenario_tags ?? []).map((t) => new TestTag(t)),
+        ];
         if (leaf.scenario_tags?.length) {
             scenarioItem.description = leaf.scenario_tags.map((t) => `@${t}`).join(' ');
         }
@@ -169,7 +169,7 @@ export function buildTree(
         if (!fileItem) {
             fileItem = testController.createTestItem(filePath, fileName, fileUri);
             fileItem.canResolveChildren = true;
-            fileItem.tags = [RunTestTag, DebugTestTag];
+            fileItem.tags = [];
             testController.items.add(fileItem);
         }
 
@@ -180,7 +180,7 @@ export function buildTree(
 
         const leafItem = testController.createTestItem(leaf.id_, leaf.name, fileUri);
         leafItem.canResolveChildren = false;
-        leafItem.tags = [RunTestTag, DebugTestTag];
+        leafItem.tags = [];
         if (range) {
             leafItem.range = range;
         }

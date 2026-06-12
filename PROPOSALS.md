@@ -1,7 +1,34 @@
 # Proposals
 
-## Tag display filtering
-In order to do filtering on tags we would need to do our own testing view.
+## Snippets
+A set of snippets that create a more full set of setup.
+This might be better left to specific projects though becuase they can populate steps which are familiar to them.
+
+
+## Better tags and filtering
+Move tags into the main scenario name in the test tree.
+Support filtering by tags.
+
+Where a tags is on a parent element, display the tag on the parent but match all children of that element when filtering.
+
+## Suggestions on parameters add explanatory text.
+Can we add some additional explanatory text for a param sugestion?
+Can we make that searchable for suggestions too?
+
+
+## Create User Guides 
+
+Guides should be linked from the README. 
+
+If using documentation generators, the build should be triggered from the build.sh command.
+
+  * A non-technical overview. Linking to related information like gherkin and pytest.
+  * A user guide for testers writing features tests using this extension and hooks. This will just cover the scenario writing and how the extension will help them, how to take advantage of it. This should be markdown.
+  * A guide for test developers on how to implement the name and status hooks, types (from both emums and classes with suggestors and validators) and the linting hooks . Ideally drive this from python incode documentation approaches. The tools and methods chosen should be discussed before implementation. Explain the interactions with the extension and vscode and where to see debugging information.
+
+
+
+
 
 
 ## Improved display of waiting State — Options
@@ -323,120 +350,4 @@ const range = Number.isFinite(lineno) && lineno > 0
    committing to the offset formula.
 
 
-## Step Types, Completions & Linting
 
-### Background
-
-Six related features that add type-aware step editing and scenario linting to pytest-bdd
-projects in VS Code. They share a common data pipeline: step type metadata flows from
-Python into VS Code and powers completions, validation, and linting from a single source
-of truth.
-
-Full design spec: `docs/superpowers/specs/2026-03-30-step-types-completions-linting-design.md`
-
----
-
-### Feature 1 — Step Type System
-
-A base class `StepType` with two static methods:
-
-- `suggested_values() -> list[str]` — returns valid values for autocomplete; empty list
-  means no suggestions but validation may still apply
-- `validate(value: str) -> str | None` — returns an error message or `None` if valid
-
-A `StepEnum` mixin provides default implementations for both, derived from the enum's
-members. Types without a fixed domain (e.g. JmesPath expressions) override only
-`validate()`.
-
-Types are registered with pytest-bdd's parse type system as today — no new registration
-API needed.
-
----
-
-### Features 2–4 — Step Completions in `.feature` Files
-
-A `CompletionItemProvider` for `.feature` files with two levels:
-
-**Level 1 — Step completions:** matching step patterns offered as snippet completions
-with parameters as tab stops. Selecting a completion places the cursor at the first
-parameter.
-
-**Level 2 — Domain value completions:** when the cursor is in a parameter position on a
-line matching a known step, and that parameter's type has `suggested_values()`, those
-values are offered as completions. Operates on cached step data — no subprocess.
-
----
-
-### Feature 5 — Parameter Validation
-
-On `.feature` file save, `pytest --bdd-lint <file>` runs in the project's venv. For
-each step parameter value, `validate()` is called on the resolved type. Errors are
-published to the VS Code Problems panel as diagnostics.
-
----
-
-### Feature 6 — Scenario Linting
-
-Two hookspecs for custom business-rule validation:
-
-- `pytest_bdd_orama_lint_scenario(scenario) -> list[LintDiagnostic]`
-- `pytest_bdd_orama_lint_outline(scenario, examples) -> list[LintDiagnostic]`
-
-Linting flow:
-- Plain scenario → `lint_scenario` once
-- Scenario outline → `lint_outline` once (duplicate rows, size checks, etc.),
-  then `lint_scenario` once per example row with placeholders interpolated
-
-This means simple scenario-level checks (step count, keyword ordering) automatically
-apply to every concrete row of an outline without the check needing to handle outlines.
-
-```python
-@dataclass
-class LintDiagnostic:
-    message: str
-    severity: Literal["error", "warning", "info"] = "error"
-    line: int | None = None  # optional
-```
-
----
-
-### Discovery Architecture
-
-**Two-phase pipeline:**
-
-- **Phase A — Step discovery** (infrequent): `pytest --collect-only` emits a new
-  `StepDefinition` payload alongside test items, covering both local and installed
-  package steps. Cached in the extension. Retriggered by `.feature` file changes and
-  by saves to step definition files (configurable glob, default:
-  `**/step_defs/**/*.py`, `**/steps/**/*.py`).
-
-- **Phase B — Lint** (on `.feature` save): `pytest --bdd-lint <file>` processes only
-  the saved file. Emits `LintDiagnostic` payloads over IPC.
-
-**Distributed step libraries:**
-
-Package authors run `pytest-bdd-orama generate-metadata` at packaging time to produce a
-`pytest_bdd_orama_steps.json` file shipped inside the wheel. The extension discovers
-these via Python entry points at startup and loads them as a base layer, overridden by
-live-collected data. Consumers of a distributed step library get completions immediately
-without a collection run.
-
-**CLI linting (CI/CD, commit hooks):**
-
-`pytest --bdd-lint` (no file arg) lints all feature files in scope. Human-readable
-stdout, non-zero exit on error-severity diagnostics.
-
----
-
-### Open Questions
-
-1. **Step definition glob default** — are `**/step_defs/**/*.py` and
-   `**/steps/**/*.py` the right defaults, or does your project use a different
-   convention?
-
-2. **Distributed metadata format versioning** — should `pytest_bdd_orama_steps.json`
-   carry a schema version for forward compatibility?
-
-3. **Stale step cache** — if a step definition in an installed package changes between
-   discovery runs (e.g. after `pip install --upgrade`), should the extension detect
-   this (e.g. watch `site-packages` mtime) or rely on manual refresh?
