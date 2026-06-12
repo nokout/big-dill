@@ -54,5 +54,23 @@
       "  | ${2:value}  |"
     ],
     "description": "Gherkin Examples table template"
+  },
+  "Docstring JSON": {
+    "prefix": "docstring-json",
+    "body": [
+      "\"\"\"json",
+      "${1:{\"key\": \"value\"}}",
+      "\"\"\""
+    ],
+    "description": "Gherkin JSON docstring block"
+  },
+  "Docstring YAML": {
+    "prefix": "docstring-yaml",
+    "body": [
+      "\"\"\"yaml",
+      "${1:key: value}",
+      "\"\"\""
+    ],
+    "description": "Gherkin YAML docstring block"
   }
 }

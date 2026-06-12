@@ -10,6 +10,8 @@
     { "include": "#step-keyword" },
     { "include": "#examples-keyword" },
     { "include": "#docstring-backtick" },
+    { "include": "#docstring-triple-quote-json" },
+    { "include": "#docstring-triple-quote-yaml" },
     { "include": "#docstring-triple-quote" },
     { "include": "#table-row" },
     { "include": "#placeholder" },
@@ -83,12 +85,32 @@
         }
       ]
     },
+    "docstring-triple-quote-json": {
+      "name": "meta.embedded.block.json.gherkin",
+      "begin": "^(\\s*)\"\"\"(json)",
+      "end": "^\\1\"\"\"",
+      "beginCaptures": {
+        "2": { "name": "entity.name.type.gherkin" }
+      },
+      "contentName": "source.json",
+      "patterns": [{ "include": "source.json" }]
+    },
+    "docstring-triple-quote-yaml": {
+      "name": "meta.embedded.block.yaml.gherkin",
+      "begin": "^(\\s*)\"\"\"(yaml)",
+      "end": "^\\1\"\"\"",
+      "beginCaptures": {
+        "2": { "name": "entity.name.type.gherkin" }
+      },
+      "contentName": "source.yaml",
+      "patterns": [{ "include": "source.yaml" }]
+    },
     "docstring-triple-quote": {
       "name": "string.unquoted.docstring.gherkin",
-      "begin": "^\\s*\"\"\"(\\w+)?",
-      "end": "^\\s*\"\"\"",
+      "begin": "^(\\s*)\"\"\"(\\w+)?",
+      "end": "^\\1\"\"\"",
       "beginCaptures": {
-        "1": { "name": "entity.name.type.gherkin" }
+        "2": { "name": "entity.name.type.gherkin" }
       },
       "patterns": [
         { "include": "#placeholder" }
