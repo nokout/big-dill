@@ -212,6 +212,17 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         vscode.commands.registerCommand('pytest-bdd-orama.stepBrowser.groupByTag', () => {
             stepBrowserProvider?.setGroupingMode(GroupingMode.ByTag);
         }),
+        vscode.commands.registerCommand('pytest-bdd-orama.stepBrowser.filter', async () => {
+            const current = stepBrowserProvider?.getFilter() ?? '';
+            const input = await vscode.window.showInputBox({
+                prompt: 'Filter steps by keyword',
+                value: current,
+                placeHolder: 'Type to filter step patterns...',
+            });
+            if (input !== undefined) {
+                stepBrowserProvider?.setFilter(input);
+            }
+        }),
     );
 
     const featureDiagnostics = new FeatureDiagnostics(

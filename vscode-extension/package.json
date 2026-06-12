@@ -159,6 +159,11 @@
         "command": "pytest-bdd-orama.stepBrowser.groupByTag",
         "title": "Group by Tag",
         "icon": "$(tag)"
+      },
+      {
+        "command": "pytest-bdd-orama.stepBrowser.filter",
+        "title": "Filter Steps",
+        "icon": "$(filter)"
       }
     ],
     "menus": {
@@ -175,6 +180,11 @@
         },
         {
           "command": "pytest-bdd-orama.stepBrowser.groupByTag",
+          "when": "view == pytest-bdd-orama.stepBrowser",
+          "group": "navigation"
+        },
+        {
+          "command": "pytest-bdd-orama.stepBrowser.filter",
           "when": "view == pytest-bdd-orama.stepBrowser",
           "group": "navigation"
         }
