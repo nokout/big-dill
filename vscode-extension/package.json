@@ -140,7 +140,7 @@
         {
           "id": "pytest-bdd-orama.stepBrowser",
           "name": "Step Browser",
-          "when": "pytest-bdd-orama.enabled"
+          "when": "config.pytest-bdd-orama.enabled"
         }
       ]
     },
@@ -211,7 +211,17 @@
           "gherkinExamplesHeaderCell":  ["entity.name.tag"]
         }
       }
-    ]
+    ],
+    "configurationDefaults": {
+      "editor.tokenColorCustomizations": {
+        "textMateRules": [
+          { "scope": "keyword.control.feature.gherkin", "settings": { "fontStyle": "bold underline" } },
+          { "scope": "entity.name.section.feature.gherkin", "settings": { "fontStyle": "bold underline" } },
+          { "scope": "keyword.control.scenario.gherkin", "settings": { "fontStyle": "bold underline" } },
+          { "scope": "entity.name.section.scenario.gherkin", "settings": { "fontStyle": "bold underline" } }
+        ]
+      }
+    }
   },
   "scripts": {
     "compile": "tsc -p tsconfig.json",

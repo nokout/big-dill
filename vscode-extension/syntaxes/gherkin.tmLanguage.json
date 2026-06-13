@@ -6,6 +6,7 @@
     { "include": "#comment" },
     { "include": "#tag" },
     { "include": "#feature-keyword" },
+    { "include": "#rule-keyword" },
     { "include": "#scenario-keyword" },
     { "include": "#step-keyword" },
     { "include": "#examples-keyword" },
@@ -28,17 +29,26 @@
       "match": "@[\\w-]+"
     },
     "feature-keyword": {
-      "match": "^(Feature|Rule|Background)\\s*(:)",
+      "match": "^(Feature)\\s*(:)\\s*(.*)$",
+      "captures": {
+        "1": { "name": "keyword.control.feature.gherkin" },
+        "2": { "name": "punctuation.separator.gherkin" },
+        "3": { "name": "entity.name.section.feature.gherkin" }
+      }
+    },
+    "rule-keyword": {
+      "match": "^\\s*(Rule|Background)\\s*(:)",
       "captures": {
         "1": { "name": "keyword.control.gherkin" },
         "2": { "name": "punctuation.separator.gherkin" }
       }
     },
     "scenario-keyword": {
-      "match": "^\\s*(Scenario(?:\\s+Outline)?|Example)\\s*(:)",
+      "match": "^\\s*(Scenario(?:\\s+Outline)?|Example)\\s*(:)\\s*(.*)$",
       "captures": {
-        "1": { "name": "keyword.control.gherkin" },
-        "2": { "name": "punctuation.separator.gherkin" }
+        "1": { "name": "keyword.control.scenario.gherkin" },
+        "2": { "name": "punctuation.separator.gherkin" },
+        "3": { "name": "entity.name.section.scenario.gherkin" }
       }
     },
     "step-keyword": {
