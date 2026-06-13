@@ -24,6 +24,7 @@ Feature: Backtick docstring data blocks
       filters:
         region: APAC
         currency: AUD
+        value: 88
       columns:
         - revenue
         - units_sold

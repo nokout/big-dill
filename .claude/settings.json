@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//tmp/VSCucumberAutoComplete/gserver/**)",
+      "Read(//tmp/VSCucumberAutoComplete/**)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(node -e ' *)",
+      "Read(//home/nokout/.claude/plans/**)",
+      "Read(//home/nokout/.claude/**)"
+    ]
+  }
+}
