@@ -256,6 +256,43 @@ Open the repo root as the workspace. The `.vscode/settings.json` already disable
 
 ---
 
+## Developing the extension
+
+For working on the extension itself, the repo ships a watch/debug workflow in `.vscode/` — don't rebuild and reinstall the `.vsix` on every change.
+
+### Auto-build on watch
+
+`.vscode/tasks.json` defines `watch-extension`, a background task that runs the TypeScript compiler in watch mode (`npm run watch` in `vscode-extension/`). It is the default build task, so `Ctrl+Shift+B` starts it. Compile errors stream into the Problems panel as you type; output lands in `vscode-extension/dist/`.
+
+The task sources `~/.nvm/nvm.sh` when present, so it also works where node is nvm-managed and the editor wasn't launched from a shell with nvm on `PATH` (e.g. the VSCodium flatpak, whose sandbox has no node of its own).
+
+### Extension Development Host
+
+Press `F5` (the "Run Extension" launch config). This:
+
+1. starts `watch-extension` automatically and waits for the first compile
+2. opens an **Extension Development Host** window with `vscode-extension/` loaded from source and `playground/` as its workspace
+3. attaches the debugger — breakpoints in `src/*.ts` work via source maps
+
+VS Code cannot hot-swap a running extension's code. The iteration loop is:
+
+```
+save file  →  watcher recompiles (~1 s)  →  Ctrl+R in the dev host window
+```
+
+`Ctrl+R` (`Developer: Reload Window`) reloads the dev host with the fresh build from `dist/`; the debugger reattaches automatically. No re-launch needed.
+
+Note that an installed `.vsix` is a frozen copy — it never picks up source changes. Iterate in the dev host, and run `./build.sh --install` only when you want to refresh the installed version.
+
+### Unit tests
+
+```bash
+cd vscode-extension
+npx jest
+```
+
+---
+
 ## Configuration reference
 
 All settings are under the `pytest-bdd-orama` namespace and can be set at workspace or folder level.
