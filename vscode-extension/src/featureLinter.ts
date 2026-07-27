@@ -156,6 +156,176 @@ export function checkScenarioHasExamplesNotOutline(doc: GherkinDocument, _lines:
     return diags;
 }
 
+const PLACEHOLDER_RE = /<([^<>]+)>/g;
+
+type Scenario = NonNullable<NonNullable<GherkinDocument['feature']>['children'][number]['scenario']>;
+type Step = Scenario['steps'][number];
+
+/** All scenarios in the document, including those nested inside Rule blocks. */
+function allScenarios(doc: GherkinDocument): Scenario[] {
+    return (doc.feature?.children ?? []).flatMap((child) =>
+        child.scenario ? [child.scenario]
+            : (child.rule?.children ?? []).flatMap((rc) => rc.scenario ? [rc.scenario] : []),
+    );
+}
+
+function isOutline(scenario: Scenario): boolean {
+    return scenario.keyword.trim().toLowerCase().includes('outline');
+}
+
+/**
+ * Texts in which Example placeholders are substituted: step text, datatable
+ * cells, and docstring content (pytest-bdd ≥8) — each with its 0-indexed line.
+ */
+function placeholderSources(step: Step): Array<{ text: string; line: number }> {
+    const sources = [{ text: step.text ?? '', line: (step.location?.line ?? 1) - 1 }];
+    for (const row of step.dataTable?.rows ?? []) {
+        sources.push({
+            text: row.cells.map((c) => c.value).join(' '),
+            line: (row.location?.line ?? step.location?.line ?? 1) - 1,
+        });
+    }
+    if (step.docString) {
+        const startLine = step.docString.location?.line ?? step.location?.line ?? 1;
+        step.docString.content.split('\n').forEach((text, i) => {
+            sources.push({ text, line: startLine + i }); // content starts after the opening """
+        });
+    }
+    return sources;
+}
+
+export function checkUndefinedExampleColumn(doc: GherkinDocument, _lines: string[]): DiagnosticEntry[] {
+    const diags: DiagnosticEntry[] = [];
+    for (const scenario of allScenarios(doc)) {
+        if (!isOutline(scenario)) continue;
+
+        const headers = scenario.examples.filter((e) => e.tableHeader);
+        if (headers.length === 0) continue;
+        const columns = new Set(headers.flatMap((e) => e.tableHeader!.cells.map((c) => c.value)));
+
+        for (const step of scenario.steps) {
+            const missing = new Map<string, number>();
+            for (const { text, line } of placeholderSources(step)) {
+                for (const match of text.matchAll(PLACEHOLDER_RE)) {
+                    if (!columns.has(match[1]) && !missing.has(match[1])) missing.set(match[1], line);
+                }
+            }
+            for (const [name, line] of missing) {
+                diags.push({
+                    line,
+                    message: `Step references <${name}> but no Examples column '${name}' exists`,
+                    severity: 'error',
+                });
+            }
+        }
+    }
+    return diags;
+}
+
+export function checkUnusedExampleColumn(doc: GherkinDocument, _lines: string[]): DiagnosticEntry[] {
+    const diags: DiagnosticEntry[] = [];
+    for (const scenario of allScenarios(doc)) {
+        if (!isOutline(scenario)) continue;
+
+        const referenced = new Set<string>();
+        for (const step of scenario.steps) {
+            for (const { text } of placeholderSources(step)) {
+                for (const match of text.matchAll(PLACEHOLDER_RE)) referenced.add(match[1]);
+            }
+        }
+
+        // An undefined reference is usually the other half of the same typo —
+        // leave that outline to checkUndefinedExampleColumn and re-evaluate
+        // unused columns once the reference is fixed.
+        const columns = new Set(
+            scenario.examples.flatMap((e) => e.tableHeader?.cells.map((c) => c.value) ?? []),
+        );
+        if ([...referenced].some((name) => !columns.has(name))) continue;
+
+        for (const examples of scenario.examples) {
+            for (const cell of examples.tableHeader?.cells ?? []) {
+                if (!referenced.has(cell.value)) {
+                    diags.push({
+                        line: (cell.location?.line ?? examples.location?.line ?? 1) - 1,
+                        message: `Examples column '${cell.value}' is never referenced by any step`,
+                        severity: 'warning',
+                    });
+                }
+            }
+        }
+    }
+    return diags;
+}
+
+export function checkDuplicateScenarioName(doc: GherkinDocument, _lines: string[]): DiagnosticEntry[] {
+    const diags: DiagnosticEntry[] = [];
+    const firstSeen = new Map<string, number>();
+    for (const scenario of allScenarios(doc)) {
+        const name = scenario.name.trim();
+        if (!name) continue;
+        const line = scenario.location?.line ?? 1;
+        const first = firstSeen.get(name);
+        if (first !== undefined) {
+            diags.push({
+                line: line - 1,
+                message: `Duplicate scenario name '${name}' (first used on line ${first})`,
+                severity: 'warning',
+            });
+        } else {
+            firstSeen.set(name, line);
+        }
+    }
+    return diags;
+}
+
+export function checkDuplicateExamplesColumn(doc: GherkinDocument, _lines: string[]): DiagnosticEntry[] {
+    const diags: DiagnosticEntry[] = [];
+    for (const scenario of allScenarios(doc)) {
+        for (const examples of scenario.examples) {
+            const seen = new Set<string>();
+            const reported = new Set<string>();
+            for (const cell of examples.tableHeader?.cells ?? []) {
+                if (seen.has(cell.value) && !reported.has(cell.value)) {
+                    diags.push({
+                        line: (cell.location?.line ?? examples.location?.line ?? 1) - 1,
+                        message: `Duplicate Examples column '${cell.value}'`,
+                        severity: 'error',
+                    });
+                    reported.add(cell.value);
+                }
+                seen.add(cell.value);
+            }
+        }
+    }
+    return diags;
+}
+
+export function checkEmptyScenario(doc: GherkinDocument, _lines: string[]): DiagnosticEntry[] {
+    return allScenarios(doc)
+        .filter((scenario) => scenario.steps.length === 0)
+        .map((scenario) => ({
+            line: (scenario.location?.line ?? 1) - 1,
+            message: `Scenario '${scenario.name}' has no steps`,
+            severity: 'error' as const,
+        }));
+}
+
+export function checkOutlineSingleRow(doc: GherkinDocument, _lines: string[]): DiagnosticEntry[] {
+    const diags: DiagnosticEntry[] = [];
+    for (const scenario of allScenarios(doc)) {
+        if (!isOutline(scenario)) continue;
+        if (scenario.examples.length !== 1) continue;
+        if (scenario.examples[0].tableBody.length === 1) {
+            diags.push({
+                line: (scenario.location?.line ?? 1) - 1,
+                message: `Scenario Outline '${scenario.name}' has a single example row — consider a plain Scenario`,
+                severity: 'info',
+            });
+        }
+    }
+    return diags;
+}
+
 export interface PhrasingRule {
     pattern: string;
     message: string;
@@ -199,6 +369,12 @@ const RULES = [
     checkEmptyExamplesBody,
     checkScenarioShouldBeOutline,
     checkScenarioHasExamplesNotOutline,
+    checkUndefinedExampleColumn,
+    checkUnusedExampleColumn,
+    checkDuplicateScenarioName,
+    checkDuplicateExamplesColumn,
+    checkEmptyScenario,
+    checkOutlineSingleRow,
 ];
 
 export class FeatureLinter {
