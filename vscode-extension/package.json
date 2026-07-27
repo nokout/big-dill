@@ -15,8 +15,21 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/pytest-bdd-orama/pytest-bdd-orama"
+    "url": "https://github.com/nokout/pytest-bdd-orama"
   },
+  "homepage": "https://github.com/nokout/pytest-bdd-orama/blob/main/vscode-extension/README.md",
+  "bugs": {
+    "url": "https://github.com/nokout/pytest-bdd-orama/issues"
+  },
+  "license": "MIT",
+  "keywords": [
+    "pytest",
+    "pytest-bdd",
+    "bdd",
+    "gherkin",
+    "cucumber",
+    "testing"
+  ],
   "icon": "icons/marketplace-icon.png",
   "main": "./dist/extension.js",
   "extensionDependencies": [
