@@ -17,6 +17,7 @@
     "type": "git",
     "url": "https://github.com/pytest-bdd-orama/pytest-bdd-orama"
   },
+  "icon": "icons/marketplace-icon.png",
   "main": "./dist/extension.js",
   "extensionDependencies": [
     "ms-python.python"
