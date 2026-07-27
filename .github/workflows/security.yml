@@ -22,6 +22,10 @@ defaults:
 jobs:
   codeql:
     name: CodeQL (${{ matrix.language }})
+    # Code scanning uploads need GitHub Advanced Security, which is free only on
+    # public repositories. The analysis itself runs fine while private, but the
+    # upload is rejected — so skip until the repo is public, then it self-enables.
+    if: github.event.repository.visibility == 'public'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -43,8 +47,9 @@ jobs:
 
   dependency-review:
     name: Dependency review
-    # Only meaningful on a PR — it diffs the base against the head manifest.
-    if: github.event_name == 'pull_request'
+    # Only meaningful on a PR (it diffs base against head), and the dependency
+    # graph API it needs requires Advanced Security on a private repository.
+    if: github.event_name == 'pull_request' && github.event.repository.visibility == 'public'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -96,8 +101,9 @@ jobs:
 
   scorecard:
     name: OpenSSF Scorecard
-    # Scorecard's analysis targets the default branch; skip on PRs.
-    if: github.event_name != 'pull_request'
+    # Scorecard analyses the default branch (so not PRs), and publishing its
+    # result requires a public repository.
+    if: github.event_name != 'pull_request' && github.event.repository.visibility == 'public'
     runs-on: ubuntu-latest
     permissions:
       contents: read

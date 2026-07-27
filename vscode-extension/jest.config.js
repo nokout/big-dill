@@ -10,7 +10,10 @@ module.exports = {
     collectCoverageFrom: [
         'src/**/*.ts',
         '!src/**/__tests__/**',
-        // Activation wiring — exercised by integration tests rather than unit tests.
+        // Integration tests run in a real VS Code via @vscode/test-cli, not Jest,
+        // so counting them here would report them as 0% covered.
+        '!src/test/**',
+        // Activation wiring — exercised by those integration tests, not unit tests.
         '!src/extension.ts',
     ],
     // Floors set just under the current baseline (62/52/60/63) so real regressions
