@@ -65,6 +65,24 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
         working-directory: vscode-extension
 
+  integration-test:
+    name: Integration tests (real VS Code)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: vscode-extension/package-lock.json
+      - run: npm ci
+        working-directory: vscode-extension
+      # Downloads a real VS Code build and runs the extension inside it, so it
+      # needs a display. Everything else in CI is headless.
+      - name: Run integration tests under xvfb
+        run: xvfb-run -a npm run test:integration
+        working-directory: vscode-extension
+
   test-plugin:
     name: Test plugin (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
