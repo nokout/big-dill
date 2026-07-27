@@ -47,7 +47,9 @@ define in your own `conftest.py`.
   (the packaging tool) and are not present in shipped code.
 - The Python plugin is audited with `pip-audit`.
 - CodeQL (TypeScript and Python) runs on every pull request and weekly, with
-  results in the repository's Security tab.
+  results in the repository's Security tab. Code scanning and dependency review
+  require GitHub Advanced Security, which is free on public repositories — those
+  jobs are configured to activate automatically once this repository is public.
 - All GitHub Actions are pinned by full commit SHA.
 - Releases publish an SBOM and a build-provenance attestation; see the release
   workflow for how to verify a downloaded VSIX.
