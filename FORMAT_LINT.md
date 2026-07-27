@@ -231,6 +231,14 @@ Each rule is a standalone class, independently testable.
 | `oversized-example-table` | Examples block exceeds 20 rows | Warning | `pytest_bdd_orama_lint_outline` in conftest.py |
 | `outline-missing-examples` | Scenario Outline has no Examples block | Error | New |
 | `empty-examples-body` | Examples block has a header row but no data rows | Error | New |
+| `scenario-should-be-outline` | Plain Scenario uses `<param>` syntax | Warning | New |
+| `scenario-has-examples-not-outline` | Examples table under a plain Scenario | Error | New |
+| `undefined-example-column` | Step references `<param>` with no matching Examples column (checks step text, datatables, and docstrings) | Error | New |
+| `unused-example-column` | Examples column never referenced by any step (suppressed while the outline has an undefined `<param>` reference) | Warning | New |
+| `duplicate-scenario-name` | Two scenarios in the same feature share a name | Warning | New |
+| `duplicate-examples-column` | Same column name appears twice in one Examples header | Error | New |
+| `empty-scenario` | Scenario or outline has no steps | Error | New |
+| `outline-single-row` | Outline whose only Examples block has a single data row | Info | New |
 
 ### Relationship to Python linting
 
