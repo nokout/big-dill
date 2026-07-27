@@ -10,6 +10,9 @@ requires-python = ">=3.10"
 dependencies = [
     "pytest>=7",
     "pytest-bdd>=6",
+    # lint_runner imports `parse` directly; it currently arrives transitively via
+    # pytest-bdd, but that is not a guarantee we should rely on.
+    "parse>=1.19",
 ]
 
 [project.scripts]
@@ -23,3 +26,13 @@ addopts = "-p pytester"
 
 [tool.hatch.build.targets.wheel]
 packages = ["pytest_bdd_orama"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+ignore = [
+    "E501",  # line length is handled by the formatter, not enforced as an error
+]

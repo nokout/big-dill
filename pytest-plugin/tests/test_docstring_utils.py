@@ -1,6 +1,5 @@
 """Unit tests for docstring_utils.parse_tags and get_summary."""
-import pytest
-from pytest_bdd_orama.docstring_utils import parse_tags, get_summary
+from pytest_bdd_orama.docstring_utils import get_summary, parse_tags
 
 
 def test_get_summary_returns_first_non_empty_line():

@@ -1,6 +1,6 @@
 import pytest
 
-from .lint_types import LintDiagnostic, InterpolatedScenario
+from .lint_types import LintDiagnostic
 
 
 class BddOramaHookSpec:

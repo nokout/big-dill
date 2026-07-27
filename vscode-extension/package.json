@@ -205,34 +205,89 @@
       ]
     },
     "semanticTokenTypes": [
-      { "id": "gherkinDatatablePipe",       "description": "Pipe characters in step datatables" },
-      { "id": "gherkinDatatableCell",       "description": "Cell content in step datatables" },
-      { "id": "gherkinDatatableCellString", "description": "Quoted string cell content in step datatables" },
-      { "id": "gherkinExamplesPipe",        "description": "Pipe characters in Examples tables" },
-      { "id": "gherkinExamplesCell",        "description": "Cell content in Examples table body" },
-      { "id": "gherkinExamplesCellString",  "description": "Quoted string cell content in Examples body" },
-      { "id": "gherkinExamplesHeaderCell",  "description": "Cell content in Examples header row" }
+      {
+        "id": "gherkinDatatablePipe",
+        "description": "Pipe characters in step datatables"
+      },
+      {
+        "id": "gherkinDatatableCell",
+        "description": "Cell content in step datatables"
+      },
+      {
+        "id": "gherkinDatatableCellString",
+        "description": "Quoted string cell content in step datatables"
+      },
+      {
+        "id": "gherkinExamplesPipe",
+        "description": "Pipe characters in Examples tables"
+      },
+      {
+        "id": "gherkinExamplesCell",
+        "description": "Cell content in Examples table body"
+      },
+      {
+        "id": "gherkinExamplesCellString",
+        "description": "Quoted string cell content in Examples body"
+      },
+      {
+        "id": "gherkinExamplesHeaderCell",
+        "description": "Cell content in Examples header row"
+      }
     ],
     "semanticTokenScopes": [
       {
         "scopes": {
-          "gherkinDatatablePipe":       ["punctuation.separator"],
-          "gherkinDatatableCell":       ["string.unquoted"],
-          "gherkinDatatableCellString": ["string.quoted.double"],
-          "gherkinExamplesPipe":        ["punctuation.separator"],
-          "gherkinExamplesCell":        ["variable.other"],
-          "gherkinExamplesCellString":  ["string.quoted.double"],
-          "gherkinExamplesHeaderCell":  ["entity.name.tag"]
+          "gherkinDatatablePipe": [
+            "punctuation.separator"
+          ],
+          "gherkinDatatableCell": [
+            "string.unquoted"
+          ],
+          "gherkinDatatableCellString": [
+            "string.quoted.double"
+          ],
+          "gherkinExamplesPipe": [
+            "punctuation.separator"
+          ],
+          "gherkinExamplesCell": [
+            "variable.other"
+          ],
+          "gherkinExamplesCellString": [
+            "string.quoted.double"
+          ],
+          "gherkinExamplesHeaderCell": [
+            "entity.name.tag"
+          ]
         }
       }
     ],
     "configurationDefaults": {
       "editor.tokenColorCustomizations": {
         "textMateRules": [
-          { "scope": "keyword.control.feature.gherkin", "settings": { "fontStyle": "bold underline" } },
-          { "scope": "entity.name.section.feature.gherkin", "settings": { "fontStyle": "bold underline" } },
-          { "scope": "keyword.control.scenario.gherkin", "settings": { "fontStyle": "bold underline" } },
-          { "scope": "entity.name.section.scenario.gherkin", "settings": { "fontStyle": "bold underline" } }
+          {
+            "scope": "keyword.control.feature.gherkin",
+            "settings": {
+              "fontStyle": "bold underline"
+            }
+          },
+          {
+            "scope": "entity.name.section.feature.gherkin",
+            "settings": {
+              "fontStyle": "bold underline"
+            }
+          },
+          {
+            "scope": "keyword.control.scenario.gherkin",
+            "settings": {
+              "fontStyle": "bold underline"
+            }
+          },
+          {
+            "scope": "entity.name.section.scenario.gherkin",
+            "settings": {
+              "fontStyle": "bold underline"
+            }
+          }
         ]
       }
     }
@@ -241,20 +296,26 @@
     "compile": "tsc -p tsconfig.json",
     "watch": "tsc -watch -p tsconfig.json",
     "package": "vsce package",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "jest",
+    "test:coverage": "jest --coverage",
     "vscode:prepublish": "npm run compile"
   },
   "overrides": {
     "cheerio": "1.0.0-rc.12"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.5",
     "@types/jest": "^29.5.14",
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.87.0",
     "@vscode/vsce": "2.24.0",
+    "eslint": "^9.39.5",
     "jest": "^29.7.0",
     "ts-jest": "^29.4.6",
-    "typescript": "^5.3.0"
+    "typescript": "^5.3.0",
+    "typescript-eslint": "^8.65.0"
   },
   "dependencies": {
     "@cucumber/gherkin": "^39.1.0"
