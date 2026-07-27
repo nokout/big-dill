@@ -44,20 +44,23 @@ for arg in "$@"; do
 done
 
 if [[ "$INSTALL" == "true" ]]; then
-    # Accept either 'code' or 'code-insiders'
-    CODE_CLI=""
-    for candidate in code code-insiders; do
+    # Accept 'code', 'code-insiders', or 'codium' (native or flatpak)
+    CODE_CLI=()
+    for candidate in code code-insiders codium; do
         if command -v "$candidate" &>/dev/null; then
-            CODE_CLI="$candidate"
+            CODE_CLI=("$candidate")
             break
         fi
     done
-    if [[ -z "$CODE_CLI" ]]; then
-        echo "ERROR: neither 'code' nor 'code-insiders' CLI found." >&2
+    if [[ ${#CODE_CLI[@]} -eq 0 ]] && flatpak info com.vscodium.codium &>/dev/null; then
+        CODE_CLI=(flatpak run com.vscodium.codium)
+    fi
+    if [[ ${#CODE_CLI[@]} -eq 0 ]]; then
+        echo "ERROR: no 'code', 'code-insiders', or 'codium' CLI found (nor a VSCodium flatpak)." >&2
         exit 1
     fi
-    echo "==> Installing extension into VSCode (using $CODE_CLI)..."
-    "$CODE_CLI" --install-extension "$VSIX" --force
+    echo "==> Installing extension (using ${CODE_CLI[*]})..."
+    "${CODE_CLI[@]}" --install-extension "$VSIX" --force
 
     if [[ "$RELOAD" == "true" ]]; then
         echo "==> Reloading VSCode window..."
@@ -66,6 +69,7 @@ if [[ "$INSTALL" == "true" ]]; then
         # On X11 Linux, xdotool is more reliable than code --command (which can open a new window).
         if [[ -n "${DISPLAY:-}" ]] && command -v xdotool &>/dev/null; then
             WID=$(xdotool search --name "Visual Studio Code" 2>/dev/null | head -1)
+            [[ -z "$WID" ]] && WID=$(xdotool search --name "VSCodium" 2>/dev/null | head -1)
             if [[ -n "$WID" ]]; then
                 xdotool windowactivate --sync "$WID"
                 sleep 0.2
@@ -79,7 +83,7 @@ if [[ "$INSTALL" == "true" ]]; then
         fi
 
         if [[ "$RELOADED" == "false" ]]; then
-            "$CODE_CLI" --command workbench.action.reloadWindow 2>/dev/null || true
+            "${CODE_CLI[@]}" --command workbench.action.reloadWindow 2>/dev/null || true
         fi
     fi
 
