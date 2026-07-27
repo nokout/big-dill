@@ -1,4 +1,4 @@
-from pytest_bdd_orama.step_types import StepType, StepEnum
+from pytest_bdd_orama.step_types import StepEnum, StepType
 
 
 def test_step_type_suggested_values_is_empty():

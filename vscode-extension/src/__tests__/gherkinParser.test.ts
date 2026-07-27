@@ -1,3 +1,4 @@
+import type * as vscode from 'vscode';
 import { parseSource, GherkinParseCache } from '../gherkinParser';
 
 const VALID = `Feature: F
@@ -34,14 +35,14 @@ describe('parseSource', () => {
 describe('GherkinParseCache', () => {
     it('returns the same result object on the second call with same version', () => {
         const cache = new GherkinParseCache();
-        const doc = { uri: { fsPath: '/a.feature' }, version: 1, getText: () => VALID } as any;
+        const doc = { uri: { fsPath: '/a.feature' }, version: 1, getText: () => VALID } as unknown as vscode.TextDocument;
         expect(cache.parse(doc)).toBe(cache.parse(doc));
     });
 
     it('re-parses when version number changes', () => {
         const cache = new GherkinParseCache();
-        const v1 = { uri: { fsPath: '/a.feature' }, version: 1, getText: () => VALID } as any;
-        const v2 = { uri: { fsPath: '/a.feature' }, version: 2, getText: () => VALID } as any;
+        const v1 = { uri: { fsPath: '/a.feature' }, version: 1, getText: () => VALID } as unknown as vscode.TextDocument;
+        const v2 = { uri: { fsPath: '/a.feature' }, version: 2, getText: () => VALID } as unknown as vscode.TextDocument;
         expect(cache.parse(v1)).not.toBe(cache.parse(v2));
     });
 });

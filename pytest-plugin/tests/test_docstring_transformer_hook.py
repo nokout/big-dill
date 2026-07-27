@@ -1,5 +1,4 @@
 """Integration tests for the pytest_bdd_orama_transform_docstring hookspec."""
-import pytest
 
 
 def test_hookspec_is_registered(pytester):

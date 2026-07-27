@@ -18,7 +18,6 @@ when building the execution payload sent to the extension.
 """
 import pytest
 
-
 # ---------------------------------------------------------------------------
 # Shared conftest snippet embedded in every pytester project
 # ---------------------------------------------------------------------------

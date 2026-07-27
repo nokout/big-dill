@@ -1,5 +1,6 @@
 # pytest-plugin/pytest_bdd_orama/lint_types.py
 from __future__ import annotations
+
 from dataclasses import dataclass
 from typing import Literal
 

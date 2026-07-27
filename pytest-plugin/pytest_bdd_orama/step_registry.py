@@ -1,11 +1,12 @@
 # pytest-plugin/pytest_bdd_orama/step_registry.py
 """Enumerate registered pytest-bdd step definitions and extract type metadata."""
 from __future__ import annotations
+
 import inspect
 import re
 
-from .step_types import StepType
 from .docstring_utils import get_summary, parse_tags
+from .step_types import StepType
 
 _PARAM_RE = re.compile(r'\{(\w+)(?::(\w+))?\}')
 

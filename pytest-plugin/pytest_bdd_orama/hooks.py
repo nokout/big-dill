@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from .hookspec import BddOramaHookSpec
-from .lint_runner import validate_step_params, interpolate_scenario
+from .lint_runner import interpolate_scenario, validate_step_params
 from .lint_types import LintDiagnostic
 from .step_registry import collect_step_definitions, collect_step_type_classes
 
@@ -119,8 +119,10 @@ class _ExamplesRowsAdapter:
 
     def __init__(self, examples_obj):
         self._obj = examples_obj
+        # strict=False: pytest-bdd guarantees rectangular tables, and a lint pass
+        # should still produce diagnostics for a malformed feature rather than raise.
         self.rows = [
-            dict(zip(examples_obj.example_params, row))
+            dict(zip(examples_obj.example_params, row, strict=False))
             for row in examples_obj.examples
         ]
 
