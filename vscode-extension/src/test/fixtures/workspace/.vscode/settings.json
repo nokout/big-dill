@@ -1,0 +1,4 @@
+{
+  "pytest-bdd-orama.enabled": true,
+  "python.testing.pytestEnabled": false
+}

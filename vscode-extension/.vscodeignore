@@ -1,0 +1,21 @@
+# Sources and build config — dist/ is what ships.
+src/**
+tsconfig.json
+jest.config.js
+eslint.config.mjs
+.vscode-test.mjs
+__mocks__/**
+
+# Compiled tests and their fixtures must not ship to users.
+dist/test/**
+dist/**/__tests__/**
+
+# Source maps of tests
+dist/test/**/*.map
+
+# Repo/dev files
+.github/**
+.vscode/**
+.vscode-test/**
+coverage/**
+**/*.vsix
