@@ -1,7 +1,8 @@
 """Unit tests for metadata_gen._build_metadata."""
 import json
+
 from pytest_bdd_orama.metadata_gen import _build_metadata
-from pytest_bdd_orama.step_types import StepType, StepEnum
+from pytest_bdd_orama.step_types import StepEnum, StepType
 
 
 class _Colour(StepEnum):

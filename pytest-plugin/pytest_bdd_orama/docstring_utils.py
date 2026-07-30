@@ -1,5 +1,6 @@
 """Utility functions for extracting structured information from docstrings."""
 from __future__ import annotations
+
 import re
 
 _SECTION_RE = re.compile(r'^[ \t]*([A-Z][A-Za-z]*):\s*$', re.MULTILINE)
