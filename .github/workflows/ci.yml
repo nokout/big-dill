@@ -134,7 +134,7 @@ jobs:
       - run: npm ci
         working-directory: vscode-extension
       - name: Package
-        run: npx vsce package -o pytest-bdd-orama.vsix
+        run: npx vsce package --no-rewrite-relative-links -o pytest-bdd-orama.vsix
         working-directory: vscode-extension
       - name: List packaged contents
         run: npx vsce ls
