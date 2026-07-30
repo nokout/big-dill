@@ -14,6 +14,7 @@ pyproject.toml example::
     my-package = "my_package:pytest_bdd_orama_steps.json"
 """
 from __future__ import annotations
+
 import json
 import sys
 from pathlib import Path
@@ -21,7 +22,7 @@ from pathlib import Path
 
 def _build_metadata(
     step_definitions: list[dict],
-    step_types: "dict[str, type]",
+    step_types: dict[str, type],
 ) -> dict:
     """Build the metadata dict from pre-collected data (testable without disk I/O)."""
     from .step_types import StepType

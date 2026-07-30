@@ -1,7 +1,8 @@
 """Unit tests for enriched collect_step_definitions output."""
 import inspect
+
 from pytest_bdd_orama.step_registry import _enrich_step_func
-from pytest_bdd_orama.step_types import StepType, StepEnum
+from pytest_bdd_orama.step_types import StepEnum, StepType
 
 
 def _plain_step():

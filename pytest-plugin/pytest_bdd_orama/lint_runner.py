@@ -1,10 +1,11 @@
 """Lint runner: parameter validation, scenario interpolation, and lint orchestration."""
 from __future__ import annotations
+
 import re
 
 import parse as parse_lib
 
-from .lint_types import LintDiagnostic, InterpolatedScenario, InterpolatedStep
+from .lint_types import InterpolatedScenario, InterpolatedStep, LintDiagnostic
 
 _PARAM_RE = re.compile(r'\{(\w+)(?::(\w+))?\}')
 

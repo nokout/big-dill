@@ -1,4 +1,4 @@
-import { StepBrowserProvider, GroupingMode, StepBrowserItem } from '../stepBrowserView';
+import { StepBrowserProvider, GroupingMode } from '../stepBrowserView';
 import { StepCache } from '../stepCache';
 import { StepDefinition } from '../testController/types';
 

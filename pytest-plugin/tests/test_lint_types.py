@@ -1,5 +1,5 @@
 # pytest-plugin/tests/test_lint_types.py
-from pytest_bdd_orama.lint_types import LintDiagnostic, InterpolatedScenario, InterpolatedStep
+from pytest_bdd_orama.lint_types import InterpolatedScenario, InterpolatedStep, LintDiagnostic
 
 
 def test_lint_diagnostic_defaults():

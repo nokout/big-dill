@@ -4,6 +4,7 @@ dist/
 out/
 *.vsix
 .vscode-test/
+coverage/
 
 # Python
 __pycache__/
