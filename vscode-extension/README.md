@@ -2,7 +2,7 @@
 
 **A pytest-bdd test runner and Gherkin authoring experience for VS Code.** Your `.feature` files become first-class citizens: scenarios appear in the Testing panel organised by feature — not by Python module — and testers get completions, hover docs, navigation, and instant linting while writing Gherkin.
 
-![Test Explorer showing the feature-file tree](https://raw.githubusercontent.com/nokout/pytest-bdd-orama/main/docs/images/test-explorer.png)
+![Test Explorer showing the feature-file tree](images/test-explorer.png)
 
 ## Why
 
@@ -17,14 +17,14 @@ VS Code's built-in Python test runner shows pytest-bdd scenarios as mangled Pyth
 ## Authoring support
 
 - **Step completions** — `Ctrl+Space` shows matching steps ranked by usage
-  ![Step completion popup](https://raw.githubusercontent.com/nokout/pytest-bdd-orama/main/docs/images/step-completion.png)
+  ![Step completion popup](images/step-completion.png)
 - **Typed parameters** — steps declared with an enum type offer a pick-list of exactly the valid values, and `pytest --bdd-lint` flags any value that isn't a member
-  ![Typed parameter pick-list](https://raw.githubusercontent.com/nokout/pytest-bdd-orama/main/docs/images/typed-parameters.png)
+  ![Typed parameter pick-list](images/typed-parameters.png)
 - **Hover docs & Go to definition** — step signature and docs on hover; `F12` jumps to the Python implementation
 - **Step Browser** — sidebar listing every step, grouped by file, step type, or tag
-  ![Step Browser view](https://raw.githubusercontent.com/nokout/pytest-bdd-orama/main/docs/images/step-browser.png)
+  ![Step Browser view](images/step-browser.png)
 - **Linting as you type** — 13 structural rules (undefined/unused Examples columns, duplicate scenario names, empty scenarios, …), configurable tag and phrasing checks, and unimplemented-step warnings. Full list: [lint rules reference](https://github.com/nokout/pytest-bdd-orama/blob/main/docs/lint-rules.md)
-  ![Lint diagnostics in a feature file](https://raw.githubusercontent.com/nokout/pytest-bdd-orama/main/docs/images/lint-diagnostics.png)
+  ![Lint diagnostics in a feature file](images/lint-diagnostics.png)
 - **Syntax highlighting & snippets** — Gherkin keywords, tables, placeholders, embedded JSON/YAML/Python in docstrings
 
 ## Requirements
