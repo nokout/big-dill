@@ -30,6 +30,11 @@ updates:
       # VS Code. Bump only when engines.vscode moves.
       - dependency-name: "@types/node"
         update-types: ["version-update:semver-major"]
+      # typescript 7 cannot install: ts-jest@29 declares
+      # peer typescript@">=4.3 <6", so npm ci fails with ERESOLVE. Revisit when
+      # ts-jest supports TypeScript 6+.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: pip
     directory: /pytest-plugin
