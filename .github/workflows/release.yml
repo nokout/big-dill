@@ -1,0 +1,223 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'         # extension release
+      - 'plugin-v*'  # pytest plugin release
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: >-
+          Publish for real to the Marketplace, Open VSX and PyPI.
+          Leave false for a dry run. Requires the protected `release`
+          environment and its secrets to be configured first.
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    name: Build, attest, and release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write      # create the GitHub Release
+      id-token: write      # sign the provenance attestation
+      attestations: write  # record it
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: vscode-extension/package-lock.json
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+        with:
+          python-version: '3.12'
+
+      - run: npm ci
+        working-directory: vscode-extension
+
+      # Never ship something the test suites have not agreed to.
+      - name: Unit tests
+        run: npm run test:coverage
+        working-directory: vscode-extension
+      - name: Integration tests
+        run: xvfb-run -a npm run test:integration
+        working-directory: vscode-extension
+      - name: Plugin tests
+        run: |
+          python -m pip install --upgrade pip build twine
+          python -m pip install -e ./pytest-plugin
+          python -m pytest -q pytest-plugin
+
+      # Everything shippable is staged flat in release/ so downstream jobs and
+      # the Release have one predictable directory to work with.
+      - name: Build release artifacts
+        id: stage
+        run: |
+          mkdir -p release
+          version="${GITHUB_REF_NAME#v}"
+          version="${version#plugin-v}"
+
+          ( cd vscode-extension && npx vsce package -o "../release/pytest-bdd-orama-${version}.vsix" )
+          python -m build --outdir release ./pytest-plugin
+          ( cd vscode-extension && npm sbom --sbom-format cyclonedx --omit dev ) \
+            > release/sbom-extension.cdx.json
+
+          ( cd release && sha256sum -- * > SHA256SUMS.txt )
+          echo "--- staged:"; ls -l release
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+      # Anyone can verify a downloaded artifact came from this workflow:
+      #   gh attestation verify <file> --repo ${{ github.repository }}
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@0f67c3f4856b2e3261c31976d6725780e5e4c373 # v4.1.1
+        with:
+          subject-path: |
+            release/*.vsix
+            release/*.whl
+            release/*.tar.gz
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        with:
+          name: release-artifacts
+          path: release/
+          if-no-files-found: error
+
+      - name: Create draft GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
+        with:
+          generate_release_notes: true
+          draft: true   # review the contents before it goes public
+          files: release/*
+
+  # Neither `vsce publish` nor `ovsx publish` offers --dry-run, so this job runs
+  # the closest real equivalents: show exactly what would be uploaded, and
+  # validate credentials and distributions without publishing anything.
+  publish-dry-run:
+    name: Publish dry run
+    needs: build
+    runs-on: ubuntu-latest
+    env:
+      # Read into the job env so the step-level `if:` can test them. A step
+      # cannot see env vars defined on itself.
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      OVSX_PAT: ${{ secrets.OVSX_PAT }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: vscode-extension/package-lock.json
+      - uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+        with:
+          python-version: '3.12'
+      - run: npm ci
+        working-directory: vscode-extension
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: release-artifacts
+          path: release
+
+      - name: Files that would be published to the Marketplace
+        working-directory: vscode-extension
+        run: |
+          {
+            echo '### Marketplace payload'
+            echo '```'
+            npx vsce ls
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Validate Marketplace credentials (does not publish)
+        if: env.VSCE_PAT != ''
+        working-directory: vscode-extension
+        run: npx vsce verify-pat "$(node -p "require('./package.json').publisher")"
+
+      - name: Report Marketplace credential status
+        if: env.VSCE_PAT == ''
+        run: echo "::notice::VSCE_PAT not configured — skipping Marketplace credential check."
+
+      - name: Report Open VSX credential status
+        run: |
+          if [ -n "$OVSX_PAT" ]; then
+            echo "::notice::OVSX_PAT is configured; the live publish step would run."
+          else
+            echo "::notice::OVSX_PAT not configured — skipping Open VSX check."
+          fi
+
+      - name: Validate plugin distributions
+        run: |
+          python -m pip install --upgrade pip twine
+          python -m twine check release/*.whl release/*.tar.gz
+
+      - name: Verify checksums
+        working-directory: release
+        run: sha256sum -c SHA256SUMS.txt --ignore-missing
+
+  # Real publishing. Never triggered by a tag: it requires an explicit
+  # workflow_dispatch with publish=true AND the protected `release`
+  # environment, which should be configured to require a reviewer.
+  publish:
+    name: Publish (live)
+    needs: [build, publish-dry-run]
+    if: github.event_name == 'workflow_dispatch' && inputs.publish
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+      id-token: write   # PyPI Trusted Publishing
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-node@39370e3970a6d050c480ffad4ff0ed4d3fdee5af # v4.1.0
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: vscode-extension/package-lock.json
+      - run: npm ci
+        working-directory: vscode-extension
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: release-artifacts
+          path: release
+
+      - name: Publish to Visual Studio Marketplace
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        working-directory: vscode-extension
+        run: |
+          vsix=$(ls ../release/*.vsix)
+          npx vsce publish --packagePath "$vsix"
+
+      - name: Publish to Open VSX
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        working-directory: vscode-extension
+        run: |
+          vsix=$(ls ../release/*.vsix)
+          npx ovsx publish "$vsix"
+
+      # gh-action-pypi-publish uploads everything in packages-dir, so isolate the
+      # Python distributions from the VSIX, SBOM and checksums staged alongside.
+      - name: Isolate Python distributions
+        run: |
+          mkdir -p dist-pypi
+          cp release/*.whl release/*.tar.gz dist-pypi/
+          ls -l dist-pypi
+
+      # Trusted Publishing: no stored token — identity comes from the OIDC claim.
+      # Requires a publisher configured for this repo + workflow on PyPI.
+      - name: Publish plugin to PyPI
+        uses: pypa/gh-action-pypi-publish@ba38be9e461d3875417946c167d0b5f3d385a247 # v1.14.1
+        with:
+          packages-dir: dist-pypi
