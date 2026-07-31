@@ -67,7 +67,17 @@ All settings live under the `pytest-bdd-orama` namespace:
 
 ## Security
 
-This extension runs **pytest from your selected Python interpreter** to discover and execute tests — like any test runner, that executes your project's code (`conftest.py`, fixtures, step definitions). It spawns no other processes, makes no network requests, and collects no telemetry. Test discovery and runs only happen in workspaces you have trusted.
+This extension runs **pytest from your selected Python interpreter** to discover and execute tests — like any test runner, that executes your project's code (`conftest.py`, fixtures, step definitions). It spawns no other processes, makes no network requests, and collects no telemetry.
+
+Because it executes workspace code, it declares `untrustedWorkspaces: false` and stays inactive in VS Code's Restricted Mode until you trust the folder.
+
+Every release is built by a public GitHub Actions workflow and carries a signed build-provenance attestation, so you can verify a downloaded `.vsix` really came from this repository:
+
+```bash
+gh attestation verify pytest-bdd-orama-<version>.vsix --repo nokout/pytest-bdd-orama
+```
+
+Releases also ship a CycloneDX SBOM and SHA-256 checksums. To report a vulnerability, see [SECURITY.md](https://github.com/nokout/pytest-bdd-orama/blob/main/SECURITY.md).
 
 ## Learn more
 
