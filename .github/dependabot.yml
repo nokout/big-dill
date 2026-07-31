@@ -23,6 +23,13 @@ updates:
       # updates still come through.
       - dependency-name: "@cucumber/gherkin"
         update-types: ["version-update:semver-major"]
+      # @types/node should track the Node bundled in the *minimum* supported
+      # VS Code (engines.vscode ^1.87 → Electron 27 → Node 18), not the newest
+      # release. Too-new types compile happily against APIs that do not exist
+      # for those users, and CI cannot catch it because it tests on a current
+      # VS Code. Bump only when engines.vscode moves.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: pip
     directory: /pytest-plugin
