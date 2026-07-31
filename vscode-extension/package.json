@@ -35,6 +35,16 @@
   "extensionDependencies": [
     "ms-python.python"
   ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": false,
+      "description": "Discovering and running tests executes pytest with your selected interpreter, which runs the workspace's own code (conftest.py, fixtures, step definitions). This requires a trusted workspace."
+    },
+    "virtualWorkspaces": {
+      "supported": false,
+      "description": "Requires a local filesystem and the ability to spawn a Python subprocess."
+    }
+  },
   "contributes": {
     "languages": [
       {
@@ -316,6 +326,7 @@
     "@vscode/vsce": "^3.9.2",
     "eslint": "^9.39.5",
     "jest": "^29.7.0",
+    "ovsx": "^1.0.2",
     "ts-jest": "^29.4.6",
     "typescript": "^5.3.0",
     "typescript-eslint": "^8.65.0"
