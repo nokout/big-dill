@@ -332,6 +332,6 @@
     "typescript-eslint": "^8.65.0"
   },
   "dependencies": {
-    "@cucumber/gherkin": "^39.1.0"
+    "@cucumber/gherkin": "^42.0.0"
   }
 }
