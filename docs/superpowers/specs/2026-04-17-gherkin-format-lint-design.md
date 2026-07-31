@@ -1,6 +1,8 @@
 # Gherkin Table Highlighting, Formatting & Linting — Design Spec
 
 **Date:** 2026-04-17
+**Status:** Implemented — kept as a historical design record. For current behaviour see
+[docs/lint-rules.md](../../lint-rules.md) and [docs/architecture.md](../../architecture.md).
 
 ## Overview
 
@@ -224,21 +226,11 @@ Each rule is a standalone class, independently testable.
 
 ### Built-in rules
 
-| Rule ID | Description | Severity | Migrated from |
-|---|---|---|---|
-| `empty-comment` | Line is `#` with no content | Warning | New |
-| `duplicate-example-rows` | Two rows in the same Examples block have identical values | Warning | `pytest_bdd_orama_lint_outline` in conftest.py |
-| `oversized-example-table` | Examples block exceeds 20 rows | Warning | `pytest_bdd_orama_lint_outline` in conftest.py |
-| `outline-missing-examples` | Scenario Outline has no Examples block | Error | New |
-| `empty-examples-body` | Examples block has a header row but no data rows | Error | New |
-| `scenario-should-be-outline` | Plain Scenario uses `<param>` syntax | Warning | New |
-| `scenario-has-examples-not-outline` | Examples table under a plain Scenario | Error | New |
-| `undefined-example-column` | Step references `<param>` with no matching Examples column (checks step text, datatables, and docstrings) | Error | New |
-| `unused-example-column` | Examples column never referenced by any step (suppressed while the outline has an undefined `<param>` reference) | Warning | New |
-| `duplicate-scenario-name` | Two scenarios in the same feature share a name | Warning | New |
-| `duplicate-examples-column` | Same column name appears twice in one Examples header | Error | New |
-| `empty-scenario` | Scenario or outline has no steps | Error | New |
-| `outline-single-row` | Outline whose only Examples block has a single data row | Info | New |
+The rule set has grown since this spec was written. The authoritative list — with
+severities and trigger examples — is [docs/lint-rules.md](../../lint-rules.md); the
+implementation is the `RULES` array in `featureLinter.ts`. The five rules this spec
+originally proposed were `empty-comment`, `duplicate-example-rows`,
+`oversized-example-table`, `outline-missing-examples`, and `empty-examples-body`.
 
 ### Relationship to Python linting
 
