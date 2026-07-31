@@ -120,6 +120,88 @@ The extension creates a named pipe before spawning the subprocess and passes its
 
 ---
 
+## Step discovery — a separate two-phase pipeline
+
+Test discovery (above) is not the same pipeline as *step* discovery, which feeds
+completions, hover, go-to-definition, and the Step Browser.
+
+**Phase A — step discovery.** Triggered by saves to files matching
+`pytest-bdd-orama.stepDefinitionGlob` (default `**/step_defs/**/*.py`, `**/steps/**/*.py`,
+`**/conftest.py`). Runs `pytest --collect-only`; the plugin walks the fixture registry for
+functions carrying `_pytest_bdd_step_context` and emits a `stepDefinitions` payload over the
+same named pipe. Because pytest loads everything registered in the environment, this covers
+steps from installed packages as well as local ones, with no special handling. The result is
+cached in `StepCache`.
+
+**Phase B — lint.** `pytest --bdd-lint` emits `lintDiagnostics` payloads. In CLI mode the
+plugin detects the absence of `TEST_RUN_PIPE` and writes human-readable text to stdout
+instead, exiting non-zero on any error-severity diagnostic — which is what makes it usable
+as a CI gate.
+
+Note that the structural linter in the extension is a third, independent path: it parses
+the Gherkin AST in-process on every edit and needs no subprocess at all. It publishes to its
+own `DiagnosticCollection` (`pytest-bdd-orama-gherkin`) so it never overwrites the Python
+linter's results (`pytest-bdd-orama`).
+
+### Distributed step library metadata
+
+Step definitions shipped inside a published package can supply completions *before* any
+collection run. A package author generates the metadata at packaging time:
+
+```bash
+pytest-bdd-orama          # writes pytest_bdd_orama_steps.json
+```
+
+and declares it via an entry point so consumers can find it:
+
+```toml
+[project.entry-points."pytest_bdd_orama.steps"]
+my-package = "my_package:pytest_bdd_orama_steps.json"
+```
+
+On activation the extension enumerates registered `pytest_bdd_orama.steps` entry points and
+loads each file as a base layer (`loadDistributedStepMetadata` in `extension.ts`). Live
+Phase A data is merged on top, and **local step definitions always win** over distributed
+metadata for the same pattern.
+
+## Gherkin language features
+
+These are pure in-extension providers over a shared `GherkinParseCache`, which parses each
+document once per version and shares the AST across every consumer. The `@cucumber/gherkin`
+parser recovers from errors rather than throwing, so it is safe to run against a file being
+actively edited; parse errors surface in the result's `errors[]`.
+
+- **Semantic tokens** (`featureSemanticTokens.ts`) — distinguishes datatables from Examples
+  tables, pipes from cell content, and quoted strings from bare values.
+- **Formatter** (`featureFormatter.ts`) — see below.
+- **Structural linter** (`featureLinter.ts`) — the rules in [lint-rules.md](lint-rules.md).
+
+### Formatter rules
+
+Only table rows are rewritten; keywords, step text, tags, and blank lines are left
+untouched. If the parse produced any errors the formatter returns no edits at all, so a
+malformed file is never reflowed.
+
+| | DataTable | Examples body | Examples header |
+|---|---|---|---|
+| Alignment | Left | Left, but **right-align numeric columns** | Left |
+| Padding | One space each side | One space each side | One space each side |
+| Column width | Max across all rows | Max across header and body | Same pass as body |
+
+A column counts as numeric when every non-empty cell matches `/^-?\d+(\.\d+)?$/`.
+
+## Deliberately out of scope
+
+Recorded so the boundary is not relitigated:
+
+- Phrase and convention validation for *step implementations* — the phrasing rules apply to
+  step text written by testers in `.feature` files, not to developers' Python code
+- Living documentation / HTML report generation
+- CI/CD integration or JUnit XML enrichment
+- Coverage gap reporting
+- Gherkin localisation (multilingual keywords)
+- Splitting into an extension pack — one extension for now
+
 ## Repository layout
 
 ```

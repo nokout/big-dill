@@ -161,3 +161,27 @@ def select_state(state: str):
 ```
 
 The first line becomes the summary shown on hover. Lines under `Tags:` become the step's tags in the browser.
+
+## Shipping steps in a package
+
+If you publish a package of reusable step definitions, consumers get completions for your
+steps as soon as they install it — but only after a discovery run has collected them. To
+give them completions immediately, ship a metadata file alongside your code.
+
+Generate it at packaging time:
+
+```bash
+pytest-bdd-orama          # writes pytest_bdd_orama_steps.json
+```
+
+Include that file in your wheel and declare it with an entry point:
+
+```toml
+[project.entry-points."pytest_bdd_orama.steps"]
+my-package = "my_package:pytest_bdd_orama_steps.json"
+```
+
+On activation the extension enumerates every registered `pytest_bdd_orama.steps` entry
+point and loads the metadata as a base layer. Live discovery is merged over the top, and
+local step definitions always take precedence for the same pattern — so a consumer who
+overrides one of your steps sees their own version, not yours.
