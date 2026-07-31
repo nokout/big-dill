@@ -116,6 +116,27 @@ cd vscode-extension
 npx jest
 ```
 
+### README screenshots
+
+The listing screenshots live in `vscode-extension/images/` — inside the extension
+folder so they are packaged into the VSIX — and the listing README references them
+with relative paths.
+
+Packaging must therefore pass `--no-rewrite-relative-links` (the `package` script,
+`build.sh`, and CI all do). Without it, vsce rewrites the paths to
+`github.com/<repo>/raw/HEAD/images/...`, which is both the wrong path (the images
+are under `vscode-extension/`) and unreachable while the repository is private.
+
+Relative paths render in VS Code's extension details pane and on GitHub. The
+Marketplace *web page* requires absolute HTTPS image URLs, so when publishing
+publicly, drop the flag and instead pass:
+
+```bash
+vsce package --baseImagesUrl https://raw.githubusercontent.com/nokout/pytest-bdd-orama/main/vscode-extension/images
+```
+
+That only resolves once the repository is public.
+
 ---
 
 ## Documentation map

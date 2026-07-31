@@ -22,7 +22,11 @@ echo "==> Packaging extension..."
 # NOTE: do NOT pass --no-dependencies — the extension is built with tsc (not a
 # bundler), so runtime deps like @cucumber/gherkin must be packaged into the
 # VSIX. Omitting them makes activation fail with "Cannot find module".
-./node_modules/.bin/vsce package
+# --no-rewrite-relative-links keeps the README's image paths pointing at the
+# images packaged inside the VSIX. Without it vsce rewrites them to
+# github.com/.../raw/HEAD URLs, which resolve to the wrong path and 404 while
+# the repository is private.
+./node_modules/.bin/vsce package --no-rewrite-relative-links
 
 VSIX=$(ls -t pytest-bdd-orama-*.vsix 2>/dev/null | head -1)
 if [[ -z "$VSIX" ]]; then
