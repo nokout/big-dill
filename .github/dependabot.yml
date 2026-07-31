@@ -12,6 +12,17 @@ updates:
       dev-dependencies:
         dependency-type: development
         update-types: [minor, patch]
+    ignore:
+      # @types/vscode must not exceed engines.vscode — vsce refuses to package
+      # otherwise ("@types/vscode X greater than engines.vscode Y"). Raising it
+      # means dropping support for older VS Code, so it is a deliberate choice
+      # made alongside engines.vscode, never an automated bump.
+      - dependency-name: "@types/vscode"
+      # @cucumber/gherkin 42 is ESM-only and changed its AST types, so it needs
+      # a migration rather than a bump — see the tracking issue. Minor and patch
+      # updates still come through.
+      - dependency-name: "@cucumber/gherkin"
+        update-types: ["version-update:semver-major"]
 
   - package-ecosystem: pip
     directory: /pytest-plugin
