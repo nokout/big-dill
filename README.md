@@ -154,3 +154,9 @@ That only resolves once the repository is public.
 | [docs/developer-guide.md](docs/developer-guide.md) | Developers implementing steps, hooks, typed steps, custom lint rules |
 | [docs/lint-rules.md](docs/lint-rules.md) | Reference — every diagnostic the linter can raise |
 | [docs/architecture.md](docs/architecture.md) | Contributors — Testing API integration, IPC, component breakdown, upstream tracking |
+| [UPSTREAM.md](UPSTREAM.md) | Contributors — which files are adapted from ms-python, and how to re-sync them |
+
+That table plus this file is the whole of the repo's prose. Design rationale belongs in
+`architecture.md` and user-facing behaviour in the guides; planned work and open decisions
+live in [GitHub issues](https://github.com/nokout/pytest-bdd-orama/issues), not in files.
+Superseded specs and plans are not kept — git history has them.

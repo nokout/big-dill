@@ -89,6 +89,25 @@ Click the play button next to any item to run it. Click a scenario to jump to it
 
 Tags from your `.feature` files appear in the Testing panel. You can filter runs by tag using the tag filter icon in the Testing panel toolbar.
 
+## Formatting tables
+
+`Format Document` (`Shift+Alt+F`) tidies the tables in a feature file. Only table rows are
+touched — your keywords, step text, tags, and blank lines are left exactly as written.
+
+Columns are padded to a consistent width with one space either side. In an `Examples:`
+table, a column whose values are all numbers is **right-aligned** so the digits line up;
+everything else is left-aligned.
+
+```gherkin
+Examples:
+  | id | quantity | description   |
+  | 1  |        3 | small order   |
+  | 2  |      120 | bulk order    |
+```
+
+If the file has a syntax error the formatter makes no changes at all, so a half-written
+file is never reflowed under you.
+
 ## Snippets
 
 Type these prefixes and press `Tab` to expand:

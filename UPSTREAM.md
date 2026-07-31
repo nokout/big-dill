@@ -23,4 +23,4 @@ The Microsoft copyright notice is preserved in each adapted file header. See `LI
 git -C /path/to/vscode-python diff <SHA> HEAD -- python_files/vscode_pytest/__init__.py
 ```
 
-Fill in the `Last-synced commit` column when copying each file during Phase 4.
+Update the `Last-synced commit` column whenever a tracked file is re-synced from upstream.
