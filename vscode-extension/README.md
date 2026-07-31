@@ -25,6 +25,7 @@ VS Code's built-in Python test runner shows pytest-bdd scenarios as mangled Pyth
   ![Step Browser view](images/step-browser.png)
 - **Linting as you type** — 13 structural rules (undefined/unused Examples columns, duplicate scenario names, empty scenarios, …), configurable tag and phrasing checks, and unimplemented-step warnings. Full list: [lint rules reference](https://github.com/nokout/pytest-bdd-orama/blob/main/docs/lint-rules.md)
   ![Lint diagnostics in a feature file](images/lint-diagnostics.png)
+- **Table formatting** — `Format Document` aligns datatable and Examples columns, right-aligning numeric columns; nothing outside table rows is touched
 - **Syntax highlighting & snippets** — Gherkin keywords, tables, placeholders, embedded JSON/YAML/Python in docstrings
 
 ## Requirements

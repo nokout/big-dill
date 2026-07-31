@@ -151,7 +151,7 @@ That only resolves once the repository is public.
 | [docs/architecture.md](docs/architecture.md) | Contributors — Testing API integration, IPC, component breakdown, upstream tracking |
 | [UPSTREAM.md](UPSTREAM.md) | Contributors — which files are adapted from ms-python, and how to re-sync them |
 
-Planned work and open decisions are tracked in
-[GitHub issues](https://github.com/nokout/pytest-bdd-orama/issues), not in the repo.
-`docs/superpowers/` holds historical specs and implementation plans for completed work —
-useful as a design record, but not a description of current behaviour.
+That table plus this file is the whole of the repo's prose. Design rationale belongs in
+`architecture.md` and user-facing behaviour in the guides; planned work and open decisions
+live in [GitHub issues](https://github.com/nokout/pytest-bdd-orama/issues), not in files.
+Superseded specs and plans are not kept — git history has them.
