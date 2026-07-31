@@ -6,7 +6,18 @@ build-backend = "hatchling.build"
 name = "pytest-bdd-orama"
 version = "0.1.0"
 description = "pytest plugin for the pytest-bdd-orama test runner"
+readme = "README.md"
+license = "MIT"
 requires-python = ">=3.10"
+keywords = ["pytest", "pytest-bdd", "bdd", "gherkin", "cucumber", "vscode"]
+classifiers = [
+    "Framework :: Pytest",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Software Development :: Testing :: BDD",
+]
+
 dependencies = [
     "pytest>=7",
     "pytest-bdd>=6",
@@ -14,6 +25,11 @@ dependencies = [
     # pytest-bdd, but that is not a guarantee we should rely on.
     "parse>=1.19",
 ]
+
+[project.urls]
+Homepage = "https://github.com/nokout/pytest-bdd-orama"
+Repository = "https://github.com/nokout/pytest-bdd-orama"
+Issues = "https://github.com/nokout/pytest-bdd-orama/issues"
 
 [project.scripts]
 pytest-bdd-orama = "pytest_bdd_orama.metadata_gen:main"

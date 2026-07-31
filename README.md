@@ -1,5 +1,10 @@
 # pytest-bdd-orama
 
+[![CI](https://github.com/nokout/pytest-bdd-orama/actions/workflows/ci.yml/badge.svg)](https://github.com/nokout/pytest-bdd-orama/actions/workflows/ci.yml)
+[![Security](https://github.com/nokout/pytest-bdd-orama/actions/workflows/security.yml/badge.svg)](https://github.com/nokout/pytest-bdd-orama/actions/workflows/security.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/nokout/pytest-bdd-orama/badge)](https://scorecard.dev/viewer/?uri=github.com/nokout/pytest-bdd-orama)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 A VS Code extension for [pytest-bdd](https://pytest-bdd.readthedocs.io/) that surfaces Gherkin scenarios as first-class citizens in the Testing panel and provides a full authoring experience for testers writing `.feature` files.
 
 **Quick links:** [Extension listing](vscode-extension/README.md) · [Overview](docs/overview.md) · [Tester guide](docs/tester-guide.md) · [Developer guide](docs/developer-guide.md) · [Architecture](docs/architecture.md) · [Lint rules](docs/lint-rules.md)
