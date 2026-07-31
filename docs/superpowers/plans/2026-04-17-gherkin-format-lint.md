@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript, `@cucumber/gherkin` v37, `@cucumber/messages`, VSCode Extension API, Jest + ts-jest.
 
-**Spec:** [`FORMAT_LINT.md`](../../../FORMAT_LINT.md)
+**Spec:** [`2026-04-17-gherkin-format-lint-design.md`](../specs/2026-04-17-gherkin-format-lint-design.md)
 
 ---
 
