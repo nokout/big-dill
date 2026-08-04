@@ -129,18 +129,18 @@ with relative paths.
 
 Packaging must therefore pass `--no-rewrite-relative-links` (the `package` script,
 `build.sh`, and CI all do). Without it, vsce rewrites the paths to
-`github.com/<repo>/raw/HEAD/images/...`, which is both the wrong path (the images
-are under `vscode-extension/`) and unreachable while the repository is private.
+`github.com/<repo>/raw/HEAD/images/...`, which is the wrong path — the images are
+under `vscode-extension/`, not the repository root.
 
 Relative paths render in VS Code's extension details pane and on GitHub. The
-Marketplace *web page* requires absolute HTTPS image URLs, so when publishing
-publicly, drop the flag and instead pass:
+Marketplace *web page* requires absolute HTTPS image URLs, so the Marketplace
+publish step drops the flag and passes instead:
 
 ```bash
 vsce package --baseImagesUrl https://raw.githubusercontent.com/nokout/pytest-bdd-orama/main/vscode-extension/images
 ```
 
-That only resolves once the repository is public.
+The repository is public, so those URLs resolve.
 
 ---
 
