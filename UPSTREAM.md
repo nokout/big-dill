@@ -2,19 +2,31 @@
 
 Files adapted from [microsoft/vscode-python](https://github.com/microsoft/vscode-python), which is MIT licensed.
 
-The Microsoft copyright notice is preserved in each adapted file header. See `LICENSE` for the full MIT license text.
+The Microsoft copyright notice is preserved in each adapted file header, and the
+full MIT text is reproduced in [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
+Those files remain under MIT; the rest of this project is licensed under
+[`LICENSE`](LICENSE), which is source-available rather than open source.
+
+Only the files listed below carry a Microsoft copyright. Every other file in
+this repository is original work — if you add a file, do not copy a Microsoft
+header into it.
 
 ## Tracked files
 
 | Our path | ms-python source path | Last-synced commit |
 |---|---|---|
+| `vscode-extension/python_files/run_pytest.py` | `python_files/run_pytest.py` | `5c2c3948` |
 | `vscode-extension/python_files/vscode_pytest/__init__.py` | `python_files/vscode_pytest/__init__.py` | `5c2c3948` |
 | `vscode-extension/python_files/vscode_pytest/_common.py` | `python_files/vscode_pytest/_common.py` | `5c2c3948` |
+| `vscode-extension/src/testController/types.ts` | `src/client/testing/testController/common/types.ts` | `5c2c3948` |
 
-> **Note:** The TypeScript files (`types.ts`, `treeBuilder.ts`, `resultResolver.ts`, `ipc.ts`, `pytestRunner.ts`,
-> `extension.ts`) are BDD-orama originals — they do not adapt ms-python TypeScript internals directly, as
-> those are private APIs not accessible from a separate extension.  Only the Python-side vscode_pytest plugin
-> is adapted from ms-python.
+> **Note:** `types.ts` is the only adapted TypeScript file — it carries the discovery
+> and execution payload type definitions that must stay wire-compatible with the
+> Python side. The other TypeScript files (`treeBuilder.ts`, `resultResolver.ts`,
+> `ipc.ts`, `pytestRunner.ts`, `extension.ts`) are BDD-orama originals: they do not
+> adapt ms-python TypeScript internals, which are private APIs not accessible from a
+> separate extension. `ipc.ts` implements the same content-length framing protocol as
+> ms-python, but the implementation is original.
 
 ## How to check for upstream changes
 
