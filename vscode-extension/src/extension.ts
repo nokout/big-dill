@@ -1,5 +1,5 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+// Copyright (c) 2026 Nigel O'Keefe. All rights reserved.
+// Licensed under the terms in LICENSE (source-available, not open source).
 // BDD-ORAMA: Extension entry point for the pytest-bdd test runner.
 
 import * as vscode from 'vscode';

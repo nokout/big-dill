@@ -1,5 +1,5 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
-// Licensed under the MIT License.
+// Copyright (c) 2026 Nigel O'Keefe. All rights reserved.
+// Licensed under the terms in LICENSE (source-available, not open source).
 // BDD-ORAMA: Named-pipe IPC server — receives JSON-RPC messages from vscode_pytest.
 // Protocol mirrors ms-python: content-length framing over a named pipe.
 

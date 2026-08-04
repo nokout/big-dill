@@ -84,4 +84,7 @@ Releases also ship a CycloneDX SBOM and SHA-256 checksums. To report a vulnerabi
 - [Tester guide](https://github.com/nokout/pytest-bdd-orama/blob/main/docs/tester-guide.md) — writing features with the authoring tools
 - [Developer guide](https://github.com/nokout/pytest-bdd-orama/blob/main/docs/developer-guide.md) — hookspecs: custom display names, statuses, typed steps, custom lint rules
 - [Lint rules reference](https://github.com/nokout/pytest-bdd-orama/blob/main/docs/lint-rules.md)
-- [Repository](https://github.com/nokout/pytest-bdd-orama) · [License (MIT)](https://github.com/nokout/pytest-bdd-orama/blob/main/LICENSE)
+- [Repository](https://github.com/nokout/pytest-bdd-orama) · [License](https://github.com/nokout/pytest-bdd-orama/blob/main/LICENSE) · [Third-party notices](https://github.com/nokout/pytest-bdd-orama/blob/main/THIRD-PARTY-NOTICES.md)
+
+This extension is **source-available, not open source**. It is free to install
+and use, including at work; redistributing or modifying it is not permitted.
