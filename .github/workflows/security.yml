@@ -7,6 +7,7 @@ on:
   schedule:
     # Weekly, so newly-disclosed vulnerabilities surface without a push.
     - cron: '17 4 * * 1'
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -23,8 +24,9 @@ jobs:
   codeql:
     name: CodeQL (${{ matrix.language }})
     # Code scanning uploads need GitHub Advanced Security, which is free only on
-    # public repositories. The analysis itself runs fine while private, but the
-    # upload is rejected — so skip until the repo is public, then it self-enables.
+    # public repositories. The repository is public, so this runs; the guard stays
+    # as a safety net so the job self-disables rather than failing if it is ever
+    # made private again.
     if: github.event.repository.visibility == 'public'
     runs-on: ubuntu-latest
     permissions:
@@ -47,8 +49,9 @@ jobs:
 
   dependency-review:
     name: Dependency review
-    # Only meaningful on a PR (it diffs base against head), and the dependency
-    # graph API it needs requires Advanced Security on a private repository.
+    # Only meaningful on a PR (it diffs base against head). The dependency graph
+    # API it needs requires Advanced Security, which is free on public repos; the
+    # visibility guard keeps it from failing if the repo is ever made private.
     if: github.event_name == 'pull_request' && github.event.repository.visibility == 'public'
     runs-on: ubuntu-latest
     steps:
