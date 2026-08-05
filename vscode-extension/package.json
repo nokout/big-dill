@@ -306,6 +306,7 @@
     "compile": "tsc -p tsconfig.json",
     "watch": "tsc -watch -p tsconfig.json",
     "package": "vsce package --no-rewrite-relative-links",
+    "package:marketplace": "vsce package --baseImagesUrl https://raw.githubusercontent.com/nokout/big-dill/main/vscode-extension",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "jest",
