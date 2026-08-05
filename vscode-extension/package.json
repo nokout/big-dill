@@ -1,9 +1,9 @@
 {
-  "name": "pytest-bdd-orama",
-  "displayName": "pytest-bdd-orama Test Runner",
-  "description": "pytest-bdd-orama test runner: feature-file tree, custom display names, configurable status mapping.",
+  "name": "big-dill",
+  "displayName": "Big Dill",
+  "description": "Big Dill Driven Development — a pytest-bdd test runner and Gherkin authoring toolkit for VS Code.",
   "version": "0.1.0",
-  "publisher": "pytest-bdd-orama",
+  "publisher": "nokout",
   "engines": {
     "vscode": "^1.87.0"
   },
@@ -82,14 +82,14 @@
       }
     ],
     "configuration": {
-      "title": "pytest-bdd-orama",
+      "title": "Big Dill",
       "properties": {
-        "pytest-bdd-orama.enabled": {
+        "big-dill.enabled": {
           "type": "boolean",
           "default": true,
-          "description": "Enable the pytest-bdd-orama test runner."
+          "description": "Enable the Big Dill test runner."
         },
-        "pytest-bdd-orama.pytestArgs": {
+        "big-dill.pytestArgs": {
           "type": "array",
           "items": {
             "type": "string"
@@ -97,22 +97,22 @@
           "default": [],
           "description": "Additional arguments passed to pytest."
         },
-        "pytest-bdd-orama.cwd": {
+        "big-dill.cwd": {
           "type": "string",
           "default": "",
           "description": "Working directory for pytest discovery and execution. Overrides python.testing.cwd. Defaults to the workspace root when neither is set."
         },
-        "pytest-bdd-orama.tagNamespace": {
+        "big-dill.tagNamespace": {
           "type": "string",
           "default": "bdd",
           "markdownDescription": "Namespace prefix shown before Gherkin tags in the Test Explorer filter (e.g. `bdd` → `@bdd:smoke`). Takes effect after a window reload."
         },
-        "pytest-bdd-orama.stepDefinitionGlob": {
+        "big-dill.stepDefinitionGlob": {
           "type": "string",
           "default": "{**/step_defs/**/*.py,**/steps/**/*.py,**/conftest.py}",
           "markdownDescription": "Glob pattern for Python step definition files. Saves to matching files trigger step rediscovery."
         },
-        "pytest-bdd-orama.outcomeMapping": {
+        "big-dill.outcomeMapping": {
           "type": "object",
           "description": "Map pytest custom status strings to VSCode test run states. Valid values: passed, failed, errored, skipped, enqueued. Unmapped custom statuses default to errored.",
           "additionalProperties": {
@@ -127,7 +127,7 @@
           },
           "default": {}
         },
-        "pytest-bdd-orama.allowedTags": {
+        "big-dill.allowedTags": {
           "type": "array",
           "items": {
             "type": "string"
@@ -135,7 +135,7 @@
           "default": [],
           "description": "If non-empty, any @tag not in this list will be flagged as a warning. Leave empty to disable tag validation."
         },
-        "pytest-bdd-orama.phrasingRules": {
+        "big-dill.phrasingRules": {
           "type": "array",
           "items": {
             "type": "object",
@@ -162,30 +162,30 @@
     "views": {
       "explorer": [
         {
-          "id": "pytest-bdd-orama.stepBrowser",
+          "id": "big-dill.stepBrowser",
           "name": "Step Browser",
-          "when": "config.pytest-bdd-orama.enabled"
+          "when": "config.big-dill.enabled"
         }
       ]
     },
     "commands": [
       {
-        "command": "pytest-bdd-orama.stepBrowser.groupByFile",
+        "command": "big-dill.stepBrowser.groupByFile",
         "title": "Group by File",
         "icon": "$(file)"
       },
       {
-        "command": "pytest-bdd-orama.stepBrowser.groupByStepType",
+        "command": "big-dill.stepBrowser.groupByStepType",
         "title": "Group by Step Type",
         "icon": "$(symbol-class)"
       },
       {
-        "command": "pytest-bdd-orama.stepBrowser.groupByTag",
+        "command": "big-dill.stepBrowser.groupByTag",
         "title": "Group by Tag",
         "icon": "$(tag)"
       },
       {
-        "command": "pytest-bdd-orama.stepBrowser.filter",
+        "command": "big-dill.stepBrowser.filter",
         "title": "Filter Steps",
         "icon": "$(filter)"
       }
@@ -193,23 +193,23 @@
     "menus": {
       "view/title": [
         {
-          "command": "pytest-bdd-orama.stepBrowser.groupByFile",
-          "when": "view == pytest-bdd-orama.stepBrowser",
+          "command": "big-dill.stepBrowser.groupByFile",
+          "when": "view == big-dill.stepBrowser",
           "group": "navigation"
         },
         {
-          "command": "pytest-bdd-orama.stepBrowser.groupByStepType",
-          "when": "view == pytest-bdd-orama.stepBrowser",
+          "command": "big-dill.stepBrowser.groupByStepType",
+          "when": "view == big-dill.stepBrowser",
           "group": "navigation"
         },
         {
-          "command": "pytest-bdd-orama.stepBrowser.groupByTag",
-          "when": "view == pytest-bdd-orama.stepBrowser",
+          "command": "big-dill.stepBrowser.groupByTag",
+          "when": "view == big-dill.stepBrowser",
           "group": "navigation"
         },
         {
-          "command": "pytest-bdd-orama.stepBrowser.filter",
-          "when": "view == pytest-bdd-orama.stepBrowser",
+          "command": "big-dill.stepBrowser.filter",
+          "when": "view == big-dill.stepBrowser",
           "group": "navigation"
         }
       ]

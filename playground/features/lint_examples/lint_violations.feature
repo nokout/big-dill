@@ -97,7 +97,7 @@ Feature: Lint violation examples
       | 1 |
 
   # The lowercase outline name below triggers the custom Python lint hook
-  # (pytest_bdd_orama_lint_outline in conftest.py). Run: pytest --bdd-lint
+  # (pytest_big_dill_lint_outline in conftest.py). Run: pytest --bdd-lint
   Scenario Outline: lowercase name violates the custom outline rule
     Given value is <x>
     Examples:

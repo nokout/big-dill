@@ -120,7 +120,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Install playground
-        # pytest-plugin first: it satisfies the playground's pytest-bdd-orama
+        # pytest-plugin first: it satisfies the playground's pytest-big-dill
         # requirement from the working tree instead of an index.
         run: |
           python -m pip install --upgrade pip
@@ -152,7 +152,7 @@ jobs:
       - run: npm ci
         working-directory: vscode-extension
       - name: Package
-        run: npx vsce package --no-rewrite-relative-links -o pytest-bdd-orama.vsix
+        run: npx vsce package --no-rewrite-relative-links -o big-dill.vsix
         working-directory: vscode-extension
       - name: List packaged contents
         run: npx vsce ls
@@ -160,6 +160,6 @@ jobs:
       # Reviewers can download and install exactly what the PR builds.
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: pytest-bdd-orama-vsix
-          path: vscode-extension/pytest-bdd-orama.vsix
+          name: big-dill-vsix
+          path: vscode-extension/big-dill.vsix
           if-no-files-found: error

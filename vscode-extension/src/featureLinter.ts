@@ -382,7 +382,7 @@ export class FeatureLinter {
     private readonly pending = new Map<string, ReturnType<typeof setTimeout>>();
 
     constructor(private readonly cache: GherkinParseCache) {
-        this.collection = vscode.languages.createDiagnosticCollection('pytest-bdd-orama-gherkin');
+        this.collection = vscode.languages.createDiagnosticCollection('big-dill-gherkin');
     }
 
     schedule(document: vscode.TextDocument): void {
@@ -397,7 +397,7 @@ export class FeatureLinter {
         if (!doc) { this.collection.delete(document.uri); return; }
 
         const lines = document.getText().split('\n');
-        const config = vscode.workspace.getConfiguration('pytest-bdd-orama');
+        const config = vscode.workspace.getConfiguration('big-dill');
         const allowedTags: string[] = config.get('allowedTags') ?? [];
         const phrasingRules: PhrasingRule[] = config.get('phrasingRules') ?? [];
 

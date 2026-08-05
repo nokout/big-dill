@@ -1,5 +1,5 @@
 # pytest-plugin/tests/test_lint_types.py
-from pytest_bdd_orama.lint_types import InterpolatedScenario, InterpolatedStep, LintDiagnostic
+from pytest_big_dill.lint_types import InterpolatedScenario, InterpolatedStep, LintDiagnostic
 
 
 def test_lint_diagnostic_defaults():
@@ -33,9 +33,9 @@ def test_interpolated_scenario_fields():
 def test_lint_hookspecs_registered(pytestconfig):
     """The plugin registers the lint hookspecs without errors."""
     pm = pytestconfig.pluginmanager
-    assert pm.has_plugin("pytest-bdd-orama"), "pytest-bdd-orama plugin not loaded"
+    assert pm.has_plugin("pytest-big-dill"), "pytest-big-dill plugin not loaded"
     hook = pm.hook
-    assert hasattr(hook, "pytest_bdd_orama_lint_scenario"), \
-        "pytest_bdd_orama_lint_scenario hookspec missing"
-    assert hasattr(hook, "pytest_bdd_orama_lint_outline"), \
-        "pytest_bdd_orama_lint_outline hookspec missing"
+    assert hasattr(hook, "pytest_big_dill_lint_scenario"), \
+        "pytest_big_dill_lint_scenario hookspec missing"
+    assert hasattr(hook, "pytest_big_dill_lint_outline"), \
+        "pytest_big_dill_lint_outline hookspec missing"

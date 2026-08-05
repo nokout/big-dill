@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Nigel O'Keefe. All rights reserved.
 // Licensed under the terms in LICENSE (source-available, not open source).
-// BDD-ORAMA: New file — builds a feature-path-based TestItem tree from the
+// BIG-DILL: New file — builds a feature-path-based TestItem tree from the
 // DiscoveredTestPayload produced by vscode_pytest/__init__.py.
 
 import * as path from 'path';

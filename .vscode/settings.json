@@ -2,10 +2,10 @@
   "python.testing.pytestEnabled": false,
   "python.testing.unittestEnabled": false,
   "python.testing.autoTestDiscoverOnSaveEnabled": false,
-  "pytest-bdd-orama.enabled": true,
-  "pytest-bdd-orama.cwd": "./playground",
+  "big-dill.enabled": true,
+  "big-dill.cwd": "./playground",
   "python.defaultInterpreterPath": "${workspaceFolder}/playground/.venv/bin/python",
-  "pytest-bdd-orama.outcomeMapping": {
+  "big-dill.outcomeMapping": {
     "waiting": "enqueued",
     "knownError": "errored"
   }

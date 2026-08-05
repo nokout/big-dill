@@ -1,6 +1,6 @@
-# pytest-bdd-orama
+# Big Dill
 
-The pytest plugin half of **pytest-bdd-orama** — a [pytest-bdd](https://pytest-bdd.readthedocs.io/)
+The pytest plugin half of **Big Dill** — a [pytest-bdd](https://pytest-bdd.readthedocs.io/)
 test runner and Gherkin authoring experience for VS Code.
 
 This package bridges pytest-bdd's data model to the editor: it attaches feature-file
@@ -13,7 +13,7 @@ It is useful on its own for the lint pass, but is normally installed alongside t
 ## Install
 
 ```bash
-pip install pytest-bdd-orama
+pip install pytest-big-dill
 ```
 
 The plugin registers itself with pytest automatically.
@@ -35,14 +35,14 @@ The plugin registers itself with pytest automatically.
 Implement these in your `conftest.py`:
 
 ```python
-def pytest_bdd_orama_test_name(scenario_name, example_params, feature_name, feature_path):
+def pytest_big_dill_test_name(scenario_name, example_params, feature_name, feature_path):
     """Return a display name for a scenario, or None to keep the default."""
     if example_params.get("id"):
         return f"{scenario_name} [{example_params['id']}]"
     return None
 
 
-def pytest_bdd_orama_custom_status(report, config):
+def pytest_big_dill_custom_status(report, config):
     """Return a custom status string for a test result, or None."""
     if getattr(report, "wasxfail", None):
         return "knownError"
@@ -52,12 +52,12 @@ def pytest_bdd_orama_custom_status(report, config):
 Two more hooks add your own lint rules, both returning a list of `LintDiagnostic`:
 
 ```python
-from pytest_bdd_orama.lint_types import LintDiagnostic
+from pytest_big_dill.lint_types import LintDiagnostic
 
-def pytest_bdd_orama_lint_outline(scenario, examples):
+def pytest_big_dill_lint_outline(scenario, examples):
     """Called once per Scenario Outline during --bdd-lint."""
 
-def pytest_bdd_orama_lint_scenario(scenario):
+def pytest_big_dill_lint_scenario(scenario):
     """Called per scenario, and per interpolated Examples row."""
 ```
 

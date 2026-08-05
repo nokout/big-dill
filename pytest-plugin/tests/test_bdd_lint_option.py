@@ -9,7 +9,7 @@ Feature: States
 """)
     testdir.makepyfile(conftest=textwrap.dedent("""
         from pytest_bdd import given
-        from pytest_bdd_orama.step_types import StepEnum
+        from pytest_big_dill.step_types import StepEnum
 
         class AustralianState(StepEnum):
             NSW = "NSW"
@@ -30,7 +30,7 @@ Feature: States
 """)
     testdir.makepyfile(conftest=textwrap.dedent("""
         from pytest_bdd import given
-        from pytest_bdd_orama.step_types import StepEnum
+        from pytest_big_dill.step_types import StepEnum
 
         class AustralianState(StepEnum):
             NSW = "NSW"
@@ -53,7 +53,7 @@ Feature: Hook test
 """)
     testdir.makepyfile(conftest=textwrap.dedent("""
         from pytest_bdd import given
-        from pytest_bdd_orama.lint_types import LintDiagnostic
+        from pytest_big_dill.lint_types import LintDiagnostic
 
         @given("step 1")
         def s1(): pass
@@ -62,7 +62,7 @@ Feature: Hook test
         @given("step 3")
         def s3(): pass
 
-        def pytest_bdd_orama_lint_scenario(scenario):
+        def pytest_big_dill_lint_scenario(scenario):
             if len(scenario.steps) > 2:
                 return [LintDiagnostic(message="Too many steps")]
             return []
@@ -84,12 +84,12 @@ Feature: Outline linting
 """)
     testdir.makepyfile(conftest=textwrap.dedent("""
         from pytest_bdd import given
-        from pytest_bdd_orama.lint_types import LintDiagnostic
+        from pytest_big_dill.lint_types import LintDiagnostic
 
         @given("the state is {state}")
         def step(state): pass
 
-        def pytest_bdd_orama_lint_outline(scenario, examples):
+        def pytest_big_dill_lint_outline(scenario, examples):
             all_rows = [tuple(r.values()) for block in examples for r in block.rows]
             if len(all_rows) != len(set(all_rows)):
                 return [LintDiagnostic(message="Duplicate example rows detected")]

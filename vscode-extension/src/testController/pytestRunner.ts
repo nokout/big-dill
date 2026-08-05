@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Nigel O'Keefe. All rights reserved.
 // Licensed under the terms in LICENSE (source-available, not open source).
-// BDD-ORAMA: Spawns pytest subprocesses for discovery and execution, communicating
+// BIG-DILL: Spawns pytest subprocesses for discovery and execution, communicating
 // via the named-pipe IPC server.
 
 import * as cp from 'child_process';
@@ -22,12 +22,12 @@ function getPythonPath(interpreterPath: string): string {
  * Resolve the working directory for pytest subprocesses.
  *
  * Priority (highest to lowest):
- *   1. pytest-bdd-orama.cwd  — explicit override for this extension
+ *   1. big-dill.cwd  — explicit override for this extension
  *   2. python.testing.cwd    — shared ms-python setting
  *   3. workspaceUri.fsPath   — workspace root (default)
  */
 function resolveCwd(workspaceUri: Uri): string {
-    const ours = (workspace.getConfiguration('pytest-bdd-orama').get<string | null>('cwd') ?? '').trim();
+    const ours = (workspace.getConfiguration('big-dill').get<string | null>('cwd') ?? '').trim();
     if (ours) {
         return path.isAbsolute(ours) ? ours : path.join(workspaceUri.fsPath, ours);
     }
@@ -50,7 +50,7 @@ export async function discoverTests(
 ): Promise<DiscoveryResult> {
     const ipc = await createIpcServer();
     const cwd = resolveCwd(workspaceUri);
-    const extraArgs = workspace.getConfiguration('pytest-bdd-orama').get<string[]>('pytestArgs', []);
+    const extraArgs = workspace.getConfiguration('big-dill').get<string[]>('pytestArgs', []);
 
     const env: NodeJS.ProcessEnv = {
         ...process.env,
@@ -125,7 +125,7 @@ export async function runTests(
 ): Promise<ExecutionTestPayload[]> {
     const ipc = await createIpcServer();
     const cwd = resolveCwd(workspaceUri);
-    const extraArgs = workspace.getConfiguration('pytest-bdd-orama').get<string[]>('pytestArgs', []);
+    const extraArgs = workspace.getConfiguration('big-dill').get<string[]>('pytestArgs', []);
 
     // Write test ids to a temp file (same approach as ms-python)
     const testIdsFile = path.join(os.tmpdir(), `pytest-bdd-ids-${Date.now()}.txt`);
@@ -196,7 +196,7 @@ export async function runBddLint(
 ): Promise<LintDiagnosticEntry[]> {
     const ipc = await createIpcServer();
     const cwd = resolveCwd(workspaceUri);
-    const extraArgs = workspace.getConfiguration('pytest-bdd-orama').get<string[]>('pytestArgs', []);
+    const extraArgs = workspace.getConfiguration('big-dill').get<string[]>('pytestArgs', []);
 
     const env: NodeJS.ProcessEnv = {
         ...process.env,

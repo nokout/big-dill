@@ -70,7 +70,7 @@ jobs:
           # packaged inside the VSIX. For a public Marketplace release, replace it
           # with --baseImagesUrl (see "README screenshots" in the root README).
           ( cd vscode-extension && npx vsce package --no-rewrite-relative-links \
-              -o "../release/pytest-bdd-orama-${version}.vsix" )
+              -o "../release/big-dill-${version}.vsix" )
           python -m build --outdir release ./pytest-plugin
           ( cd vscode-extension && npm sbom --sbom-format cyclonedx --omit dev ) \
             > release/sbom-extension.cdx.json

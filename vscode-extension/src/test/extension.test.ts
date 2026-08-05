@@ -2,7 +2,7 @@ import * as assert from 'assert';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
-const EXTENSION_ID = 'pytest-bdd-orama.pytest-bdd-orama';
+const EXTENSION_ID = 'nokout.big-dill';
 
 function fixture(...parts: string[]): vscode.Uri {
     // Compiled to dist/test/, so the fixture lives two levels up in src/.

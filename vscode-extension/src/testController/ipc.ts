@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Nigel O'Keefe. All rights reserved.
 // Licensed under the terms in LICENSE (source-available, not open source).
-// BDD-ORAMA: Named-pipe IPC server — receives JSON-RPC messages from vscode_pytest.
+// BIG-DILL: Named-pipe IPC server — receives JSON-RPC messages from vscode_pytest.
 // Protocol mirrors ms-python: content-length framing over a named pipe.
 
 import * as net from 'net';

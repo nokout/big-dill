@@ -1,6 +1,6 @@
-# pytest-bdd-orama — Overview
+# Big Dill — Overview
 
-pytest-bdd-orama is a VS Code extension that makes writing and running BDD tests feel natural. It connects VS Code's Testing panel directly to pytest-bdd projects and provides authoring tools designed for testers who may not be comfortable in Python.
+Big Dill is a VS Code extension that makes writing and running BDD tests feel natural. It connects VS Code's Testing panel directly to pytest-bdd projects and provides authoring tools designed for testers who may not be comfortable in Python.
 
 ## What you get
 

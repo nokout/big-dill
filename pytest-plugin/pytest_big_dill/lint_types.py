@@ -1,4 +1,4 @@
-# pytest-plugin/pytest_bdd_orama/lint_types.py
+# pytest-plugin/pytest_big_dill/lint_types.py
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -9,8 +9,8 @@ from typing import Literal
 class LintDiagnostic:
     """A diagnostic produced by a linting pass.
 
-    Returned from ``pytest_bdd_orama_lint_scenario`` and
-    ``pytest_bdd_orama_lint_outline`` hook implementations.
+    Returned from ``pytest_big_dill_lint_scenario`` and
+    ``pytest_big_dill_lint_outline`` hook implementations.
     """
     message: str
     severity: Literal["error", "warning", "info"] = "error"
@@ -29,7 +29,7 @@ class InterpolatedStep:
 class InterpolatedScenario:
     """A Scenario Outline row fully interpolated into a concrete scenario.
 
-    Passed to ``pytest_bdd_orama_lint_scenario`` when linting each outline row.
+    Passed to ``pytest_big_dill_lint_scenario`` when linting each outline row.
     Exposes the same interface as a plain scenario so scenario-level linters
     need not be aware of outlines.
 

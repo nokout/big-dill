@@ -11,11 +11,11 @@ import json
 import pytest
 import yaml
 from pytest_bdd import given, parsers, then, when
-from pytest_bdd_orama import StepEnum
+from pytest_big_dill import StepEnum
 
 
 # ---------------------------------------------------------------------------
-# Sentinel exceptions — detected by pytest_bdd_orama_custom_status below
+# Sentinel exceptions — detected by pytest_big_dill_custom_status below
 # ---------------------------------------------------------------------------
 
 class WaitingSignal(Exception):
@@ -106,10 +106,10 @@ def visit_state_capital(state):
 
 
 # ---------------------------------------------------------------------------
-# pytest-bdd-orama hook — custom display name (id column for outlines)
+# Big Dill hook — custom display name (id column for outlines)
 # ---------------------------------------------------------------------------
 
-def pytest_bdd_orama_test_name(scenario_name, example_params, feature_name, feature_path):
+def pytest_big_dill_test_name(scenario_name, example_params, feature_name, feature_path):
     if len(example_params.keys()) == 0:
         return scenario_name
     else:
@@ -119,10 +119,10 @@ def pytest_bdd_orama_test_name(scenario_name, example_params, feature_name, feat
 
 
 # ---------------------------------------------------------------------------
-# pytest-bdd-orama hook — map sentinel exceptions to custom status strings
+# Big Dill hook — map sentinel exceptions to custom status strings
 # ---------------------------------------------------------------------------
 
-def pytest_bdd_orama_custom_status(report, config):
+def pytest_big_dill_custom_status(report, config):
     if report.when != "call":
         return None
 
@@ -281,16 +281,16 @@ def no_error():
 
 
 # ---------------------------------------------------------------------------
-# pytest-bdd-orama hook — custom lint rule (demonstrates user-extensible hooks)
+# Big Dill hook — custom lint rule (demonstrates user-extensible hooks)
 #
 # Built-in TypeScript linter handles: empty comments, duplicate example rows,
 # oversized tables, missing Examples blocks, empty Examples bodies.
 # Use this hook for domain-specific rules that belong to your project.
 # ---------------------------------------------------------------------------
-from pytest_bdd_orama.lint_types import LintDiagnostic
+from pytest_big_dill.lint_types import LintDiagnostic
 
 
-def pytest_bdd_orama_lint_outline(scenario, examples):
+def pytest_big_dill_lint_outline(scenario, examples):
     """Require that all Scenario Outline names begin with a capital letter."""
     if scenario.name and not scenario.name[0].isupper():
         return [LintDiagnostic(

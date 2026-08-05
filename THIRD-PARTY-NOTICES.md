@@ -1,6 +1,6 @@
 # Third-Party Notices
 
-pytest-bdd-orama is distributed under the terms in [`LICENSE`](LICENSE). The
+Big Dill is distributed under the terms in [`LICENSE`](LICENSE). The
 components listed here are **not** covered by that licence: each remains under
 its own terms, reproduced below, and nothing in `LICENSE` limits your rights
 under them.
@@ -121,7 +121,7 @@ https://www.apache.org/licenses/LICENSE-2.0
 
 ## Python plugin dependencies
 
-`pytest-bdd-orama` (the pytest plugin) declares `pytest`, `pytest-bdd`, and
+`pytest-big-dill` (the pytest plugin) declares `pytest`, `pytest-bdd`, and
 `parse` as dependencies. These are installed by pip from PyPI rather than
 bundled, so they are not redistributed by this project and retain their own
 licences (MIT for all three at the time of writing).

@@ -1,6 +1,6 @@
 # Architecture
 
-How pytest-bdd-orama connects VS Code's Testing API to pytest-bdd. This is the design/development deep-dive; for user-facing docs see the [overview](overview.md), [tester guide](tester-guide.md), and [developer guide](developer-guide.md).
+How Big Dill connects VS Code's Testing API to pytest-bdd. This is the design/development deep-dive; for user-facing docs see the [overview](overview.md), [tester guide](tester-guide.md), and [developer guide](developer-guide.md).
 
 ---
 
@@ -15,7 +15,7 @@ VS Code exposes a **Testing API** that allows extensions to register arbitrary t
 | `TestRunProfile` | Defines a way to run items in the tree (Run, Debug, Coverage). Users select which profile to use. |
 | `TestRun` | Represents a single execution. The extension calls `run.passed()`, `run.failed()`, `run.skipped()` etc. on individual items as results arrive. |
 
-pytest-bdd-orama creates **one `TestController`** (labelled `pytest-bdd`) with a single Run profile. It is entirely independent of the ms-python controller — both can coexist in the same workspace, but for pytest-bdd projects you should disable ms-python's pytest runner (`python.testing.pytestEnabled: false`) to avoid a duplicate tree.
+Big Dill creates **one `TestController`** (labelled `pytest-bdd`) with a single Run profile. It is entirely independent of the ms-python controller — both can coexist in the same workspace, but for pytest-bdd projects you should disable ms-python's pytest runner (`python.testing.pytestEnabled: false`) to avoid a duplicate tree.
 
 This is a **subprocess-based controller**: when discovery or a run is requested, the extension spawns a Python subprocess running pytest, communicates with it over a named pipe (IPC), and translates the JSON payloads it receives into `TestItem` tree mutations and `TestRun` state calls.
 
@@ -46,7 +46,7 @@ VS Code Testing panel
 
 **Discovery flow:**
 1. The extension spawns `pytest --collect-only` in a subprocess, with the `vscode_pytest` plugin loaded.
-2. pytest collects tests. The `pytest-bdd-orama` pytest plugin hooks into `pytest_collection_modifyitems` and attaches `_bdd_feature_path`, `_bdd_scenario_name`, tags, and feature metadata to every pytest-bdd item.
+2. pytest collects tests. The `pytest-big-dill` pytest plugin hooks into `pytest_collection_modifyitems` and attaches `_bdd_feature_path`, `_bdd_scenario_name`, tags, and feature metadata to every pytest-bdd item.
 3. `vscode_pytest/__init__.py` serialises the collected items into a JSON payload and sends it over a named pipe to the extension.
 4. `resultResolver.ts` receives the payload and calls `buildTree`, which constructs the `TestItem` hierarchy from feature paths.
 
@@ -59,9 +59,9 @@ VS Code Testing panel
 
 ## Component breakdown
 
-### `pytest-plugin/` — pytest-bdd-orama
+### `pytest-plugin/` — pytest-big-dill
 
-An installable pytest plugin (`pytest-bdd-orama`) that bridges pytest-bdd's data model to the VS Code extension.
+An installable pytest plugin (`pytest-big-dill`) that bridges pytest-bdd's data model to the VS Code extension.
 
 **What it registers:**
 
@@ -70,15 +70,15 @@ An installable pytest plugin (`pytest-bdd-orama`) that bridges pytest-bdd's data
   - `_bdd_scenario_name` — display name for the scenario (default: `scenario.name`)
   - Resolved from `scenario.feature.name`, `scenario.tags`, `scenario.feature.tags`, and the example row's Examples block tags
 
-- `pytest_runtest_makereport` — after each test, calls the `pytest_bdd_orama_custom_status` hookspec and attaches any non-None result to the report as `vscode_custom_status`
+- `pytest_runtest_makereport` — after each test, calls the `pytest_big_dill_custom_status` hookspec and attaches any non-None result to the report as `vscode_custom_status`
 
 **Hookspecs it exposes to user `conftest.py`:**
 
-- `pytest_bdd_orama_test_name(scenario_name, example_params, feature_name, feature_path)` → `str | None`
+- `pytest_big_dill_test_name(scenario_name, example_params, feature_name, feature_path)` → `str | None`
   Override the display name for a scenario. Return `None` to keep the default. Commonly used to give outline rows a meaningful identifier from one of the example columns.
 
-- `pytest_bdd_orama_custom_status(report, config)` → `str | None`
-  Return a custom status string for a test result (e.g. `"waiting"`, `"knownError"`). The extension maps these strings to VS Code run states via `pytest-bdd-orama.outcomeMapping` in workspace settings.
+- `pytest_big_dill_custom_status(report, config)` → `str | None`
+  Return a custom status string for a test result (e.g. `"waiting"`, `"knownError"`). The extension maps these strings to VS Code run states via `big-dill.outcomeMapping` in workspace settings.
 
 See the [developer guide](developer-guide.md) for the full hookspec reference including the lint hooks.
 
@@ -93,13 +93,13 @@ This is a modified version of the `vscode_pytest/__init__.py` file from the [mic
 - `create_test_node()` populates these fields from the `_bdd_*` attributes set by the pytest plugin, including Examples-block tag resolution for scenario outlines
 - `build_test_tree()` routes pytest-bdd items into feature-path-keyed stub file nodes rather than Python-file-keyed nodes, so the TypeScript tree builder receives items grouped by feature file
 
-Changes are marked `# BDD-ORAMA` in the source. See [UPSTREAM.md](../UPSTREAM.md) for the tracked commit and diff instructions.
+Changes are marked `# BIG-DILL` in the source. See [UPSTREAM.md](../UPSTREAM.md) for the tracked commit and diff instructions.
 
 ### `vscode-extension/src/` — the TypeScript extension
 
 **`extension.ts`** — activation entry point. Creates the `TestController`, run profile, and file system watcher. Coordinates workspace discovery on activation, on `.feature` file changes, and on configuration changes.
 
-**`pytestRunner.ts`** — spawns pytest subprocesses for discovery and execution. Resolves the working directory from `pytest-bdd-orama.cwd` (falling back to `python.testing.cwd`, then workspace root). Creates and manages the named-pipe IPC server.
+**`pytestRunner.ts`** — spawns pytest subprocesses for discovery and execution. Resolves the working directory from `big-dill.cwd` (falling back to `python.testing.cwd`, then workspace root). Creates and manages the named-pipe IPC server.
 
 **`treeBuilder.ts`** — transforms a `DiscoveredTestPayload` into the `TestItem` tree:
 - BDD items are organised under a folder hierarchy mirroring the `.feature` file's directory path
@@ -108,7 +108,7 @@ Changes are marked `# BDD-ORAMA` in the source. See [UPSTREAM.md](../UPSTREAM.md
 - `scenario_tags` are shown as `description` text on scenario items; `feature_tags` on feature file items
 - Path resolution uses `payload.cwd` (the actual pytest working directory) rather than the workspace root, so the tree is correct when `cwd` is a subdirectory
 
-**`resultResolver.ts`** — receives discovery and execution payloads from the IPC server. Maps custom statuses to VS Code run states using `pytest-bdd-orama.outcomeMapping`. Prepends ⏳ to scenario labels mapped to the `enqueued` state and removes it when a terminal result arrives.
+**`resultResolver.ts`** — receives discovery and execution payloads from the IPC server. Maps custom statuses to VS Code run states using `big-dill.outcomeMapping`. Prepends ⏳ to scenario labels mapped to the `enqueued` state and removes it when a terminal result arrives.
 
 ### `vscode-extension/python_files/run_pytest.py`
 
@@ -126,7 +126,7 @@ Test discovery (above) is not the same pipeline as *step* discovery, which feeds
 completions, hover, go-to-definition, and the Step Browser.
 
 **Phase A — step discovery.** Triggered by saves to files matching
-`pytest-bdd-orama.stepDefinitionGlob` (default `**/step_defs/**/*.py`, `**/steps/**/*.py`,
+`big-dill.stepDefinitionGlob` (default `**/step_defs/**/*.py`, `**/steps/**/*.py`,
 `**/conftest.py`). Runs `pytest --collect-only`; the plugin walks the fixture registry for
 functions carrying `_pytest_bdd_step_context` and emits a `stepDefinitions` payload over the
 same named pipe. Because pytest loads everything registered in the environment, this covers
@@ -140,8 +140,8 @@ as a CI gate.
 
 Note that the structural linter in the extension is a third, independent path: it parses
 the Gherkin AST in-process on every edit and needs no subprocess at all. It publishes to its
-own `DiagnosticCollection` (`pytest-bdd-orama-gherkin`) so it never overwrites the Python
-linter's results (`pytest-bdd-orama`).
+own `DiagnosticCollection` (`big-dill-gherkin`) so it never overwrites the Python
+linter's results (`pytest-big-dill`).
 
 ### Distributed step library metadata
 
@@ -149,17 +149,17 @@ Step definitions shipped inside a published package can supply completions *befo
 collection run. A package author generates the metadata at packaging time:
 
 ```bash
-pytest-bdd-orama          # writes pytest_bdd_orama_steps.json
+pytest-big-dill          # writes pytest_big_dill_steps.json
 ```
 
 and declares it via an entry point so consumers can find it:
 
 ```toml
-[project.entry-points."pytest_bdd_orama.steps"]
-my-package = "my_package:pytest_bdd_orama_steps.json"
+[project.entry-points."pytest_big_dill.steps"]
+my-package = "my_package:pytest_big_dill_steps.json"
 ```
 
-On activation the extension enumerates registered `pytest_bdd_orama.steps` entry points and
+On activation the extension enumerates registered `pytest_big_dill.steps` entry points and
 loads each file as a base layer (`loadDistributedStepMetadata` in `extension.ts`). Live
 Phase A data is merged on top, and **local step definitions always win** over distributed
 metadata for the same pattern.
@@ -205,15 +205,15 @@ Recorded so the boundary is not relitigated:
 ## Repository layout
 
 ```
-pytest-bdd-orama/
+big-dill/
 ├── vscode-extension/
 │   ├── src/                    TypeScript extension source
 │   │   └── testController/     Test controller, runner, resolver, tree builder
 │   └── python_files/           Python bridge (adapted from ms-python)
 │       ├── vscode_pytest/      IPC + serialisation layer
 │       └── run_pytest.py       Execution runner script
-├── pytest-plugin/              Installable pytest plugin (pytest-bdd-orama)
-│   └── pytest_bdd_orama/       Hook implementations and hookspecs
+├── pytest-plugin/              Installable pytest plugin (pytest-big-dill)
+│   └── pytest_big_dill/       Hook implementations and hookspecs
 └── playground/                 End-to-end demo project
     ├── features/               .feature files used for manual validation
     └── tests/                  pytest entry point (scenarios())

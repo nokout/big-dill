@@ -1,11 +1,11 @@
 """
-Integration tests for the pytest-bdd-orama custom-status hook chain.
+Integration tests for the Big Dill custom-status hook chain.
 
 These tests validate the interface between the pytest plugin and the IPC payload:
 
   test raises exception
       → pytest_runtest_makereport (hooks.py hookwrapper)
-          → calls pytest_bdd_orama_custom_status
+          → calls pytest_big_dill_custom_status
               → returns status string (or None)
           → attaches status as report.vscode_custom_status
 
@@ -23,7 +23,7 @@ import pytest
 # ---------------------------------------------------------------------------
 
 CONFTEST = """\
-# pytest_bdd_orama is auto-loaded via the pytest11 entry point when the package
+# pytest_big_dill is auto-loaded via the pytest11 entry point when the package
 # is installed in the active venv.  Do NOT add pytest_plugins here — doing so
 # would double-register the plugin and trigger a pluggy hookspec conflict.
 
@@ -36,7 +36,7 @@ class OtherBadThingSignal(Exception):
 class KnownError(Exception):
     pass
 
-def pytest_bdd_orama_custom_status(report, config):
+def pytest_big_dill_custom_status(report, config):
     if report.when != "call":
         return None
     longrepr = str(getattr(report, "longrepr", ""))

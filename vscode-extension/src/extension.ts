@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Nigel O'Keefe. All rights reserved.
 // Licensed under the terms in LICENSE (source-available, not open source).
-// BDD-ORAMA: Extension entry point for the pytest-bdd test runner.
+// BIG-DILL: Extension entry point for the pytest-bdd test runner.
 
 import * as vscode from 'vscode';
 import { BddResultResolver } from './testController/resultResolver';
@@ -36,7 +36,7 @@ async function loadDistributedStepMetadata(
         'import json, sys',
         'try:',
         '    from importlib.metadata import entry_points',
-        '    eps = entry_points(group="pytest_bdd_orama.steps")',
+        '    eps = entry_points(group="pytest_big_dill.steps")',
         '    result = []',
         '    for ep in eps:',
         '        pkg, filename = ep.value.split(":", 1)',
@@ -80,15 +80,15 @@ async function loadDistributedStepMetadata(
 }
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
-    const enabled = vscode.workspace.getConfiguration('pytest-bdd-orama').get<boolean>('enabled', true);
+    const enabled = vscode.workspace.getConfiguration('big-dill').get<boolean>('enabled', true);
     if (!enabled) {
         return;
     }
 
-    outputChannel = vscode.window.createOutputChannel('pytest-bdd-orama');
+    outputChannel = vscode.window.createOutputChannel('Big Dill');
     context.subscriptions.push(outputChannel);
 
-    const tagNamespace = vscode.workspace.getConfiguration('pytest-bdd-orama').get<string>('tagNamespace', 'bdd');
+    const tagNamespace = vscode.workspace.getConfiguration('big-dill').get<string>('tagNamespace', 'bdd');
     testController = vscode.tests.createTestController(tagNamespace, 'pytest-bdd');
     context.subscriptions.push(testController);
 
@@ -119,16 +119,16 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     // Re-discover when workspace settings change
     context.subscriptions.push(
         vscode.workspace.onDidChangeConfiguration(async (e) => {
-            if (e.affectsConfiguration('pytest-bdd-orama.tagNamespace')) {
+            if (e.affectsConfiguration('big-dill.tagNamespace')) {
                 vscode.window.showInformationMessage(
-                    'pytest-bdd-orama: Reload the window to apply the new tag namespace.',
+                    'Big Dill: Reload the window to apply the new tag namespace.',
                     'Reload Window',
                 ).then((action) => {
                     if (action === 'Reload Window') {
                         vscode.commands.executeCommand('workbench.action.reloadWindow');
                     }
                 });
-            } else if (e.affectsConfiguration('pytest-bdd-orama')) {
+            } else if (e.affectsConfiguration('big-dill')) {
                 await refreshAllWorkspaces();
             }
         }),
@@ -142,7 +142,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     context.subscriptions.push(featureWatcher);
 
     // Re-discover when step definition files are created, changed, or deleted
-    const stepDefGlob = vscode.workspace.getConfiguration('pytest-bdd-orama')
+    const stepDefGlob = vscode.workspace.getConfiguration('big-dill')
         .get<string>('stepDefinitionGlob', '{**/step_defs/**/*.py,**/steps/**/*.py}');
     const stepFileWatcher = vscode.workspace.createFileSystemWatcher(stepDefGlob);
     stepFileWatcher.onDidChange(() => refreshAllWorkspaces());
@@ -195,7 +195,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     // Step browser panel
     stepBrowserProvider = new StepBrowserProvider(stepCache);
-    const stepBrowserView = vscode.window.createTreeView('pytest-bdd-orama.stepBrowser', {
+    const stepBrowserView = vscode.window.createTreeView('big-dill.stepBrowser', {
         treeDataProvider: stepBrowserProvider,
         showCollapseAll: true,
     });
@@ -203,16 +203,16 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     // Grouping mode toggle commands
     context.subscriptions.push(
-        vscode.commands.registerCommand('pytest-bdd-orama.stepBrowser.groupByFile', () => {
+        vscode.commands.registerCommand('big-dill.stepBrowser.groupByFile', () => {
             stepBrowserProvider?.setGroupingMode(GroupingMode.ByFile);
         }),
-        vscode.commands.registerCommand('pytest-bdd-orama.stepBrowser.groupByStepType', () => {
+        vscode.commands.registerCommand('big-dill.stepBrowser.groupByStepType', () => {
             stepBrowserProvider?.setGroupingMode(GroupingMode.ByStepType);
         }),
-        vscode.commands.registerCommand('pytest-bdd-orama.stepBrowser.groupByTag', () => {
+        vscode.commands.registerCommand('big-dill.stepBrowser.groupByTag', () => {
             stepBrowserProvider?.setGroupingMode(GroupingMode.ByTag);
         }),
-        vscode.commands.registerCommand('pytest-bdd-orama.stepBrowser.filter', async () => {
+        vscode.commands.registerCommand('big-dill.stepBrowser.filter', async () => {
             const current = stepBrowserProvider?.getFilter() ?? '';
             const input = await vscode.window.showInputBox({
                 prompt: 'Filter steps by keyword',

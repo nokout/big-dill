@@ -2,7 +2,7 @@
 // Licensed under the MIT License.
 // Adapted from microsoft/vscode-python (commit 5c2c3948e1c8c8a1dfe848104773477e70d0b83b).
 //
-// BDD-ORAMA modifications:
+// BIG-DILL modifications:
 //   - DiscoveredTestItem: added feature_path and scenario_name optional fields.
 //   - ExecutionTestPayload result entries: added custom_status optional field.
 
@@ -20,15 +20,15 @@ export type DiscoveredTestCommon = {
 export type DiscoveredTestItem = DiscoveredTestCommon & {
     lineno: number | string;
     runID: string;
-    /** BDD-ORAMA: relative path to the .feature file (e.g. "features/states/basic_states.feature") */
+    /** BIG-DILL: relative path to the .feature file (e.g. "features/states/basic_states.feature") */
     feature_path?: string;
-    /** BDD-ORAMA: display name for the scenario (may differ from name for outlines) */
+    /** BIG-DILL: display name for the scenario (may differ from name for outlines) */
     scenario_name?: string;
-    /** BDD-ORAMA: scenario tags from the .feature file (without the @ prefix) */
+    /** BIG-DILL: scenario tags from the .feature file (without the @ prefix) */
     scenario_tags?: string[];
-    /** BDD-ORAMA: feature-level tags from the Feature: declaration (without the @ prefix) */
+    /** BIG-DILL: feature-level tags from the Feature: declaration (without the @ prefix) */
     feature_tags?: string[];
-    /** BDD-ORAMA: feature display name from the Feature: declaration */
+    /** BIG-DILL: feature display name from the Feature: declaration */
     feature_name?: string;
 };
 
@@ -54,7 +54,7 @@ export type ExecutionTestPayload = {
             message?: string;
             traceback?: string;
             subtest?: string;
-            /** BDD-ORAMA: custom status string from pytest_report_customstatus */
+            /** BIG-DILL: custom status string from pytest_report_customstatus */
             custom_status?: string;
         };
     };

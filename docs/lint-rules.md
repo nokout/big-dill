@@ -1,6 +1,6 @@
 # Lint rules reference
 
-Every diagnostic pytest-bdd-orama can raise on a `.feature` file, and where it comes from. Three layers run at different times:
+Every diagnostic Big Dill can raise on a `.feature` file, and where it comes from. Three layers run at different times:
 
 1. **Structural rules** — instant, in-editor as you type (no subprocess)
 2. **Configurable checks** — tag allowlist and phrasing rules from workspace settings
@@ -44,13 +44,13 @@ See these rules firing on real files: open `playground/features/lint_examples/li
 
 | Check | Severity | Setting |
 |---|---|---|
-| Tag allowlist | 🟡 | `pytest-bdd-orama.allowedTags` — when non-empty, any `@tag` not in the list is flagged (feature and scenario tags) |
-| Phrasing rules | 🟡 / 🔵 | `pytest-bdd-orama.phrasingRules` — regex rules against step text (e.g. forbid UI-action verbs in `Given` steps). Severity is graduated: 🟡 warning for steps with no matching implementation (new wording being proposed), 🔵 info when the step already matches a known implementation (existing convention violation) |
+| Tag allowlist | 🟡 | `big-dill.allowedTags` — when non-empty, any `@tag` not in the list is flagged (feature and scenario tags) |
+| Phrasing rules | 🟡 / 🔵 | `big-dill.phrasingRules` — regex rules against step text (e.g. forbid UI-action verbs in `Given` steps). Severity is graduated: 🟡 warning for steps with no matching implementation (new wording being proposed), 🔵 info when the step already matches a known implementation (existing convention violation) |
 
 Example phrasing rule:
 
 ```jsonc
-"pytest-bdd-orama.phrasingRules": [
+"big-dill.phrasingRules": [
   {
     "pattern": "^the user (clicks|presses|navigates)",
     "message": "Given steps should describe state, not actions"
@@ -64,8 +64,8 @@ Example phrasing rule:
 |---|---|---|
 | Unimplemented step | 🟡 | On save — steps with no matching Python step definition are flagged (`Step not implemented: "…"`) |
 | Typed parameter validation | 🔴/🟡 | `pytest --bdd-lint` — values in steps and interpolated Examples rows are validated against typed step definitions (`{n:d}`-style and `StepType` classes); e.g. `abc` feeding an integer parameter |
-| Custom outline rules | as returned | `pytest --bdd-lint` — your `pytest_bdd_orama_lint_outline(scenario, examples)` hooks in `conftest.py`, called once per outline |
-| Custom scenario rules | as returned | `pytest --bdd-lint` — your `pytest_bdd_orama_lint_scenario(scenario)` hooks, called for each scenario and each interpolated Examples row |
+| Custom outline rules | as returned | `pytest --bdd-lint` — your `pytest_big_dill_lint_outline(scenario, examples)` hooks in `conftest.py`, called once per outline |
+| Custom scenario rules | as returned | `pytest --bdd-lint` — your `pytest_big_dill_lint_scenario(scenario)` hooks, called for each scenario and each interpolated Examples row |
 
 Run the CLI pass across every feature file (exits non-zero on errors, suitable for CI):
 
@@ -73,4 +73,4 @@ Run the CLI pass across every feature file (exits non-zero on errors, suitable f
 pytest --bdd-lint
 ```
 
-Writing custom rules is covered in the [developer guide](developer-guide.md#pytest_bdd_orama_lint_outline).
+Writing custom rules is covered in the [developer guide](developer-guide.md#pytest_big_dill_lint_outline).

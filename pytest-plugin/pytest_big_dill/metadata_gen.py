@@ -2,16 +2,16 @@
 
 Usage (run from the project root, with the project importable)::
 
-    pytest-bdd-orama [output_path]
+    pytest-big-dill [output_path]
 
-If *output_path* is omitted, writes ``pytest_bdd_orama_steps.json`` in the
+If *output_path* is omitted, writes ``pytest_big_dill_steps.json`` in the
 current directory.  Include this file in your wheel and declare it via an
 entry point so the VS Code extension can discover it.
 
 pyproject.toml example::
 
-    [project.entry-points."pytest_bdd_orama.steps"]
-    my-package = "my_package:pytest_bdd_orama_steps.json"
+    [project.entry-points."pytest_big_dill.steps"]
+    my-package = "my_package:pytest_big_dill_steps.json"
 """
 from __future__ import annotations
 
@@ -53,7 +53,7 @@ def _build_metadata(
 
 
 def main() -> None:
-    output = Path(sys.argv[1]) if len(sys.argv) > 1 else Path('pytest_bdd_orama_steps.json')
+    output = Path(sys.argv[1]) if len(sys.argv) > 1 else Path('pytest_big_dill_steps.json')
 
     from .step_registry import collect_step_type_classes
 
@@ -64,4 +64,4 @@ def main() -> None:
     metadata = _build_metadata([], step_types)
 
     output.write_text(json.dumps(metadata, indent=2))
-    print(f"pytest-bdd-orama: written step metadata to {output}")
+    print(f"pytest-big-dill: written step metadata to {output}")
