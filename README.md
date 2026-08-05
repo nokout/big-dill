@@ -137,8 +137,20 @@ Marketplace *web page* requires absolute HTTPS image URLs, so the Marketplace
 publish step drops the flag and passes instead:
 
 ```bash
-vsce package --baseImagesUrl https://raw.githubusercontent.com/nokout/big-dill/main/vscode-extension/images
+npm run package:marketplace
 ```
+
+which expands to:
+
+```bash
+vsce package --baseImagesUrl https://raw.githubusercontent.com/nokout/big-dill/main/vscode-extension
+```
+
+> **The base URL stops at `vscode-extension`, not `vscode-extension/images`.** The README
+> already references screenshots as `images/<name>.png`, and vsce joins the base to that
+> relative path — so including `/images` yields `…/images/images/<name>.png`, and every
+> screenshot 404s on the listing page. The `package:marketplace` script exists so this is
+> not retyped from memory.
 
 The repository is public, so those URLs resolve.
 
