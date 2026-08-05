@@ -65,5 +65,5 @@ Initial release.
 - **Distributed step libraries** — third-party packages can contribute step
   metadata via the `pytest_big_dill.steps` entry point.
 
-[Unreleased]: https://github.com/nokout/pytest-bdd-orama/compare/v0.1.0...HEAD
-[0.1.0]: https://github.com/nokout/pytest-bdd-orama/releases/tag/v0.1.0
+[Unreleased]: https://github.com/nokout/big-dill/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/nokout/big-dill/releases/tag/v0.1.0

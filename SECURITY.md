@@ -3,7 +3,7 @@
 ## Reporting a vulnerability
 
 Please report security issues privately through GitHub's
-[private vulnerability reporting](https://github.com/nokout/pytest-bdd-orama/security/advisories/new)
+[private vulnerability reporting](https://github.com/nokout/big-dill/security/advisories/new)
 rather than opening a public issue.
 
 Include what you can: affected component, reproduction steps, and impact. You can

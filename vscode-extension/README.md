@@ -23,14 +23,14 @@ VS Code's built-in Python test runner shows pytest-bdd scenarios as mangled Pyth
 - **Hover docs & Go to definition** — step signature and docs on hover; `F12` jumps to the Python implementation
 - **Step Browser** — sidebar listing every step, grouped by file, step type, or tag
   ![Step Browser view](images/step-browser.png)
-- **Linting as you type** — 13 structural rules (undefined/unused Examples columns, duplicate scenario names, empty scenarios, …), configurable tag and phrasing checks, and unimplemented-step warnings. Full list: [lint rules reference](https://github.com/nokout/pytest-bdd-orama/blob/main/docs/lint-rules.md)
+- **Linting as you type** — 13 structural rules (undefined/unused Examples columns, duplicate scenario names, empty scenarios, …), configurable tag and phrasing checks, and unimplemented-step warnings. Full list: [lint rules reference](https://github.com/nokout/big-dill/blob/main/docs/lint-rules.md)
   ![Lint diagnostics in a feature file](images/lint-diagnostics.png)
 - **Table formatting** — `Format Document` aligns datatable and Examples columns, right-aligning numeric columns; nothing outside table rows is touched
 - **Syntax highlighting & snippets** — Gherkin keywords, tables, placeholders, embedded JSON/YAML/Python in docstrings
 
 ## Requirements
 
-- Python **3.10+** with [`pytest`](https://pypi.org/project/pytest/), [`pytest-bdd`](https://pypi.org/project/pytest-bdd/), and the companion plugin [`pytest-big-dill`](https://github.com/nokout/pytest-bdd-orama/tree/main/pytest-plugin) installed in your project environment
+- Python **3.10+** with [`pytest`](https://pypi.org/project/pytest/), [`pytest-bdd`](https://pypi.org/project/pytest-bdd/), and the companion plugin [`pytest-big-dill`](https://github.com/nokout/big-dill/tree/main/pytest-plugin) installed in your project environment
 - The [Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python) (`ms-python.python`) — used for interpreter selection
 
 ## Quick start
@@ -74,17 +74,17 @@ Because it executes workspace code, it declares `untrustedWorkspaces: false` and
 Every release is built by a public GitHub Actions workflow and carries a signed build-provenance attestation, so you can verify a downloaded `.vsix` really came from this repository:
 
 ```bash
-gh attestation verify big-dill-<version>.vsix --repo nokout/pytest-bdd-orama
+gh attestation verify big-dill-<version>.vsix --repo nokout/big-dill
 ```
 
-Releases also ship a CycloneDX SBOM and SHA-256 checksums. To report a vulnerability, see [SECURITY.md](https://github.com/nokout/pytest-bdd-orama/blob/main/SECURITY.md).
+Releases also ship a CycloneDX SBOM and SHA-256 checksums. To report a vulnerability, see [SECURITY.md](https://github.com/nokout/big-dill/blob/main/SECURITY.md).
 
 ## Learn more
 
-- [Tester guide](https://github.com/nokout/pytest-bdd-orama/blob/main/docs/tester-guide.md) — writing features with the authoring tools
-- [Developer guide](https://github.com/nokout/pytest-bdd-orama/blob/main/docs/developer-guide.md) — hookspecs: custom display names, statuses, typed steps, custom lint rules
-- [Lint rules reference](https://github.com/nokout/pytest-bdd-orama/blob/main/docs/lint-rules.md)
-- [Repository](https://github.com/nokout/pytest-bdd-orama) · [License](https://github.com/nokout/pytest-bdd-orama/blob/main/LICENSE) · [Third-party notices](https://github.com/nokout/pytest-bdd-orama/blob/main/THIRD-PARTY-NOTICES.md)
+- [Tester guide](https://github.com/nokout/big-dill/blob/main/docs/tester-guide.md) — writing features with the authoring tools
+- [Developer guide](https://github.com/nokout/big-dill/blob/main/docs/developer-guide.md) — hookspecs: custom display names, statuses, typed steps, custom lint rules
+- [Lint rules reference](https://github.com/nokout/big-dill/blob/main/docs/lint-rules.md)
+- [Repository](https://github.com/nokout/big-dill) · [License](https://github.com/nokout/big-dill/blob/main/LICENSE) · [Third-party notices](https://github.com/nokout/big-dill/blob/main/THIRD-PARTY-NOTICES.md)
 
 This extension is **source-available, not open source**. It is free to install
 and use, including at work; redistributing or modifying it is not permitted.
