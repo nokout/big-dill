@@ -8,7 +8,7 @@ metadata to collected tests, lets you customise how scenarios are named and repo
 and provides a static lint pass over your `.feature` files.
 
 It is useful on its own for the lint pass, but is normally installed alongside the
-[VS Code extension](https://github.com/nokout/pytest-bdd-orama).
+[VS Code extension](https://github.com/nokout/big-dill).
 
 ## Install
 
@@ -72,13 +72,13 @@ Exits non-zero if any error-severity diagnostic is found, so it works as a CI ga
 
 ## Documentation
 
-- [Developer guide](https://github.com/nokout/pytest-bdd-orama/blob/main/docs/developer-guide.md) — full hookspec reference and typed steps
-- [Lint rules](https://github.com/nokout/pytest-bdd-orama/blob/main/docs/lint-rules.md)
-- [Repository](https://github.com/nokout/pytest-bdd-orama)
+- [Developer guide](https://github.com/nokout/big-dill/blob/main/docs/developer-guide.md) — full hookspec reference and typed steps
+- [Lint rules](https://github.com/nokout/big-dill/blob/main/docs/lint-rules.md)
+- [Repository](https://github.com/nokout/big-dill)
 
 ## License
 
 Source-available, not open source. You may install and use it freely, including
 commercially; redistribution and modification are not permitted. See
-[`LICENSE`](https://github.com/nokout/pytest-bdd-orama/blob/main/LICENSE) and
-[`THIRD-PARTY-NOTICES.md`](https://github.com/nokout/pytest-bdd-orama/blob/main/THIRD-PARTY-NOTICES.md).
+[`LICENSE`](https://github.com/nokout/big-dill/blob/main/LICENSE) and
+[`THIRD-PARTY-NOTICES.md`](https://github.com/nokout/big-dill/blob/main/THIRD-PARTY-NOTICES.md).

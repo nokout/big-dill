@@ -31,9 +31,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/nokout/pytest-bdd-orama"
-Repository = "https://github.com/nokout/pytest-bdd-orama"
-Issues = "https://github.com/nokout/pytest-bdd-orama/issues"
+Homepage = "https://github.com/nokout/big-dill"
+Repository = "https://github.com/nokout/big-dill"
+Issues = "https://github.com/nokout/big-dill/issues"
 
 [project.scripts]
 pytest-big-dill = "pytest_big_dill.metadata_gen:main"

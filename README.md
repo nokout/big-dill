@@ -1,8 +1,8 @@
 # Big Dill
 
-[![CI](https://github.com/nokout/pytest-bdd-orama/actions/workflows/ci.yml/badge.svg)](https://github.com/nokout/pytest-bdd-orama/actions/workflows/ci.yml)
-[![Security](https://github.com/nokout/pytest-bdd-orama/actions/workflows/security.yml/badge.svg)](https://github.com/nokout/pytest-bdd-orama/actions/workflows/security.yml)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/nokout/pytest-bdd-orama/badge)](https://scorecard.dev/viewer/?uri=github.com/nokout/pytest-bdd-orama)
+[![CI](https://github.com/nokout/big-dill/actions/workflows/ci.yml/badge.svg)](https://github.com/nokout/big-dill/actions/workflows/ci.yml)
+[![Security](https://github.com/nokout/big-dill/actions/workflows/security.yml/badge.svg)](https://github.com/nokout/big-dill/actions/workflows/security.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/nokout/big-dill/badge)](https://scorecard.dev/viewer/?uri=github.com/nokout/big-dill)
 [![License: Source-Available](https://img.shields.io/badge/License-Source--Available-orange.svg)](LICENSE)
 
 A VS Code extension for [pytest-bdd](https://pytest-bdd.readthedocs.io/) that surfaces Gherkin scenarios as first-class citizens in the Testing panel and provides a full authoring experience for testers writing `.feature` files.
@@ -137,7 +137,7 @@ Marketplace *web page* requires absolute HTTPS image URLs, so the Marketplace
 publish step drops the flag and passes instead:
 
 ```bash
-vsce package --baseImagesUrl https://raw.githubusercontent.com/nokout/pytest-bdd-orama/main/vscode-extension/images
+vsce package --baseImagesUrl https://raw.githubusercontent.com/nokout/big-dill/main/vscode-extension/images
 ```
 
 The repository is public, so those URLs resolve.
@@ -160,5 +160,5 @@ The repository is public, so those URLs resolve.
 
 That table plus this file is the whole of the repo's prose. Design rationale belongs in
 `architecture.md` and user-facing behaviour in the guides; planned work and open decisions
-live in [GitHub issues](https://github.com/nokout/pytest-bdd-orama/issues), not in files.
+live in [GitHub issues](https://github.com/nokout/big-dill/issues), not in files.
 Superseded specs and plans are not kept — git history has them.
