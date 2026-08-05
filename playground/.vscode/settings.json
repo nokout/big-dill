@@ -2,8 +2,8 @@
   "python.testing.pytestEnabled": true,
   "python.testing.unittestEnabled": false,
   "python.testing.autoTestDiscoverOnSaveEnabled": false,
-  "pytest-bdd-orama.enabled": true,
-  "pytest-bdd-orama.outcomeMapping": {
+  "big-dill.enabled": true,
+  "big-dill.outcomeMapping": {
     "waiting": "enqueued",
     "knownError": "errored"
   },
@@ -12,6 +12,6 @@
   ],
   "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
   "[feature]": {
-    "editor.defaultFormatter": "pytest-bdd-orama.pytest-bdd-orama"
+    "editor.defaultFormatter": "nokout.big-dill"
   }
 }

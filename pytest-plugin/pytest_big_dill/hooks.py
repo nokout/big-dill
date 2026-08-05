@@ -1,18 +1,18 @@
-"""pytest hooks for the pytest-bdd-orama test runner plugin."""
+"""pytest hooks for the Big Dill test runner plugin."""
 
 import os
 from pathlib import Path
 
 import pytest
 
-from .hookspec import BddOramaHookSpec
+from .hookspec import BigDillHookSpec
 from .lint_runner import interpolate_scenario, validate_step_params
 from .lint_types import LintDiagnostic
 from .step_registry import collect_step_definitions, collect_step_type_classes
 
 
 def pytest_configure(config):
-    config.pluginmanager.add_hookspecs(BddOramaHookSpec)
+    config.pluginmanager.add_hookspecs(BigDillHookSpec)
 
 
 def pytest_addoption(parser):
@@ -46,7 +46,7 @@ def pytest_collection_modifyitems(session, config, items):
         example_params = raw_params.get('_pytest_bdd_example', {})
 
         # Call the user-defined hook — first non-None result wins (firstresult=True)
-        custom_name = config.hook.pytest_bdd_orama_test_name(
+        custom_name = config.hook.pytest_big_dill_test_name(
             scenario_name=scenario.name,
             example_params=example_params,
             feature_name=scenario.feature.name,
@@ -60,11 +60,11 @@ def pytest_collection_modifyitems(session, config, items):
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
-    """Call pytest_bdd_orama_custom_status and surface the result on the report."""
+    """Call pytest_big_dill_custom_status and surface the result on the report."""
     outcome = yield
     report = outcome.get_result()
 
-    custom = item.config.hook.pytest_bdd_orama_custom_status(report=report, config=item.config)
+    custom = item.config.hook.pytest_big_dill_custom_status(report=report, config=item.config)
     if custom is not None:
         report.vscode_custom_status = custom
 
@@ -164,7 +164,7 @@ def _lint_feature_file(
             wrapped_examples = [_ExamplesRowsAdapter(ex) for ex in scenario.examples]
 
             # 1. Outline-level checks (duplicates, large sets, etc.)
-            for result_list in config.hook.pytest_bdd_orama_lint_outline(
+            for result_list in config.hook.pytest_big_dill_lint_outline(
                 scenario=scenario, examples=wrapped_examples
             ):
                 if result_list:
@@ -174,13 +174,13 @@ def _lint_feature_file(
             for examples_block in scenario.examples:
                 for row in examples_block.as_contexts():
                     interpolated = interpolate_scenario(scenario, row)
-                    for result_list in config.hook.pytest_bdd_orama_lint_scenario(
+                    for result_list in config.hook.pytest_big_dill_lint_scenario(
                         scenario=interpolated
                     ):
                         if result_list:
                             diagnostics.extend(result_list)
         else:
-            for result_list in config.hook.pytest_bdd_orama_lint_scenario(scenario=scenario):
+            for result_list in config.hook.pytest_big_dill_lint_scenario(scenario=scenario):
                 if result_list:
                     diagnostics.extend(result_list)
 
@@ -200,7 +200,7 @@ def _emit_lint_results(
 
 def _emit_stdout(diagnostics: list[tuple[str, LintDiagnostic]]) -> None:
     if not diagnostics:
-        print("pytest-bdd-orama lint: no issues found")
+        print("Big Dill lint: no issues found")
         return
     for path, d in diagnostics:
         loc = f"{path}:{d.line}" if d.line else path

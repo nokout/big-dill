@@ -1,6 +1,6 @@
 # Developer Guide
 
-This guide covers implementing step definitions, typed parameters, and custom hooks for pytest-bdd-orama.
+This guide covers implementing step definitions, typed parameters, and custom hooks for Big Dill.
 
 ## Step definitions
 
@@ -26,7 +26,7 @@ def user_navigates(page: str):
 - Warn in the linter when an invalid value is used
 
 ```python
-from pytest_bdd_orama import StepEnum
+from pytest_big_dill import StepEnum
 
 class AustralianState(StepEnum):
     NSW = "New South Wales"
@@ -47,12 +47,12 @@ The enum values (left-hand side: `NSW`, `VIC`) are what testers type in `.featur
 
 Add these functions to your `conftest.py` to customise extension behaviour.
 
-### `pytest_bdd_orama_test_name`
+### `pytest_big_dill_test_name`
 
 Override the display name for scenarios, particularly outline rows:
 
 ```python
-def pytest_bdd_orama_test_name(scenario_name, example_params, feature_name, feature_path):
+def pytest_big_dill_test_name(scenario_name, example_params, feature_name, feature_path):
     if not example_params:
         return scenario_name
     if "id" in example_params:
@@ -68,12 +68,12 @@ Parameters:
 
 Return `None` to keep the default name.
 
-### `pytest_bdd_orama_custom_status`
+### `pytest_big_dill_custom_status`
 
 Map sentinel exceptions to custom status strings:
 
 ```python
-def pytest_bdd_orama_custom_status(report, config):
+def pytest_big_dill_custom_status(report, config):
     if report.when != "call":
         return None
     longrepr = str(getattr(report, "longrepr", ""))
@@ -84,16 +84,16 @@ def pytest_bdd_orama_custom_status(report, config):
     return None
 ```
 
-The returned string is matched against `pytest-bdd-orama.outcomeMapping` in workspace settings to determine the VS Code run state. See the [README configuration reference](../README.md#configuration-reference) for valid run states.
+The returned string is matched against `big-dill.outcomeMapping` in workspace settings to determine the VS Code run state. See the [README configuration reference](../README.md#configuration-reference) for valid run states.
 
-### `pytest_bdd_orama_lint_outline`
+### `pytest_big_dill_lint_outline`
 
 Add a custom lint rule for Scenario Outlines. Called once per outline during `--bdd-lint`:
 
 ```python
-from pytest_bdd_orama.lint_types import LintDiagnostic
+from pytest_big_dill.lint_types import LintDiagnostic
 
-def pytest_bdd_orama_lint_outline(scenario, examples):
+def pytest_big_dill_lint_outline(scenario, examples):
     if scenario.name and not scenario.name[0].isupper():
         return [LintDiagnostic(
             message=f"Scenario Outline name must start with a capital letter: '{scenario.name}'",
@@ -112,7 +112,7 @@ def pytest_bdd_orama_lint_outline(scenario, examples):
 pytest --bdd-lint
 ```
 
-This runs the built-in structural rules plus any `pytest_bdd_orama_lint_outline` hooks from your `conftest.py`. It does not run tests — it is a static analysis pass only.
+This runs the built-in structural rules plus any `pytest_big_dill_lint_outline` hooks from your `conftest.py`. It does not run tests — it is a static analysis pass only.
 
 ## Docstring parameters
 
@@ -171,17 +171,17 @@ give them completions immediately, ship a metadata file alongside your code.
 Generate it at packaging time:
 
 ```bash
-pytest-bdd-orama          # writes pytest_bdd_orama_steps.json
+pytest-big-dill          # writes pytest_big_dill_steps.json
 ```
 
 Include that file in your wheel and declare it with an entry point:
 
 ```toml
-[project.entry-points."pytest_bdd_orama.steps"]
-my-package = "my_package:pytest_bdd_orama_steps.json"
+[project.entry-points."pytest_big_dill.steps"]
+my-package = "my_package:pytest_big_dill_steps.json"
 ```
 
-On activation the extension enumerates every registered `pytest_bdd_orama.steps` entry
+On activation the extension enumerates every registered `pytest_big_dill.steps` entry
 point and loads the metadata as a base layer. Live discovery is merged over the top, and
 local step definitions always take precedence for the same pattern — so a consumer who
 overrides one of your steps sees their own version, not yours.

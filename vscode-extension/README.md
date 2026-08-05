@@ -1,4 +1,4 @@
-# pytest-bdd-orama
+# Big Dill
 
 **A pytest-bdd test runner and Gherkin authoring experience for VS Code.** Your `.feature` files become first-class citizens: scenarios appear in the Testing panel organised by feature — not by Python module — and testers get completions, hover docs, navigation, and instant linting while writing Gherkin.
 
@@ -30,7 +30,7 @@ VS Code's built-in Python test runner shows pytest-bdd scenarios as mangled Pyth
 
 ## Requirements
 
-- Python **3.10+** with [`pytest`](https://pypi.org/project/pytest/), [`pytest-bdd`](https://pypi.org/project/pytest-bdd/), and the companion plugin [`pytest-bdd-orama`](https://github.com/nokout/pytest-bdd-orama/tree/main/pytest-plugin) installed in your project environment
+- Python **3.10+** with [`pytest`](https://pypi.org/project/pytest/), [`pytest-bdd`](https://pypi.org/project/pytest-bdd/), and the companion plugin [`pytest-big-dill`](https://github.com/nokout/pytest-bdd-orama/tree/main/pytest-plugin) installed in your project environment
 - The [Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python) (`ms-python.python`) — used for interpreter selection
 
 ## Quick start
@@ -43,8 +43,8 @@ VS Code's built-in Python test runner shows pytest-bdd scenarios as mangled Pyth
 // .vscode/settings.json
 {
   "python.testing.pytestEnabled": false,
-  "pytest-bdd-orama.enabled": true,
-  "pytest-bdd-orama.cwd": "./tests-directory"   // optional
+  "big-dill.enabled": true,
+  "big-dill.cwd": "./tests-directory"   // optional
 }
 ```
 
@@ -52,7 +52,7 @@ VS Code's built-in Python test runner shows pytest-bdd scenarios as mangled Pyth
 
 ## Settings
 
-All settings live under the `pytest-bdd-orama` namespace:
+All settings live under the `big-dill` namespace:
 
 | Setting | Default | Description |
 |---|---|---|
@@ -74,7 +74,7 @@ Because it executes workspace code, it declares `untrustedWorkspaces: false` and
 Every release is built by a public GitHub Actions workflow and carries a signed build-provenance attestation, so you can verify a downloaded `.vsix` really came from this repository:
 
 ```bash
-gh attestation verify pytest-bdd-orama-<version>.vsix --repo nokout/pytest-bdd-orama
+gh attestation verify big-dill-<version>.vsix --repo nokout/pytest-bdd-orama
 ```
 
 Releases also ship a CycloneDX SBOM and SHA-256 checksums. To report a vulnerability, see [SECURITY.md](https://github.com/nokout/pytest-bdd-orama/blob/main/SECURITY.md).

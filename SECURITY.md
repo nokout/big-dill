@@ -28,7 +28,7 @@ terminal would. This is inherent to any test runner, but it means:
 - Only open workspaces you trust. The extension is not designed to run in
   VS Code's Restricted Mode.
 - The interpreter and working directory come from your workspace settings
-  (`pytest-bdd-orama.cwd`, `python.testing.cwd`) and the Python extension.
+  (`big-dill.cwd`, `python.testing.cwd`) and the Python extension.
 
 The extension makes **no network requests**, collects **no telemetry**, and
 communicates with the pytest subprocess over a local named pipe only.

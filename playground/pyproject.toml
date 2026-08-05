@@ -3,13 +3,13 @@ requires = ["setuptools>=42"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "pytest-bdd-orama-playground"
+name = "big-dill-playground"
 version = "0.1.0"
 requires-python = ">=3.10"
 dependencies = [
     "pytest",
     "pytest-bdd",
-    "pytest-bdd-orama",
+    "pytest-big-dill",
     "pyyaml",
 ]
 

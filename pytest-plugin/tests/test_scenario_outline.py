@@ -1,5 +1,5 @@
 """
-Integration tests for pytest_bdd_orama_test_name hook with Scenario Outlines.
+Integration tests for pytest_big_dill_test_name hook with Scenario Outlines.
 
 Validates that:
   - Each example row produces a separate test item (not collapsed to one).
@@ -35,12 +35,12 @@ def check_result():
     pass
 
 # ---------------------------------------------------------------------------
-# pytest-bdd-orama hook — applies custom name using the id column
+# Big Dill hook — applies custom name using the id column
 # ---------------------------------------------------------------------------
 
 _hook_calls = []  # collects (scenario_name, example_params) per invocation
 
-def pytest_bdd_orama_test_name(scenario_name, example_params, feature_name, feature_path):
+def pytest_big_dill_test_name(scenario_name, example_params, feature_name, feature_path):
     _hook_calls.append({
         "scenario_name": scenario_name,
         "example_params": dict(example_params),
@@ -121,7 +121,7 @@ def test_outline_produces_one_item_per_example_row(pytester: pytest.Pytester):
 
 
 def test_outline_hook_receives_example_params_for_each_row(pytester: pytest.Pytester):
-    """pytest_bdd_orama_test_name must be called with example_params populated for each row."""
+    """pytest_big_dill_test_name must be called with example_params populated for each row."""
     hook_calls, _, _ = _setup_and_run(pytester)
 
     # Three rows → three hook invocations, each with a distinct 'id' value

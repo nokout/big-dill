@@ -1,4 +1,4 @@
-# pytest-bdd-orama
+# Big Dill
 
 [![CI](https://github.com/nokout/pytest-bdd-orama/actions/workflows/ci.yml/badge.svg)](https://github.com/nokout/pytest-bdd-orama/actions/workflows/ci.yml)
 [![Security](https://github.com/nokout/pytest-bdd-orama/actions/workflows/security.yml/badge.svg)](https://github.com/nokout/pytest-bdd-orama/actions/workflows/security.yml)
@@ -15,7 +15,7 @@ A VS Code extension for [pytest-bdd](https://pytest-bdd.readthedocs.io/) that su
 
 VS Code's built-in Python test runner shows pytest-bdd scenarios as a tree of Python modules with mangled function names. This is the wrong mental model for BDD — the feature file is the specification; the Python test function is an implementation detail.
 
-pytest-bdd-orama replaces that view with one that reflects the Gherkin source:
+Big Dill replaces that view with one that reflects the Gherkin source:
 
 ```
 Features 🗂
@@ -35,7 +35,7 @@ On top of the runner it adds Gherkin authoring tools: step completions, hover do
 Two installable pieces work together:
 
 - **`vscode-extension/`** — the TypeScript extension (Testing API controller + language tooling)
-- **`pytest-plugin/`** — the `pytest-bdd-orama` pytest plugin (BDD metadata, display-name/status/lint hookspecs, `--bdd-lint` CLI)
+- **`pytest-plugin/`** — the `pytest-big-dill` pytest plugin (BDD metadata, display-name/status/lint hookspecs, `--bdd-lint` CLI)
 
 `playground/` is an end-to-end demo project used for manual validation and screenshots.
 
@@ -67,7 +67,7 @@ To build without installing:
 
 ```bash
 ./build.sh
-# Produces: vscode-extension/pytest-bdd-orama-*.vsix
+# Produces: vscode-extension/big-dill-*.vsix
 ```
 
 ### Set up the playground
@@ -76,7 +76,7 @@ To build without installing:
 cd playground
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
-pip install -e .                 # installs pytest, pytest-bdd, and pytest-bdd-orama
+pip install -e .                 # installs pytest, pytest-bdd, and pytest-big-dill
 pip install -e ../pytest-plugin  # installs the local plugin in editable mode
 ```
 

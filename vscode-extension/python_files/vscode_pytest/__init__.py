@@ -2,7 +2,7 @@
 # Licensed under the MIT License.
 # Adapted from microsoft/vscode-python (commit 5c2c3948e1c8c8a1dfe848104773477e70d0b83b).
 #
-# pytest-bdd-orama modifications (marked with BDD-ORAMA):
+# Big Dill modifications (marked with BIG-DILL):
 #   1. TestItem TypedDict: added optional feature_path and scenario_name fields.
 #   2. TestOutcome: added optional custom_status field.
 #   3. create_test_node(): populates feature_path/scenario_name from _bdd_* item attrs.
@@ -64,14 +64,14 @@ class TestItem(TestData):
 
     lineno: str
     runID: str
-    # BDD-ORAMA: feature-file path (relative to rootdir) and display name
+    # BIG-DILL: feature-file path (relative to rootdir) and display name
     feature_path: NotRequired[str]
     scenario_name: NotRequired[str]
-    # BDD-ORAMA: scenario-level tags (e.g. ["auth", "smoke"])
+    # BIG-DILL: scenario-level tags (e.g. ["auth", "smoke"])
     scenario_tags: NotRequired[list[str]]
-    # BDD-ORAMA: feature-level tags (from the Feature: declaration line)
+    # BIG-DILL: feature-level tags (from the Feature: declaration line)
     feature_tags: NotRequired[list[str]]
-    # BDD-ORAMA: feature display name (from the Feature: declaration line)
+    # BIG-DILL: feature display name (from the Feature: declaration line)
     feature_name: NotRequired[str]
 
 
@@ -212,7 +212,7 @@ class TestOutcome(Dict):
     message: str | None
     traceback: str | None
     subtest: str | None
-    # BDD-ORAMA: custom pytest status string (e.g. "waiting", "knownError")
+    # BIG-DILL: custom pytest status string (e.g. "waiting", "knownError")
     custom_status: str | None
 
 
@@ -222,7 +222,7 @@ def create_test_outcome(
     message: str | None,
     traceback: str | None,
     subtype: str | None = None,  # noqa: ARG001
-    # BDD-ORAMA: optional custom status from pytest_report_customstatus
+    # BIG-DILL: optional custom status from pytest_report_customstatus
     custom_status: str | None = None,
 ) -> TestOutcome:
     return TestOutcome(
@@ -231,7 +231,7 @@ def create_test_outcome(
         message=message,
         traceback=traceback,
         subtest=None,
-        custom_status=custom_status,  # BDD-ORAMA
+        custom_status=custom_status,  # BIG-DILL
     )
 
 
@@ -256,7 +256,7 @@ def pytest_report_teststatus(report, config):  # noqa: ARG001
             report_value = "failure"
             message = report.longreprtext
 
-        # BDD-ORAMA: read custom status attached by the pytest-bdd-vscode plugin
+        # BIG-DILL: read custom status attached by the pytest-big-dill plugin
         custom_status: str | None = getattr(report, "vscode_custom_status", None)
 
         try:
@@ -271,7 +271,7 @@ def pytest_report_teststatus(report, config):  # noqa: ARG001
                 report_value,
                 message,
                 traceback,
-                custom_status=custom_status,  # BDD-ORAMA
+                custom_status=custom_status,  # BIG-DILL
             )
             collected_test = TestRunResultDict()
             collected_test[absolute_node_id] = item_result
@@ -479,7 +479,7 @@ def build_test_tree(session: pytest.Session) -> TestNode:
     for test_case in session.items:
         test_node = create_test_node(test_case)
 
-        # BDD-ORAMA: pytest-bdd items with feature_path bypass the Python-file tree and
+        # BIG-DILL: pytest-bdd items with feature_path bypass the Python-file tree and
         # are handled entirely on the TypeScript side using the feature_path/scenario_name
         # fields.  We still need them in the payload so we insert them as children of a
         # stub file node keyed on the feature_path rather than the Python module path.
@@ -609,7 +609,7 @@ def create_test_node(test_case: pytest.Item) -> TestItem:
         "id_": absolute_test_id,
         "runID": absolute_test_id,
     }
-    # BDD-ORAMA: attach feature-file metadata for pytest-bdd items
+    # BIG-DILL: attach feature-file metadata for pytest-bdd items
     if hasattr(test_case, "_bdd_feature_path"):
         node["feature_path"] = test_case._bdd_feature_path
         node["scenario_name"] = test_case._bdd_scenario_name

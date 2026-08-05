@@ -1,6 +1,6 @@
 # Third-Party Notices
 
-The pytest-bdd-orama extension is distributed under the terms in `LICENSE`. The
+The Big Dill extension is distributed under the terms in `LICENSE`. The
 components listed here are **not** covered by that licence: each remains under
 its own terms, reproduced below, and nothing in `LICENSE` limits your rights
 under them.

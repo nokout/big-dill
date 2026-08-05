@@ -1,6 +1,6 @@
 // Copyright (c) 2026 Nigel O'Keefe. All rights reserved.
 // Licensed under the terms in LICENSE (source-available, not open source).
-// BDD-ORAMA: New file — resolves discovery and execution payloads for the
+// BIG-DILL: New file — resolves discovery and execution payloads for the
 // pytest-bdd test runner.
 
 import { CancellationToken, TestController, TestItem, TestMessage, TestRun, Uri, workspace } from 'vscode';
@@ -18,7 +18,7 @@ type VscodeRunState = 'passed' | 'failed' | 'errored' | 'skipped' | 'enqueued';
 const VALID_STATES = new Set<string>(['passed', 'failed', 'errored', 'skipped', 'enqueued']);
 
 function readOutcomeMapping(): Record<string, string> {
-    return workspace.getConfiguration('pytest-bdd-orama').get<Record<string, string>>('outcomeMapping', {});
+    return workspace.getConfiguration('big-dill').get<Record<string, string>>('outcomeMapping', {});
 }
 
 const WAITING_PREFIX = '⏳ ';

@@ -1,11 +1,11 @@
 # pytest-plugin/tests/test_lint_runner.py
-from pytest_bdd_orama.lint_runner import (
+from pytest_big_dill.lint_runner import (
     interpolate_scenario,
     match_step_params,
     validate_step_params,
 )
-from pytest_bdd_orama.lint_types import InterpolatedScenario
-from pytest_bdd_orama.step_types import StepEnum
+from pytest_big_dill.lint_types import InterpolatedScenario
+from pytest_big_dill.step_types import StepEnum
 
 
 class AustralianState(StepEnum):

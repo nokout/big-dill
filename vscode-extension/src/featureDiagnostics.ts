@@ -37,7 +37,7 @@ export class FeatureDiagnostics {
         private readonly getInterpreter: (uri: vscode.Uri) => Promise<string>,
         private readonly getStepCache?: () => StepCache,
     ) {
-        this.collection = vscode.languages.createDiagnosticCollection('pytest-bdd-orama');
+        this.collection = vscode.languages.createDiagnosticCollection('big-dill');
     }
 
     /** Schedule a lint run for *uri* (debounced, 300 ms). Called on document save. */

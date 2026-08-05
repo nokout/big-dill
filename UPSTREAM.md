@@ -23,7 +23,7 @@ header into it.
 > **Note:** `types.ts` is the only adapted TypeScript file — it carries the discovery
 > and execution payload type definitions that must stay wire-compatible with the
 > Python side. The other TypeScript files (`treeBuilder.ts`, `resultResolver.ts`,
-> `ipc.ts`, `pytestRunner.ts`, `extension.ts`) are BDD-orama originals: they do not
+> `ipc.ts`, `pytestRunner.ts`, `extension.ts`) are Big Dill originals: they do not
 > adapt ms-python TypeScript internals, which are private APIs not accessible from a
 > separate extension. `ipc.ts` implements the same content-length framing protocol as
 > ms-python, but the implementation is original.

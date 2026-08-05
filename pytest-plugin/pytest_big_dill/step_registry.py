@@ -1,4 +1,4 @@
-# pytest-plugin/pytest_bdd_orama/step_registry.py
+# pytest-plugin/pytest_big_dill/step_registry.py
 """Enumerate registered pytest-bdd step definitions and extract type metadata."""
 from __future__ import annotations
 

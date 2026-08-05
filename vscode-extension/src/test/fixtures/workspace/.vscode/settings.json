@@ -1,4 +1,4 @@
 {
-  "pytest-bdd-orama.enabled": true,
+  "big-dill.enabled": true,
   "python.testing.pytestEnabled": false
 }

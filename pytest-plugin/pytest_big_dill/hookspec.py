@@ -3,9 +3,9 @@ import pytest
 from .lint_types import LintDiagnostic
 
 
-class BddOramaHookSpec:
+class BigDillHookSpec:
     @pytest.hookspec(firstresult=True)
-    def pytest_bdd_orama_test_name(
+    def pytest_big_dill_test_name(
         self,
         scenario_name: str,
         example_params: dict,
@@ -26,7 +26,7 @@ class BddOramaHookSpec:
         """
 
     @pytest.hookspec(firstresult=True)
-    def pytest_bdd_orama_custom_status(
+    def pytest_big_dill_custom_status(
         self,
         report: object,
         config: object,
@@ -46,7 +46,7 @@ class BddOramaHookSpec:
         """
 
     @pytest.hookspec
-    def pytest_bdd_orama_lint_scenario(
+    def pytest_big_dill_lint_scenario(
         self,
         scenario,
     ) -> "list[LintDiagnostic]":
@@ -68,7 +68,7 @@ class BddOramaHookSpec:
         """
 
     @pytest.hookspec
-    def pytest_bdd_orama_lint_outline(
+    def pytest_big_dill_lint_outline(
         self,
         scenario,
         examples,
@@ -90,7 +90,7 @@ class BddOramaHookSpec:
         """
 
     @pytest.hookspec(firstresult=True)
-    def pytest_bdd_orama_transform_docstring(
+    def pytest_big_dill_transform_docstring(
         self,
         docstring: str,
         media_type: "str | None",

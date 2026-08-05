@@ -2,7 +2,7 @@
 # Build and (optionally) install the pytest-bdd-runner VSCode extension.
 #
 # Usage:
-#   ./build.sh           — compile + package → produces pytest-bdd-orama-*.vsix
+#   ./build.sh           — compile + package → produces big-dill-*.vsix
 #   ./build.sh --install — compile + package + install into VSCode
 #   ./build.sh --reload  — compile + package + install + reload the open VSCode window
 
@@ -28,7 +28,7 @@ echo "==> Packaging extension..."
 # under vscode-extension/, not the repository root.
 ./node_modules/.bin/vsce package --no-rewrite-relative-links
 
-VSIX=$(ls -t pytest-bdd-orama-*.vsix 2>/dev/null | head -1)
+VSIX=$(ls -t big-dill-*.vsix 2>/dev/null | head -1)
 if [[ -z "$VSIX" ]]; then
     echo "ERROR: no .vsix found after packaging" >&2
     exit 1

@@ -2,12 +2,13 @@
 //
 // Two concerns:
 //   1. Mapping logic — given an execution payload, the right TestRun method is called.
-//   2. Settings contract — the playground settings file uses the pytest-bdd-orama.*
+//   2. Settings contract — the playground settings file uses the big-dill.*
 //      namespace that the extension actually reads.
 //
 // Test (2) catches the key-mismatch bug: playground had pytest-bdd-runner.* keys which
 // the extension never reads, so outcomeMapping was always empty and every custom status
-// fell back to run.errored() instead of the user-configured state.
+// fell back to run.errored() instead of the user-configured state. The same trap exists
+// after every rename, so each superseded namespace stays in the reject list below.
 
 import * as fs from 'fs';
 import * as path from 'path';
@@ -217,12 +218,12 @@ test('result with unknown run ID is skipped without throwing', () => {
 
 // ---------------------------------------------------------------------------
 // Settings contract — the playground settings file must use the correct namespace.
-// This test FAILS if someone uses pytest-bdd-runner.* keys instead of pytest-bdd-orama.*.
+// This test FAILS if any key is left under a superseded namespace instead of big-dill.*.
 // ---------------------------------------------------------------------------
 
 describe('playground settings contract', () => {
     // __dirname = vscode-extension/src/testController/__tests__
-    // 4x ".." → pytest-bdd-orama/ (project root)
+    // 4x ".." → the repository root
     const SETTINGS_PATH = path.join(
         __dirname,
         '..', '..', '..', '..', 'playground', '.vscode', 'settings.json',
@@ -234,18 +235,20 @@ describe('playground settings contract', () => {
         expect(() => JSON.parse(raw)).not.toThrow();
     });
 
-    test('settings use pytest-bdd-orama.* namespace (not pytest-bdd-runner.*)', () => {
+    test('settings use the big-dill.* namespace (no superseded prefixes)', () => {
         const settings: Record<string, unknown> = JSON.parse(
             fs.readFileSync(SETTINGS_PATH, 'utf-8'),
         );
         const keys = Object.keys(settings);
 
-        // None of the keys should use the wrong (old) namespace
-        const wrongKeys = keys.filter((k) => k.startsWith('pytest-bdd-runner.'));
+        // No key may use a superseded namespace. Every former prefix stays listed so a
+        // missed rename fails loudly here instead of silently disabling a setting.
+        const supersededPrefixes = ['pytest-bdd-runner.', 'pytest-bdd-orama.'];
+        const wrongKeys = keys.filter((k) => supersededPrefixes.some((p) => k.startsWith(p)));
         expect(wrongKeys).toEqual([]);
 
         // The outcomeMapping key must use the correct namespace so the extension can read it
-        const hasMapping = keys.some((k) => k === 'pytest-bdd-orama.outcomeMapping');
+        const hasMapping = keys.some((k) => k === 'big-dill.outcomeMapping');
         expect(hasMapping).toBe(true);
     });
 
@@ -253,7 +256,7 @@ describe('playground settings contract', () => {
         const settings: Record<string, unknown> = JSON.parse(
             fs.readFileSync(SETTINGS_PATH, 'utf-8'),
         );
-        const mapping = settings['pytest-bdd-orama.outcomeMapping'] as Record<string, string>;
+        const mapping = settings['big-dill.outcomeMapping'] as Record<string, string>;
         const validStates = new Set(['passed', 'failed', 'errored', 'skipped', 'enqueued']);
 
         for (const [status, state] of Object.entries(mapping)) {

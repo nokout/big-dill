@@ -1,7 +1,7 @@
 {
   "recommendations": [
     "ms-python.python",
-    "pytest-bdd-orama.pytest-bdd-runner"
+    "nokout.big-dill"
   ],
   "unwantedRecommendations": [
     "alexkrechik.cucumberautocomplete"
