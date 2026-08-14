@@ -57,6 +57,14 @@ export {
     type BuiltTree,
 } from './tree/builder';
 
+// ── Execution outcomes ──────────────────────────────────────────────────────
+export {
+    resolveExecutionOutcomes,
+    WAITING_PREFIX,
+    type RunState,
+    type OutcomeDecision,
+} from './results/outcomes';
+
 // ── Running pytest ──────────────────────────────────────────────────────────
 export {
     discoverTests,
