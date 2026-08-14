@@ -131,9 +131,21 @@ export async function runTests(
     const cwd = resolveCwd(workspaceUri);
     const extraArgs = workspace.getConfiguration('big-dill').get<string[]>('pytestArgs', []);
 
-    // Write test ids to a temp file (same approach as ms-python)
-    const testIdsFile = path.join(os.tmpdir(), `pytest-bdd-ids-${Date.now()}.txt`);
+    // mkdtempSync atomically creates a directory with a random suffix and 0700
+    // permissions, so the path cannot be predicted or pre-created by another user
+    // on a shared machine. The previous Date.now()-derived name in the shared temp
+    // directory was guessable: a symlink planted at the predicted path would have
+    // turned this write into an arbitrary-file write running as the user.
+    // (CodeQL js/insecure-temporary-file.)
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'big-dill-'));
+    const testIdsFile = path.join(tmpDir, 'test-ids.txt');
     fs.writeFileSync(testIdsFile, testIds.join('\n'), 'utf-8');
+
+    // Remove the whole directory, and from every exit path — cancellation
+    // previously leaked the file.
+    const cleanup = (): void => {
+        try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch { /* ignore */ }
+    };
 
     const env: NodeJS.ProcessEnv = {
         ...process.env,
@@ -170,18 +182,19 @@ export async function runTests(
         token?.onCancellationRequested(() => {
             proc.kill();
             ipc.dispose();
+            cleanup();
             reject(new Error('Test run cancelled'));
         });
 
         proc.on('close', () => {
             ipc.dispose();
-            try { fs.unlinkSync(testIdsFile); } catch { /* ignore */ }
+            cleanup();
             resolve(payloads);
         });
 
         proc.on('error', (err) => {
             ipc.dispose();
-            try { fs.unlinkSync(testIdsFile); } catch { /* ignore */ }
+            cleanup();
             reject(err);
         });
     });
