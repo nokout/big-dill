@@ -1,6 +1,6 @@
-import { findUnimplementedSteps } from '../featureDiagnostics';
-import { StepCache } from '@nokout/big-dill-core';
-import { StepDefinition } from '../testController/types';
+import { findUnimplementedSteps } from '../steps/unimplemented';
+import { StepCache } from '../steps/stepCache';
+import { StepDefinition } from '../protocol/types';
 
 const KNOWN_STEP: StepDefinition = {
     keyword: 'given',

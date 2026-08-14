@@ -12,7 +12,14 @@ export type ParamAtPosition = {
 };
 
 /** Convert a step pattern to a regex with named capture groups for each parameter. */
-function patternToRegex(pattern: string): RegExp {
+/**
+ * Convert a step pattern to an anchored regex with a named capture per parameter.
+ *
+ * Exported because reference-finding needs the identical conversion; a second
+ * copy of this drifted once already (it missed the bounded-quantifier fix for
+ * ReDoS), so there is deliberately only one.
+ */
+export function patternToRegex(pattern: string): RegExp {
     // Escape regex metacharacters except our own {} placeholders
     const parts = pattern.split(/(\{[^}]{1,200}\})/);
     const regexStr = parts

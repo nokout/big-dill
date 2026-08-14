@@ -20,21 +20,24 @@ module.exports = {
         // Activation wiring — exercised by those integration tests, not unit tests.
         '!src/extension.ts',
     ],
-    // This number moves every time logic leaves for core, and the movement is
-    // composition rather than regression: 62 before the split, 51.7 after the
-    // first extraction, 71.0 once buildTree gained characterisation tests, and
-    // 54.1 once the tree logic and the pure provider halves moved out, taking
-    // their tests with them (core holds 91.2% over 166 tests). Floors sit just
-    // under the current measurement. What is left
-    // uncovered here is adapter and registration code, which mock-based tests
-    // cover poorly by nature; the honest check for that layer is the integration
-    // suite, not this number.
+    // This number has reached the end of its usefulness for this package, and the
+    // history explains why: 62% before the split, then 51.7 / 71.0 / 67.9 / 58.5 /
+    // 54.1 as logic left for core with its tests, and now 36.3. What remains here
+    // is almost entirely adapter code — mapping plain values onto editor types and
+    // registering providers — which mock-based unit tests cover poorly by nature,
+    // since they end up asserting against the mock rather than the editor.
+    //
+    // Core, which holds the logic, sits at 92% over 189 tests and is where a
+    // coverage floor still means something. These floors are kept only to catch a
+    // wholesale deletion of the remaining tests; the honest check for this layer
+    // is the integration suite running against real VS Code, and expanding it is
+    // tracked work rather than something this number should be used to fake.
     coverageThreshold: {
         global: {
-            statements: 53,
-            branches: 45,
-            functions: 40,
-            lines: 54,
+            statements: 35,
+            branches: 34,
+            functions: 34,
+            lines: 36,
         },
     },
 };

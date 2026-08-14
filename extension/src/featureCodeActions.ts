@@ -1,48 +1,11 @@
+// Copyright (c) 2026 Nigel O'Keefe. All rights reserved.
+// Licensed under the MIT License.
+//
+// Adapter only. Stub generation lives in @nokout/big-dill-core; this decides
+// which diagnostics deserve a quick fix and builds the workspace edit.
+
 import * as vscode from 'vscode';
-import { StepCache, extractStepText } from '@nokout/big-dill-core';
-
-const PARAM_RE = /\{(\w+)(?::[^}]+)?\}/g;
-
-/** Convert a step pattern to a Python snake_case function name. */
-export function patternToFunctionName(pattern: string): string {
-    return pattern
-        .replace(new RegExp(PARAM_RE.source, 'g'), '$1')
-        .replace(/[^\w\s]/g, ' ')
-        .trim()
-        .replace(/\s+/g, '_')
-        .replace(/_+/g, '_')
-        .toLowerCase();
-}
-
-const KEYWORD_TO_DECORATOR: Record<string, string> = {
-    given: 'given',
-    when: 'when',
-    then: 'then',
-};
-
-/**
- * Generate a Python step function stub for *stepText* with the given Gherkin *keyword*.
- */
-export function buildStepStub(stepText: string, keyword: string): string {
-    const kw = keyword.toLowerCase();
-    const decorator = KEYWORD_TO_DECORATOR[kw] ?? 'step';
-
-    const paramNames: string[] = [];
-    let m: RegExpExecArray | null;
-    const re = new RegExp(PARAM_RE.source, 'g');
-    while ((m = re.exec(stepText)) !== null) {
-        paramNames.push(m[1]);
-    }
-
-    const fnName = patternToFunctionName(stepText);
-    const fnArgs = paramNames.length > 0 ? `(${paramNames.join(', ')})` : '()';
-
-    return [
-        `@${decorator}("${stepText}")`,
-        `def ${fnName}${fnArgs}:`,
-        `    raise NotImplementedError`,
-    ].join('\n');
-}
+import { StepCache, buildStepStub, extractStepText } from '@nokout/big-dill-core';
 
 /** VS Code CodeActionProvider for unimplemented step diagnostics. */
 export class FeatureCodeActionsProvider implements vscode.CodeActionProvider {

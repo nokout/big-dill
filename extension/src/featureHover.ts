@@ -1,53 +1,23 @@
-import * as vscode from 'vscode';
-import { StepCache, extractStepText } from '@nokout/big-dill-core';
-import { StepDefinition } from './testController/types';
+// Copyright (c) 2026 Nigel O'Keefe. All rights reserved.
+// Licensed under the MIT License.
+//
+// Adapter only. The documentation text is rendered by @nokout/big-dill-core;
+// this wraps it as a hover.
 
-/** Build markdown hover content for a step. Returns null if no match. */
+import * as vscode from 'vscode';
+import { StepCache, extractStepText, renderStepMarkdown } from '@nokout/big-dill-core';
+
+/** Markdown hover content for a step, or null if no definition matches. */
 export function buildHoverContent(
     stepText: string,
     cache: StepCache,
 ): vscode.MarkdownString | null {
     const step = cache.matchPattern(stepText);
     if (!step) return null;
-    return renderStepHover(step);
-}
 
-function renderStepHover(step: StepDefinition): vscode.MarkdownString {
-    const md = new vscode.MarkdownString();
+    const md = new vscode.MarkdownString(renderStepMarkdown(step));
+    // Trusted so command links in the rendered markdown would be honoured.
     md.isTrusted = true;
-
-    // Pattern heading
-    md.appendMarkdown(`**\`${step.pattern}\`**\n\n`);
-
-    // Docstring summary
-    if (step.summary) {
-        md.appendMarkdown(`${step.summary}\n\n`);
-    }
-
-    // Param types
-    if (step.parameters.length > 0) {
-        md.appendMarkdown('**Parameters:**\n\n');
-        for (const param of step.parameters) {
-            const values = param.suggested_values.length > 0
-                ? param.suggested_values.join(', ')
-                : '_(no suggested values)_';
-            md.appendMarkdown(`- \`{${param.name}}\` — **${param.type_name}**: ${values}\n`);
-        }
-        md.appendMarkdown('\n');
-    }
-
-    // Tags
-    if (step.tags && step.tags.length > 0) {
-        const tagList = step.tags.map(t => `\`@${t}\``).join(' ');
-        md.appendMarkdown(`**Tags:** ${tagList}\n\n`);
-    }
-
-    // Source location (informational only)
-    if (step.file) {
-        const loc = step.line ? `${step.file}:${step.line}` : step.file;
-        md.appendMarkdown(`_Defined in \`${loc}\`_`);
-    }
-
     return md;
 }
 
@@ -59,13 +29,10 @@ export class FeatureHoverProvider implements vscode.HoverProvider {
         document: vscode.TextDocument,
         position: vscode.Position,
     ): vscode.Hover | null {
-        const rawLine = document.lineAt(position).text;
-        const stepText = extractStepText(rawLine);
+        const stepText = extractStepText(document.lineAt(position).text);
         if (!stepText) return null;
 
         const content = buildHoverContent(stepText.text, this.cache);
-        if (!content) return null;
-
-        return new vscode.Hover(content);
+        return content ? new vscode.Hover(content) : null;
     }
 }

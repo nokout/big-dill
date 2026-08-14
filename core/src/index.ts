@@ -68,6 +68,12 @@ export {
 // ── Table formatting ────────────────────────────────────────────────────────
 export { formatTables, type TextEditEntry } from './format/tables';
 
+// ── Step documentation, stubs, references ───────────────────────────────────
+export { renderStepMarkdown } from './steps/documentation';
+export { buildStepStub, patternToFunctionName } from './steps/stubs';
+export { findReferencesInLines } from './steps/references';
+export { findUnimplementedSteps, type UnimplementedStep } from './steps/unimplemented';
+
 // ── Step browser model ──────────────────────────────────────────────────────
 export {
     browseSteps,
@@ -83,7 +89,7 @@ export {
 } from './steps/browser';
 
 // ── Step indexing ───────────────────────────────────────────────────────────
-export { StepCache, type LineMatch, type ParamAtPosition } from './steps/stepCache';
+export { StepCache, patternToRegex, type LineMatch, type ParamAtPosition } from './steps/stepCache';
 
 // ── pytest IPC ──────────────────────────────────────────────────────────────
 export { createIpcServer, type IIpcServer, type IpcMessageHandler } from './ipc/server';

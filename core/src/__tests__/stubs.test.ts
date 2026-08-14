@@ -1,4 +1,4 @@
-import { buildStepStub, patternToFunctionName } from '../featureCodeActions';
+import { buildStepStub, patternToFunctionName } from '../steps/stubs';
 
 describe('patternToFunctionName', () => {
     test('converts simple pattern to snake_case', () => {
