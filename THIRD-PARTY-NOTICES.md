@@ -1,68 +1,19 @@
 # Third-Party Notices
 
-Big Dill is distributed under the terms in [`LICENSE`](LICENSE). The
-components listed here are **not** covered by that licence: each remains under
-its own terms, reproduced below, and nothing in `LICENSE` limits your rights
-under them.
+Big Dill is distributed under the terms in [`LICENSE`](LICENSE). The components
+listed here are **not** covered by that licence: each remains under its own
+terms, reproduced below, and nothing in `LICENSE` limits your rights under them.
 
-Two categories are covered:
-
-1. **Adapted source** — files in this repository derived from another project.
-2. **Bundled runtime dependencies** — npm packages shipped inside the `.vsix`,
-   because the extension ships unbundled (TypeScript is compiled, but runtime
-   `node_modules` are packaged as-is).
-
-Development-only dependencies are not listed: they are not distributed to users.
+These are the npm packages whose code is compiled into the extension bundle. The
+extension is bundled, so they are not shipped as separate files — but their code
+reaches every user all the same, which is what these notices are for.
+Development-only dependencies are not listed; they are not distributed.
 
 ---
 
-## 1. Adapted source
+## Bundled runtime dependencies
 
-### microsoft/vscode-python
-
-Licence: MIT.
-Upstream: https://github.com/microsoft/vscode-python
-Synced from commit `5c2c3948e1c8c8a1dfe848104773477e70d0b83b`.
-See [`UPSTREAM.md`](UPSTREAM.md) for the per-file mapping and re-sync procedure.
-
-Files adapted from this project:
-
-| Path | Nature of adaptation |
-|---|---|
-| `extension/python_files/run_pytest.py` | Adapted |
-| `extension/python_files/vscode_pytest/__init__.py` | Adapted |
-| `extension/python_files/vscode_pytest/_common.py` | Verbatim, no changes |
-| `extension/src/testController/types.ts` | Adapted (payload type definitions) |
-
-```
-MIT License
-
-Copyright (c) Microsoft Corporation. All rights reserved.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
----
-
-## 2. Bundled runtime dependencies
-
-Shipped inside the `.vsix`:
+Compiled into `dist/extension.js`:
 
 | Package | Version | Licence |
 |---|---|---|
@@ -93,8 +44,27 @@ Copyright (c) 2018 Cucumber Ltd and contributors
 Copyright (c) 2015-2020 TypeStack
 ```
 
-The three packages above are each distributed under the MIT licence, whose full
-text is reproduced in section 1.
+The three packages above are each distributed under the MIT licence:
+
+```
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
 
 ### reflect-metadata — Apache-2.0
 

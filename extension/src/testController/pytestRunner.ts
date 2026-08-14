@@ -19,11 +19,6 @@ import { outputChannel } from '../extension';
 
 export type { DiscoveryResult };
 
-// The extension is bundled to a single dist/extension.js, so __dirname is always
-// <extension>/dist. Core takes this as a parameter rather than computing it,
-// because only the host knows its own layout.
-const PYTHON_FILES_DIR = path.join(__dirname, '..', 'python_files');
-
 /**
  * Resolve the working directory for pytest subprocesses.
  *
@@ -57,7 +52,6 @@ function options(workspaceUri: Uri, interpreterPath: string, token?: Cancellatio
     return {
         cwd: resolveCwd(workspaceUri),
         interpreterPath,
-        pythonFilesDir: PYTHON_FILES_DIR,
         pytestArgs: workspace.getConfiguration('big-dill').get<string[]>('pytestArgs', []),
         log: (text) => outputChannel.append(text),
         signal: toSignal(token),

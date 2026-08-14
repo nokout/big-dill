@@ -1,21 +1,16 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) 2026 Nigel O'Keefe. All rights reserved.
 // Licensed under the MIT License.
-// Adapted from microsoft/vscode-python (commit 5c2c3948e1c8c8a1dfe848104773477e70d0b83b).
-//
-// BIG-DILL modifications:
-//   - DiscoveredTestItem: added feature_path, scenario_name, tag and feature-name fields.
-//   - ExecutionTestPayload result entries: added custom_status.
-//
-// NOTE: this attribution is retained only while the vendored ms-python bridge is
-// still in use. Once pytest-big-dill emits these payloads itself, the shapes
-// become ours and the header goes.
 
 /**
  * The wire contract between the pytest side and any host.
  *
  * Everything here is plain data by construction — it crosses a pipe as JSON, so
  * it cannot reference editor types even in principle. Both ends must agree on
- * these shapes; see the contract tests.
+ * these shapes.
+ *
+ * These shapes began as ms-python's payload types, back when the Python half was
+ * a vendored copy of its bridge. pytest-big-dill now produces them itself, so the
+ * contract is ours to define and change.
  */
 
 export type DiscoveredTestType = 'folder' | 'file' | 'class' | 'function' | 'test';
