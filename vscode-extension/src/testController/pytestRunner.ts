@@ -1,5 +1,5 @@
 // Copyright (c) 2026 Nigel O'Keefe. All rights reserved.
-// Licensed under the terms in LICENSE (source-available, not open source).
+// Licensed under the MIT License.
 // BIG-DILL: Spawns pytest subprocesses for discovery and execution, communicating
 // via the named-pipe IPC server.
 

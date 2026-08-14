@@ -3,7 +3,7 @@
 [![CI](https://github.com/nokout/big-dill/actions/workflows/ci.yml/badge.svg)](https://github.com/nokout/big-dill/actions/workflows/ci.yml)
 [![Security](https://github.com/nokout/big-dill/actions/workflows/security.yml/badge.svg)](https://github.com/nokout/big-dill/actions/workflows/security.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/nokout/big-dill/badge)](https://scorecard.dev/viewer/?uri=github.com/nokout/big-dill)
-[![License: Source-Available](https://img.shields.io/badge/License-Source--Available-orange.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 A VS Code extension for [pytest-bdd](https://pytest-bdd.readthedocs.io/) that surfaces Gherkin scenarios as first-class citizens in the Testing panel and provides a full authoring experience for testers writing `.feature` files.
 

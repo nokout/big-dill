@@ -78,7 +78,5 @@ Exits non-zero if any error-severity diagnostic is found, so it works as a CI ga
 
 ## License
 
-Source-available, not open source. You may install and use it freely, including
-commercially; redistribution and modification are not permitted. See
-[`LICENSE`](https://github.com/nokout/big-dill/blob/main/LICENSE) and
+MIT. See [`LICENSE`](https://github.com/nokout/big-dill/blob/main/LICENSE) and
 [`THIRD-PARTY-NOTICES.md`](https://github.com/nokout/big-dill/blob/main/THIRD-PARTY-NOTICES.md).
