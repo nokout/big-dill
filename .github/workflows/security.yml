@@ -70,11 +70,14 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: vscode-extension/package-lock.json
+          cache-dependency-path: package-lock.json
+      # npm workspaces: a single install at the root wires up packages/core
+      # and vscode-extension together.
       - run: npm ci
-        working-directory: vscode-extension
-      # The extension ships unbundled, so runtime dependencies are distributed
-      # to every user inside the VSIX — audit those strictly.
+      # The extension is bundled, so runtime dependencies are not shipped as
+      # files — but their *code* is inlined into dist/extension.js and reaches
+      # every user regardless. The dependency graph is unchanged, so auditing it
+      # remains exactly as meaningful. Only the packaging differs.
       - name: Audit runtime dependencies
         run: npm audit --omit=dev --audit-level=high
         working-directory: vscode-extension

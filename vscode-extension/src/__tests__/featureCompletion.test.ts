@@ -1,5 +1,5 @@
 import { buildStepCompletions, buildDomainCompletions, extractStepText, FeatureCompletionProvider } from '../featureCompletion';
-import { StepCache } from '../stepCache';
+import { StepCache } from '@nokout/big-dill-core';
 import { StepDefinition } from '../testController/types';
 import * as vscode from 'vscode';
 

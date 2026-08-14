@@ -27,13 +27,61 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: vscode-extension/package-lock.json
+          cache-dependency-path: package-lock.json
+      # npm workspaces: a single install at the root wires up packages/core
+      # and vscode-extension together.
       - run: npm ci
-        working-directory: vscode-extension
       - run: npm run typecheck
         working-directory: vscode-extension
       - run: npm run lint
         working-directory: vscode-extension
+
+  test-core:
+    name: Test core (headless)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+        working-directory: packages/core
+      # No vscode mock exists in this package, so an accidental editor import
+      # fails to resolve here rather than silently binding to a stub.
+      - run: npm test
+        working-directory: packages/core
+      # The entire restructure rests on core being editor-free. Assert it rather
+      # than trusting review: a stray `import … from 'vscode'` must fail CI.
+      - name: Assert core has no editor dependency
+        run: |
+          if grep -rnE "from '(vscode)'|require\(['\"]vscode['\"]\)" packages/core/src; then
+            echo "::error::packages/core must not import the vscode API"
+            exit 1
+          fi
+          if node -e "const d=require('./packages/core/package.json');process.exit((d.dependencies&&(d.dependencies.vscode||d.dependencies['@types/vscode']))?1:0)"; then
+            echo "core declares no vscode dependency"
+          else
+            echo "::error::packages/core must not depend on vscode or @types/vscode"
+            exit 1
+          fi
+      # Catches the classic monorepo trap: a file missing from `files` works via
+      # the workspace symlink and breaks only once published.
+      - name: Install the packed tarball and import it
+        run: |
+          npm run compile -w @nokout/big-dill-core
+          tarball=$(cd packages/core && npm pack --silent)
+          mkdir -p /tmp/packtest && cd /tmp/packtest && npm init -y >/dev/null
+          npm install "$GITHUB_WORKSPACE/packages/core/$tarball"
+          node -e "
+            const c = require('@nokout/big-dill-core');
+            const r = c.parseSource('Feature: f\n  Scenario: s\n    Given x\n');
+            if (!r.doc) { throw new Error('parseSource returned no document'); }
+            if (typeof c.lintDocument !== 'function') { throw new Error('lintDocument missing from published surface'); }
+            console.log('packed tarball imports and parses correctly');
+          "
 
   test-extension:
     name: Test extension (${{ matrix.os }})
@@ -48,9 +96,10 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: vscode-extension/package-lock.json
+          cache-dependency-path: package-lock.json
+      # npm workspaces: a single install at the root wires up packages/core
+      # and vscode-extension together.
       - run: npm ci
-        working-directory: vscode-extension
       - name: Run unit tests with coverage
         run: npm run test:coverage
         working-directory: vscode-extension
@@ -74,9 +123,10 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: vscode-extension/package-lock.json
+          cache-dependency-path: package-lock.json
+      # npm workspaces: a single install at the root wires up packages/core
+      # and vscode-extension together.
       - run: npm ci
-        working-directory: vscode-extension
       # Downloads a real VS Code build and runs the extension inside it, so it
       # needs a display. Everything else in CI is headless.
       - name: Run integration tests under xvfb
@@ -148,9 +198,10 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: vscode-extension/package-lock.json
+          cache-dependency-path: package-lock.json
+      # npm workspaces: a single install at the root wires up packages/core
+      # and vscode-extension together.
       - run: npm ci
-        working-directory: vscode-extension
       - name: Package
         run: npx vsce package --no-rewrite-relative-links -o big-dill.vsix
         working-directory: vscode-extension

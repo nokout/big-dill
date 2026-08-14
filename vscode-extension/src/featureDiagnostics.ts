@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { runBddLint } from './testController/pytestRunner';
-import { StepCache } from './stepCache';
+import { StepCache } from '@nokout/big-dill-core';
 import { extractStepText } from './featureCompletion';
 
 export type UnimplementedStep = {

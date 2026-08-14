@@ -1,5 +1,5 @@
 import { findUnimplementedSteps } from '../featureDiagnostics';
-import { StepCache } from '../stepCache';
+import { StepCache } from '@nokout/big-dill-core';
 import { StepDefinition } from '../testController/types';
 
 const KNOWN_STEP: StepDefinition = {

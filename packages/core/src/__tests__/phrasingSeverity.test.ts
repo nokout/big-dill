@@ -1,6 +1,6 @@
-import { graduatePhrasingSeverity } from '../featureLinter';
-import { StepCache } from '../stepCache';
-import { StepDefinition } from '../testController/types';
+import { graduatePhrasingSeverity } from '../lint/rules';
+import { StepCache } from '../steps/stepCache';
+import { StepDefinition } from '../protocol/types';
 
 const IMPLEMENTED_STEP: StepDefinition = {
     keyword: 'given',

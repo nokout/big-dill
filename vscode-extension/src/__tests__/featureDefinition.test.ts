@@ -1,5 +1,5 @@
 import { buildDefinitionLocation } from '../featureDefinition';
-import { StepCache } from '../stepCache';
+import { StepCache } from '@nokout/big-dill-core';
 import { StepDefinition } from '../testController/types';
 
 const STEP_WITH_LOCATION: StepDefinition = {

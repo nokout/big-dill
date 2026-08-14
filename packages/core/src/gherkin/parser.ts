@@ -1,11 +1,26 @@
+// Copyright (c) 2026 Nigel O'Keefe. All rights reserved.
+// Licensed under the MIT License.
+
 import { generateMessages } from '@cucumber/gherkin';
 import { SourceMediaType } from '@cucumber/messages';
 import type { GherkinDocument } from '@cucumber/messages';
-import type * as vscode from 'vscode';
 
 export interface ParseResult {
     doc: GherkinDocument | null;
     errors: string[];
+}
+
+/**
+ * The minimum a host must supply to be cacheable: a stable identity, a version
+ * that changes when the text changes, and the text itself.
+ *
+ * VS Code's TextDocument satisfies this structurally, which is why the cache
+ * previously took `Pick<vscode.TextDocument, …>` — the coupling was never real.
+ */
+export interface CacheableDocument {
+    readonly uri: { readonly fsPath: string };
+    readonly version: number;
+    getText(): string;
 }
 
 let _counter = 0;
@@ -37,7 +52,7 @@ export function parseSource(source: string): ParseResult {
 export class GherkinParseCache {
     private cache = new Map<string, { version: number; result: ParseResult }>();
 
-    parse(document: Pick<vscode.TextDocument, 'uri' | 'version' | 'getText'>): ParseResult {
+    parse(document: CacheableDocument): ParseResult {
         const key = document.uri.fsPath;
         const cached = this.cache.get(key);
         if (cached?.version === document.version) {
@@ -48,7 +63,7 @@ export class GherkinParseCache {
         return result;
     }
 
-    invalidate(uri: Pick<vscode.Uri, 'fsPath'>): void {
+    invalidate(uri: { fsPath: string }): void {
         this.cache.delete(uri.fsPath);
     }
 }

@@ -1,5 +1,5 @@
 import { StepBrowserProvider, GroupingMode } from '../stepBrowserView';
-import { StepCache } from '../stepCache';
+import { StepCache } from '@nokout/big-dill-core';
 import { StepDefinition } from '../testController/types';
 
 const STEP_A: StepDefinition = {

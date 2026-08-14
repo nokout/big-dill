@@ -1,6 +1,6 @@
 import type { GherkinDocument } from '@cucumber/messages';
 import * as vscode from 'vscode';
-import { GherkinParseCache } from './gherkinParser';
+import { GherkinParseCache } from '@nokout/big-dill-core';
 
 export function buildSymbols(doc: GherkinDocument): vscode.DocumentSymbol[] {
     if (!doc.feature) return [];

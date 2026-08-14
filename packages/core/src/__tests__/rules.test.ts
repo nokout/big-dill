@@ -17,8 +17,8 @@ import {
     checkOutlineSingleRow,
     DiagnosticEntry,
     PhrasingRule,
-} from '../featureLinter';
-import { parseSource } from '../gherkinParser';
+} from '../lint/rules';
+import { parseSource } from '../gherkin/parser';
 
 function run(source: string, rule: (doc: GherkinDocument, lines: string[]) => DiagnosticEntry[]) {
     const { doc } = parseSource(source);

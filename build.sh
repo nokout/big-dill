@@ -12,21 +12,22 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EXT_DIR="$SCRIPT_DIR/vscode-extension"
 
 echo "==> Installing Node dependencies..."
-cd "$EXT_DIR"
+cd "$SCRIPT_DIR"
 npm install
+cd "$EXT_DIR"
 
 echo "==> Compiling TypeScript..."
-npm run compile
+npm run bundle:production
 
 echo "==> Packaging extension..."
-# NOTE: do NOT pass --no-dependencies — the extension is built with tsc (not a
-# bundler), so runtime deps like @cucumber/gherkin must be packaged into the
-# VSIX. Omitting them makes activation fail with "Cannot find module".
+# --no-dependencies is required: the extension is bundled by esbuild, so every
+# runtime dep is already inlined into dist/extension.js. Packaging node_modules
+# as well would ship the whole hoisted workspace tree.
 # --no-rewrite-relative-links keeps the README's image paths pointing at the
 # images packaged inside the VSIX. Without it vsce rewrites them to
 # github.com/.../raw/HEAD URLs, which resolve to the wrong path: the images live
 # under vscode-extension/, not the repository root.
-./node_modules/.bin/vsce package --no-rewrite-relative-links
+../node_modules/.bin/vsce package --no-dependencies --no-rewrite-relative-links
 
 VSIX=$(ls -t big-dill-*.vsix 2>/dev/null | head -1)
 if [[ -z "$VSIX" ]]; then

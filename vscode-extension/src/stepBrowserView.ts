@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { StepCache } from './stepCache';
+import { StepCache } from '@nokout/big-dill-core';
 import { StepDefinition } from './testController/types';
 
 export enum GroupingMode {

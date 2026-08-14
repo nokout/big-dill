@@ -1,4 +1,16 @@
 {
-  "name": "big-dill",
-  "private": true
+  "name": "big-dill-workspace",
+  "private": true,
+  "description": "Monorepo root. Not published — see packages/core and vscode-extension.",
+  "license": "MIT",
+  "workspaces": [
+    "packages/*",
+    "vscode-extension"
+  ],
+  "scripts": {
+    "compile": "npm run compile --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
+  }
 }

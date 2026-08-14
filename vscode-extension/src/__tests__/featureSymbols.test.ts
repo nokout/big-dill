@@ -1,5 +1,5 @@
 import { buildSymbols } from '../featureSymbols';
-import { parseSource } from '../gherkinParser';
+import { parseSource } from '@nokout/big-dill-core';
 
 function symbols(source: string) {
     const { doc } = parseSource(source);
