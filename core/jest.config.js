@@ -8,16 +8,25 @@ module.exports = {
     // import the editor API, and the absence of a mock is what enforces it —
     // an accidental `import … from 'vscode'` fails to resolve rather than
     // silently binding to a hand-written stub.
-    collectCoverageFrom: ['src/**/*.ts', '!src/**/__tests__/**', '!src/index.ts'],
-    // Set just under the measured baseline (85.6 / 66.5 / 85.3 / 85.8). This
+    collectCoverageFrom: [
+        'src/**/*.ts',
+        '!src/**/__tests__/**',
+        '!src/index.ts',
+        // Process orchestration: spawns pytest and talks to it over a pipe. Unit
+        // tests here would assert against a fake subprocess and prove little; it
+        // is covered end-to-end by the playground job in CI, which runs real
+        // discovery, execution and linting.
+        '!src/pytest/runner.ts',
+    ],
+    // Set just under the measured baseline (87.9 / 71.0 / 87.7 / 88.0). This
     // package is pure functions, so it should stay high — treat a drop here as a
     // real regression rather than noise, and ratchet up as coverage grows.
     coverageThreshold: {
         global: {
-            statements: 84,
-            branches: 64,
-            functions: 83,
-            lines: 84,
+            statements: 86,
+            branches: 69,
+            functions: 86,
+            lines: 86,
         },
     },
 };
