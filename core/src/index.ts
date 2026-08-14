@@ -48,6 +48,15 @@ export { StepCache, type LineMatch, type ParamAtPosition } from './steps/stepCac
 // ── pytest IPC ──────────────────────────────────────────────────────────────
 export { createIpcServer, type IIpcServer, type IpcMessageHandler } from './ipc/server';
 
+// ── Running pytest ──────────────────────────────────────────────────────────
+export {
+    discoverTests,
+    runTests,
+    runBddLint,
+    type PytestOptions,
+    type DiscoveryResult,
+} from './pytest/runner';
+
 // ── Wire protocol ───────────────────────────────────────────────────────────
 export type {
     DiscoveredTestType,
