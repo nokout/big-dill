@@ -1,5 +1,5 @@
 // Copyright (c) 2026 Nigel O'Keefe. All rights reserved.
-// Licensed under the terms in LICENSE (source-available, not open source).
+// Licensed under the MIT License.
 // BIG-DILL: New file — resolves discovery and execution payloads for the
 // pytest-bdd test runner.
 

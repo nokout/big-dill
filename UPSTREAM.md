@@ -4,8 +4,12 @@ Files adapted from [microsoft/vscode-python](https://github.com/microsoft/vscode
 
 The Microsoft copyright notice is preserved in each adapted file header, and the
 full MIT text is reproduced in [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).
-Those files remain under MIT; the rest of this project is licensed under
-[`LICENSE`](LICENSE), which is source-available rather than open source.
+Those files remain under Microsoft's copyright; the rest of this project is
+licensed under [`LICENSE`](LICENSE), also MIT.
+
+> **This file is scheduled for deletion.** The vendored pytest bridge is being
+> replaced by an implementation of our own inside `pytest-big-dill`, after which
+> nothing in this repository is adapted from ms-python and this tracking is moot.
 
 Only the files listed below carry a Microsoft copyright. Every other file in
 this repository is original work — if you add a file, do not copy a Microsoft

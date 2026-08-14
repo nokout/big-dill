@@ -30,10 +30,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   implementation whose name no longer matches a spec, so custom display names,
   statuses, and lint rules would quietly stop working rather than erroring.
 
-- Licensing settled ahead of the first public release: the project is now
-  source-available rather than MIT. It remains free to install and use,
-  including commercially; redistribution and modification are not permitted.
-  See `LICENSE` and `THIRD-PARTY-NOTICES.md`.
+- Licensing settled ahead of the first public release: **MIT**, across the
+  extension, the pytest plugin, and the extracted core library. An earlier
+  source-available licence was adopted and then reversed before any release, so
+  no published version was ever under other terms. See `LICENSE` and
+  `THIRD-PARTY-NOTICES.md`.
 
 ### Fixed
 

@@ -86,5 +86,4 @@ Releases also ship a CycloneDX SBOM and SHA-256 checksums. To report a vulnerabi
 - [Lint rules reference](https://github.com/nokout/big-dill/blob/main/docs/lint-rules.md)
 - [Repository](https://github.com/nokout/big-dill) · [License](https://github.com/nokout/big-dill/blob/main/LICENSE) · [Third-party notices](https://github.com/nokout/big-dill/blob/main/THIRD-PARTY-NOTICES.md)
 
-This extension is **source-available, not open source**. It is free to install
-and use, including at work; redistributing or modifying it is not permitted.
+Licensed under the MIT License.
