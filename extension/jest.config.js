@@ -20,18 +20,20 @@ module.exports = {
         // Activation wiring — exercised by those integration tests, not unit tests.
         '!src/extension.ts',
     ],
-    // Re-baselined when the engine moved to @nokout/big-dill-core (it fell to
-    // 51.7/46.3/46.9/53.1 — composition, not regression), then ratcheted back up
-    // once buildTree gained characterisation tests: 70.96/60.22/66.14/73.17.
-    // Floors sit just under. What is left uncovered is adapter and registration
-    // code, which mock-based tests cover poorly by nature; the honest check for
-    // that layer is the integration suite, not this number.
+    // This number moves every time logic leaves for core, and the movement is
+    // composition rather than regression: 62 before the split, 51.7 after the
+    // first extraction, 71.0 once buildTree gained characterisation tests, and
+    // 67.9 once the tree logic itself moved out (its tests went with it — core
+    // holds 87.9%). Floors sit just under the current measurement. What is left
+    // uncovered here is adapter and registration code, which mock-based tests
+    // cover poorly by nature; the honest check for that layer is the integration
+    // suite, not this number.
     coverageThreshold: {
         global: {
-            statements: 69,
-            branches: 58,
-            functions: 64,
-            lines: 71,
+            statements: 66,
+            branches: 55,
+            functions: 62,
+            lines: 69,
         },
     },
 };

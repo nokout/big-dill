@@ -48,6 +48,15 @@ export { StepCache, type LineMatch, type ParamAtPosition } from './steps/stepCac
 // ── pytest IPC ──────────────────────────────────────────────────────────────
 export { createIpcServer, type IIpcServer, type IpcMessageHandler } from './ipc/server';
 
+// ── Test tree shape ─────────────────────────────────────────────────────────
+export {
+    buildTestTree,
+    type TreeNode,
+    type TreeNodeUri,
+    type TreeNodeRange,
+    type BuiltTree,
+} from './tree/builder';
+
 // ── Running pytest ──────────────────────────────────────────────────────────
 export {
     discoverTests,

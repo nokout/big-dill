@@ -159,6 +159,24 @@ describe('buildTree — BDD items', () => {
         expect(sharedUnderA.children.get('b/shared/two.feature')).toBeUndefined();
     });
 
+    // Pinned quirk: every folder level is joined to the cwd using only its own
+    // segment, so a nested folder claims /repo/<segment> rather than its true
+    // path. Wrong, but pinned so the extraction cannot change it by accident —
+    // fixing it is a separate change with its own test.
+    it('gives every folder a uri of cwd + its own segment, not its full path', () => {
+        const { tc } = build(tree(bddLeaf()));
+        expect(tc.items.get('features')!.uri!.fsPath).toBe('/repo/features');
+        expect(tc.items.get('features')!.children.get('states')!.uri!.fsPath).toBe('/repo/states');
+    });
+
+    it('gives feature files and scenarios the full feature path', () => {
+        const { tc } = build(tree(bddLeaf()));
+        const file = find(tc.items, 'features/states/basic_states.feature')!;
+        expect(file.uri!.fsPath).toBe('/repo/features/states/basic_states.feature');
+        const scenario = find(tc.items, 'features/states/basic_states.feature::A passing scenario')!;
+        expect(scenario.uri!.fsPath).toBe('/repo/features/states/basic_states.feature');
+    });
+
     it('handles a feature file at the root with no directory parts', () => {
         const { tc } = build(tree(bddLeaf({ feature_path: 'top.feature', scenario_name: 'S' })));
         expect(find(tc.items, 'top.feature::S')).toBeDefined();
