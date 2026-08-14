@@ -125,7 +125,11 @@ export function checkTagAllowlist(
     return diags;
 }
 
-const EXAMPLE_PARAM_RE = /<[^>]+>/;
+// Bounded quantifier: /<[^>]+>/ is quadratic on a long run of unclosed '<',
+// because the engine retries the inner scan from every one of them. The linter
+// runs on every keystroke, so a pasted malformed line could stall the editor.
+// No real Examples placeholder approaches 200 characters.
+const EXAMPLE_PARAM_RE = /<[^>]{1,200}>/;
 
 export function checkScenarioShouldBeOutline(doc: GherkinDocument, _lines: string[]): DiagnosticEntry[] {
     const diags: DiagnosticEntry[] = [];
