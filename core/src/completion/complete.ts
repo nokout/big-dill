@@ -15,7 +15,7 @@ import type { StepCache } from '../steps/stepCache';
 import type { StepParameter } from '../protocol/types';
 
 const KEYWORD_RE = /^\s*(Given|When|Then|And|But|\*)\s+/i;
-const PARAM_RE = /\{(\w+)(?::[^}]+)?\}/g;
+const PARAM_RE = /\{(\w+)(?::[^}]{1,200})?\}/g;
 
 export type CompletionKind = 'step' | 'value';
 
@@ -74,7 +74,7 @@ function patternToSnippet(pattern: string, parameters: StepParameter[]): string 
  */
 function buildPrefixRegex(pattern: string): RegExp {
     const escaped = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const withWildcards = escaped.replace(/\\\{[^}]*\\\}/g, '.*');
+    const withWildcards = escaped.replace(/\\\{[^}]{0,200}\\\}/g, '.*');
     return new RegExp(`^${withWildcards}`, 'i');
 }
 
