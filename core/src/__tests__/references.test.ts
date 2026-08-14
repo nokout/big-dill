@@ -1,5 +1,5 @@
-import { findReferencesInLines } from '../featureReferences';
-import { StepDefinition } from '../testController/types';
+import { findReferencesInLines } from '../steps/references';
+import { StepDefinition } from '../protocol/types';
 
 const STEP: StepDefinition = {
     keyword: 'given',

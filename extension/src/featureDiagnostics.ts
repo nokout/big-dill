@@ -1,31 +1,6 @@
 import * as vscode from 'vscode';
 import { runBddLint } from './testController/pytestRunner';
-import { StepCache, extractStepText } from '@nokout/big-dill-core';
-
-export type UnimplementedStep = {
-    lineIndex: number;  // 0-indexed
-    stepText: string;   // text after keyword
-};
-
-const COMMENT_RE = /^\s*#/;
-
-/**
- * Scan *lines* and return entries for steps that have no matching pattern in *cache*.
- * Pure function — no I/O.
- */
-export function findUnimplementedSteps(lines: string[], cache: StepCache): UnimplementedStep[] {
-    const results: UnimplementedStep[] = [];
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        if (COMMENT_RE.test(line)) continue;
-        const parsed = extractStepText(line);
-        if (!parsed) continue;
-        if (!cache.matchPattern(parsed.text)) {
-            results.push({ lineIndex: i, stepText: parsed.text });
-        }
-    }
-    return results;
-}
+import { StepCache, findUnimplementedSteps } from '@nokout/big-dill-core';
 
 export class FeatureDiagnostics {
     private readonly collection: vscode.DiagnosticCollection;
