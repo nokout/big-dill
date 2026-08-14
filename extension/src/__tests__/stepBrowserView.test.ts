@@ -1,158 +1,102 @@
-import { StepBrowserProvider, GroupingMode } from '../stepBrowserView';
-import { StepCache } from '@nokout/big-dill-core';
-import { StepDefinition } from '../testController/types';
+// Adapter tests: grouping and filtering are core's, verified there. What matters
+// here is that plain nodes become TreeItems with the right collapsibility,
+// context value, and navigation command — none of which was covered before.
 
-const STEP_A: StepDefinition = {
+import { StepBrowserProvider, StepBrowserItem, GroupingMode } from '../stepBrowserView';
+import { StepCache, type StepDefinition } from '@nokout/big-dill-core';
+
+const WITH_LOCATION: StepDefinition = {
     keyword: 'given',
-    pattern: 'the state is {state:AustralianState}',
+    pattern: 'the state is {state}',
     parameters: [],
     file: '/abs/tests/steps/state_steps.py',
     line: 42,
     summary: 'Set the current state.',
     tags: ['geography'],
-    param_types: ['AustralianState'],
+    param_types: [],
 };
 
-const STEP_B: StepDefinition = {
+const WITHOUT_LOCATION: StepDefinition = {
     keyword: 'when',
-    pattern: 'the user logs in',
+    pattern: 'something happens',
     parameters: [],
-    file: '/abs/tests/steps/auth_steps.py',
-    line: 10,
-    summary: 'Authenticate the user.',
-    tags: ['auth', 'geography'],
-    param_types: [],
 };
 
-const STEP_C: StepDefinition = {
-    keyword: 'then',
-    pattern: 'the result is shown',
-    parameters: [],
-    file: '/abs/tests/steps/auth_steps.py',
-    line: 20,
-    summary: 'Verify the result.',
-    tags: [],
-    param_types: [],
-};
+function providerWith(steps: StepDefinition[]): StepBrowserProvider {
+    const cache = new StepCache();
+    cache.update(steps);
+    return new StepBrowserProvider(cache);
+}
 
-describe('StepBrowserProvider', () => {
-    let cache: StepCache;
-    let provider: StepBrowserProvider;
-
-    beforeEach(() => {
-        cache = new StepCache();
-        cache.update([STEP_A, STEP_B, STEP_C]);
-        provider = new StepBrowserProvider(cache);
+describe('StepBrowserProvider — TreeItem mapping', () => {
+    it('renders groups as collapsible items carrying no step', async () => {
+        const [group] = await providerWith([WITH_LOCATION]).getChildren();
+        expect(group.collapsibleState).toBe(1); // Collapsed
+        expect(group.contextValue).toBe('stepGroup');
+        expect(group.stepDefinition).toBeUndefined();
     });
 
-    describe('grouping by file', () => {
-        beforeEach(() => provider.setGroupingMode(GroupingMode.ByFile));
-
-        test('root children are file path nodes', async () => {
-            const roots = await provider.getChildren(undefined);
-            const labels = roots.map(n => n.label);
-            expect(labels).toContain('state_steps.py');
-            expect(labels).toContain('auth_steps.py');
-        });
-
-        test('file node children are step items', async () => {
-            const roots = await provider.getChildren(undefined);
-            const authNode = roots.find(n => n.label === 'auth_steps.py')!;
-            const children = await provider.getChildren(authNode);
-            expect(children).toHaveLength(2);
-        });
+    it('renders steps as leaves carrying their definition', async () => {
+        const provider = providerWith([WITH_LOCATION]);
+        const [group] = await provider.getChildren();
+        const [step] = await provider.getChildren(group);
+        expect(step.collapsibleState).toBe(0); // None
+        expect(step.contextValue).toBe('stepItem');
+        expect(step.stepDefinition?.pattern).toBe('the state is {state}');
     });
 
-    describe('grouping by step type', () => {
-        beforeEach(() => provider.setGroupingMode(GroupingMode.ByStepType));
+    it('uses the summary as tooltip, falling back to the pattern', async () => {
+        const provider = providerWith([WITH_LOCATION, WITHOUT_LOCATION]);
+        const groups = await provider.getChildren();
+        const items = (await Promise.all(groups.map((g) => provider.getChildren(g)))).flat();
 
-        test('root children are param type group nodes', async () => {
-            const roots = await provider.getChildren(undefined);
-            const labels = roots.map(n => n.label);
-            expect(labels).toContain('AustralianState');
-        });
-
-        test('steps with no param_types appear under (no type) group', async () => {
-            const roots = await provider.getChildren(undefined);
-            const noTypeNode = roots.find(n => n.label === '(no type)');
-            expect(noTypeNode).toBeDefined();
-            const children = await provider.getChildren(noTypeNode!);
-            expect(children.length).toBeGreaterThan(0);
-        });
+        expect(items.find((i) => i.stepDefinition?.file)!.tooltip).toBe('Set the current state.');
+        expect(items.find((i) => !i.stepDefinition?.file)!.tooltip).toBe('something happens');
     });
 
-    describe('grouping by tag', () => {
-        beforeEach(() => provider.setGroupingMode(GroupingMode.ByTag));
+    it('wires a go-to-definition command when the step has a file and line', async () => {
+        const provider = providerWith([WITH_LOCATION]);
+        const [group] = await provider.getChildren();
+        const [step] = await provider.getChildren(group);
 
-        test('root children are tag nodes', async () => {
-            const roots = await provider.getChildren(undefined);
-            const labels = roots.map(n => n.label);
-            expect(labels).toContain('@geography');
-            expect(labels).toContain('@auth');
-        });
-
-        test('steps with no tags appear under (untagged) group', async () => {
-            const roots = await provider.getChildren(undefined);
-            const untagged = roots.find(n => n.label === '(untagged)');
-            expect(untagged).toBeDefined();
-        });
-
-        test('step appears in each tag group it belongs to', async () => {
-            const roots = await provider.getChildren(undefined);
-            const geoNode = roots.find(n => n.label === '@geography')!;
-            const children = await provider.getChildren(geoNode);
-            const patterns = children.map(c => c.stepDefinition?.pattern);
-            expect(patterns).toContain('the state is {state:AustralianState}');
-            expect(patterns).toContain('the user logs in');
-        });
+        expect(step.command?.command).toBe('vscode.open');
+        // line is 1-based in the payload and 0-based in the editor selection
+        const [, opts] = step.command!.arguments as [unknown, { selection: { start: { line: number } } }];
+        expect(opts.selection.start.line).toBe(41);
     });
 
-    describe('empty cache', () => {
-        test('returns awaiting placeholder when cache is empty', async () => {
-            const emptyCache = new StepCache();
-            const emptyProvider = new StepBrowserProvider(emptyCache);
-            const roots = await emptyProvider.getChildren(undefined);
-            expect(roots).toHaveLength(1);
-            expect(roots[0].label).toBe('Awaiting discovery...');
-        });
+    it('omits the command when the step has no location', async () => {
+        const provider = providerWith([WITHOUT_LOCATION]);
+        const [group] = await provider.getChildren();
+        const [step] = await provider.getChildren(group);
+        expect(step.command).toBeUndefined();
     });
 
-    describe('keyword filter', () => {
-        beforeEach(() => provider.setGroupingMode(GroupingMode.ByFile));
+    it('does not expand a step', async () => {
+        const provider = providerWith([WITH_LOCATION]);
+        const [group] = await provider.getChildren();
+        const [step] = await provider.getChildren(group);
+        expect(await provider.getChildren(step)).toEqual([]);
+    });
 
-        test('setFilter narrows root groups to files containing matching steps', async () => {
-            provider.setFilter('state is');
-            const roots = await provider.getChildren(undefined);
-            const labels = roots.map(n => n.label);
-            expect(labels).toContain('state_steps.py');
-            expect(labels).not.toContain('auth_steps.py');
-        });
+    it('renders the empty-cache placeholder as a plain leaf', async () => {
+        const [placeholder] = await providerWith([]).getChildren();
+        expect(placeholder.label).toBe('Awaiting discovery...');
+        expect(placeholder.collapsibleState).toBe(0);
+        expect(placeholder.stepDefinition).toBeUndefined();
+    });
 
-        test('filter is case-insensitive', async () => {
-            provider.setFilter('STATE IS');
-            const roots = await provider.getChildren(undefined);
-            expect(roots.map(n => n.label)).toContain('state_steps.py');
-        });
+    it('tracks grouping mode and filter state', () => {
+        const provider = providerWith([WITH_LOCATION]);
+        provider.setGroupingMode(GroupingMode.ByTag);
+        expect(provider.getGroupingMode()).toBe(GroupingMode.ByTag);
+        provider.setFilter('  Hello  ');
+        expect(provider.getFilter()).toBe('hello');
+    });
 
-        test('filter with no matches returns no-match placeholder', async () => {
-            provider.setFilter('xyzzy-nonexistent');
-            const roots = await provider.getChildren(undefined);
-            expect(roots).toHaveLength(1);
-            expect((roots[0].label as string)).toMatch(/No steps match/);
-        });
-
-        test('clearing filter restores all steps', async () => {
-            provider.setFilter('state is');
-            provider.setFilter('');
-            const roots = await provider.getChildren(undefined);
-            const labels = roots.map(n => n.label);
-            expect(labels).toContain('state_steps.py');
-            expect(labels).toContain('auth_steps.py');
-        });
-
-        test('getFilter returns the current filter text', () => {
-            provider.setFilter('hello');
-            expect(provider.getFilter()).toBe('hello');
-        });
+    it('constructs a bare item without a step definition', () => {
+        const item = new StepBrowserItem('label only', 0);
+        expect(item.contextValue).toBe('stepGroup');
+        expect(item.command).toBeUndefined();
     });
 });

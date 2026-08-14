@@ -1,8 +1,19 @@
-import * as vscode from 'vscode';
-import * as path from 'path';
-import { StepCache } from '@nokout/big-dill-core';
-import { StepDefinition } from './testController/types';
+// Copyright (c) 2026 Nigel O'Keefe. All rights reserved.
+// Licensed under the MIT License.
+//
+// Adapter only. Grouping, filtering and ordering live in @nokout/big-dill-core;
+// this renders the resulting nodes as TreeItems and wires navigation.
 
+import * as vscode from 'vscode';
+import {
+    StepCache,
+    browseSteps,
+    type GroupingMode as CoreGroupingMode,
+    type StepBrowserNode,
+    type StepDefinition,
+} from '@nokout/big-dill-core';
+
+/** String values match core's GroupingMode, so the enum is assignable to it. */
 export enum GroupingMode {
     ByFile = 'file',
     ByStepType = 'stepType',
@@ -37,6 +48,16 @@ export class StepBrowserItem extends vscode.TreeItem {
             this.contextValue = 'stepGroup';
         }
     }
+}
+
+function toItem(node: StepBrowserNode): StepBrowserItem {
+    return node.kind === 'group'
+        ? new StepBrowserItem(node.label, vscode.TreeItemCollapsibleState.Collapsed)
+        : new StepBrowserItem(
+            node.label,
+            vscode.TreeItemCollapsibleState.None,
+            node.kind === 'step' ? node.step : undefined,
+        );
 }
 
 export class StepBrowserProvider implements vscode.TreeDataProvider<StepBrowserItem> {
@@ -75,122 +96,15 @@ export class StepBrowserProvider implements vscode.TreeDataProvider<StepBrowserI
     }
 
     async getChildren(element?: StepBrowserItem): Promise<StepBrowserItem[]> {
-        const allSteps = this.cache.getAll();
-
-        if (allSteps.length === 0) {
-            if (element) return [];
-            return [new StepBrowserItem('Awaiting discovery...', vscode.TreeItemCollapsibleState.None)];
-        }
-
+        // A step is a leaf; only groups expand.
         if (element?.stepDefinition) return [];
 
-        const visibleSteps = this.filterText
-            ? allSteps.filter(s => s.pattern.toLowerCase().includes(this.filterText))
-            : allSteps;
+        const nodes = browseSteps(this.cache.getAll(), {
+            mode: this.groupingMode as CoreGroupingMode,
+            filter: this.filterText,
+            group: element ? (element.label as string) : undefined,
+        });
 
-        if (visibleSteps.length === 0) {
-            if (element) return [];
-            return [new StepBrowserItem(`No steps match "${this.filterText}"`, vscode.TreeItemCollapsibleState.None)];
-        }
-
-        if (!element) {
-            return this.buildGroups(visibleSteps);
-        }
-
-        return this.buildStepItems(visibleSteps, element.label as string);
-    }
-
-    private buildGroups(steps: StepDefinition[]): StepBrowserItem[] {
-        switch (this.groupingMode) {
-            case GroupingMode.ByFile:
-                return this.groupsByFile(steps);
-            case GroupingMode.ByStepType:
-                return this.groupsByStepType(steps);
-            case GroupingMode.ByTag:
-                return this.groupsByTag(steps);
-        }
-    }
-
-    private groupsByFile(steps: StepDefinition[]): StepBrowserItem[] {
-        const fileMap = new Map<string, StepDefinition[]>();
-        for (const step of steps) {
-            const key = step.file ? path.basename(step.file) : '(unknown file)';
-            if (!fileMap.has(key)) fileMap.set(key, []);
-            fileMap.get(key)!.push(step);
-        }
-        return Array.from(fileMap.keys())
-            .sort()
-            .map(k => new StepBrowserItem(k, vscode.TreeItemCollapsibleState.Collapsed));
-    }
-
-    private groupsByStepType(steps: StepDefinition[]): StepBrowserItem[] {
-        const typeMap = new Map<string, StepDefinition[]>();
-        for (const step of steps) {
-            const types = step.param_types && step.param_types.length > 0
-                ? step.param_types
-                : ['(no type)'];
-            for (const t of types) {
-                if (!typeMap.has(t)) typeMap.set(t, []);
-                typeMap.get(t)!.push(step);
-            }
-        }
-        return Array.from(typeMap.keys())
-            .sort()
-            .map(k => new StepBrowserItem(k, vscode.TreeItemCollapsibleState.Collapsed));
-    }
-
-    private groupsByTag(steps: StepDefinition[]): StepBrowserItem[] {
-        const tagMap = new Map<string, StepDefinition[]>();
-        for (const step of steps) {
-            const tags = step.tags && step.tags.length > 0
-                ? step.tags.map(t => `@${t}`)
-                : ['(untagged)'];
-            for (const tag of tags) {
-                if (!tagMap.has(tag)) tagMap.set(tag, []);
-                tagMap.get(tag)!.push(step);
-            }
-        }
-        return Array.from(tagMap.keys())
-            .sort()
-            .map(k => new StepBrowserItem(k, vscode.TreeItemCollapsibleState.Collapsed));
-    }
-
-    private buildStepItems(steps: StepDefinition[], groupLabel: string): StepBrowserItem[] {
-        let filtered: StepDefinition[];
-
-        switch (this.groupingMode) {
-            case GroupingMode.ByFile: {
-                filtered = steps.filter(s =>
-                    (s.file ? path.basename(s.file) : '(unknown file)') === groupLabel,
-                );
-                break;
-            }
-            case GroupingMode.ByStepType: {
-                filtered = steps.filter(s => {
-                    if (groupLabel === '(no type)') {
-                        return !s.param_types || s.param_types.length === 0;
-                    }
-                    return s.param_types?.includes(groupLabel) ?? false;
-                });
-                break;
-            }
-            case GroupingMode.ByTag: {
-                filtered = steps.filter(s => {
-                    if (groupLabel === '(untagged)') {
-                        return !s.tags || s.tags.length === 0;
-                    }
-                    return s.tags?.includes(groupLabel.replace(/^@/, '')) ?? false;
-                });
-                break;
-            }
-        }
-
-        return filtered
-            .sort((a, b) => a.pattern.localeCompare(b.pattern))
-            .map(s => new StepBrowserItem(
-                s.pattern,
-                vscode.TreeItemCollapsibleState.None,
-                s,
-            ));
+        return nodes.map(toItem);
     }
 }

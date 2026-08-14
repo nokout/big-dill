@@ -18,15 +18,15 @@ module.exports = {
         // discovery, execution and linting.
         '!src/pytest/runner.ts',
     ],
-    // Set just under the measured baseline (90.6 / 74.4 / 91.0 / 91.6). This
+    // Set just under the measured baseline (91.2 / 75.0 / 91.5 / 92.1). This
     // package is pure functions, so it should stay high — treat a drop here as a
     // real regression rather than noise, and ratchet up as coverage grows.
     coverageThreshold: {
         global: {
-            statements: 89,
+            statements: 90,
             branches: 73,
             functions: 89,
-            lines: 90,
+            lines: 91,
         },
     },
 };

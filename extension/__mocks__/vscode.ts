@@ -27,9 +27,17 @@ export const Uri = {
 export const Position = jest
     .fn()
     .mockImplementation((line: number, character: number) => ({ line, character }));
-export const Range = jest
-    .fn()
-    .mockImplementation((start: unknown, end: unknown) => ({ start, end }));
+// vscode.Range has two overloads: (start: Position, end: Position) and
+// (startLine, startChar, endLine, endChar). Support both, or code using the
+// numeric form silently produces a nonsense range.
+export const Range = jest.fn().mockImplementation((...args: unknown[]) => {
+    if (args.length === 4) {
+        const [sl, sc, el, ec] = args as number[];
+        return { start: { line: sl, character: sc }, end: { line: el, character: ec } };
+    }
+    const [start, end] = args;
+    return { start, end };
+});
 export const TestTag = jest.fn().mockImplementation((id: string) => ({ id }));
 export const CancellationToken = {};
 

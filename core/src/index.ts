@@ -68,6 +68,20 @@ export {
 // ── Table formatting ────────────────────────────────────────────────────────
 export { formatTables, type TextEditEntry } from './format/tables';
 
+// ── Step browser model ──────────────────────────────────────────────────────
+export {
+    browseSteps,
+    filterSteps,
+    groupLabels,
+    stepsInGroup,
+    UNKNOWN_FILE,
+    NO_TYPE,
+    UNTAGGED,
+    type GroupingMode,
+    type StepBrowserNode,
+    type BrowseOptions,
+} from './steps/browser';
+
 // ── Step indexing ───────────────────────────────────────────────────────────
 export { StepCache, type LineMatch, type ParamAtPosition } from './steps/stepCache';
 
