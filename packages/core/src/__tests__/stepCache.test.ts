@@ -1,5 +1,5 @@
-import { StepCache } from '../stepCache';
-import { StepDefinition } from '../testController/types';
+import { StepCache } from '../steps/stepCache';
+import { StepDefinition } from '../protocol/types';
 
 const GIVEN_STATE: StepDefinition = {
     keyword: 'given',

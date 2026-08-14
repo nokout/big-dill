@@ -8,11 +8,15 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { CancellationToken, Uri, workspace } from 'vscode';
-import { createIpcServer } from './ipc';
+import { createIpcServer } from '@nokout/big-dill-core';
 import { DiscoveredTestPayload, ExecutionTestPayload, LintDiagnosticEntry, LintDiagnosticPayload, StepDefinition, StepDefinitionPayload } from './types';
 import { outputChannel } from '../extension';
 
-const PYTHON_FILES_DIR = path.join(__dirname, '..', '..', 'python_files');
+// The extension is bundled to a single dist/extension.js, so __dirname is always
+// <extension>/dist regardless of which source file this line came from. Adding a
+// directory level here would resolve outside the extension and break discovery at
+// runtime with no compile error.
+const PYTHON_FILES_DIR = path.join(__dirname, '..', 'python_files');
 
 function getPythonPath(interpreterPath: string): string {
     return interpreterPath;

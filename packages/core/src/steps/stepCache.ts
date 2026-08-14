@@ -1,4 +1,4 @@
-import { StepDefinition, StepParameter } from './testController/types';
+import { StepDefinition, StepParameter } from '../protocol/types';
 
 export type LineMatch = {
     step: StepDefinition;

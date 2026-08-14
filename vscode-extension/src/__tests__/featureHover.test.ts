@@ -1,5 +1,5 @@
 import { buildHoverContent } from '../featureHover';
-import { StepCache } from '../stepCache';
+import { StepCache } from '@nokout/big-dill-core';
 import { StepDefinition } from '../testController/types';
 
 const RICH_STEP: StepDefinition = {

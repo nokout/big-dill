@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { StepCache } from './stepCache';
+import { StepCache } from '@nokout/big-dill-core';
 import { StepParameter } from './testController/types';
 import { outputChannel } from './extension';
 

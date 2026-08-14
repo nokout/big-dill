@@ -1,5 +1,5 @@
 import { buildTableTokens } from '../featureSemanticTokens';
-import { parseSource } from '../gherkinParser';
+import { parseSource } from '@nokout/big-dill-core';
 
 function tokenize(source: string) {
     const { doc } = parseSource(source);

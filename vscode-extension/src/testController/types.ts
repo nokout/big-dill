@@ -1,66 +1,28 @@
-// Copyright (c) Microsoft Corporation. All rights reserved.
+// Copyright (c) 2026 Nigel O'Keefe. All rights reserved.
 // Licensed under the MIT License.
-// Adapted from microsoft/vscode-python (commit 5c2c3948e1c8c8a1dfe848104773477e70d0b83b).
 //
-// BIG-DILL modifications:
-//   - DiscoveredTestItem: added feature_path and scenario_name optional fields.
-//   - ExecutionTestPayload result entries: added custom_status optional field.
+// The wire contract itself lives in @nokout/big-dill-core — it is plain data and
+// has no editor dependency. What remains here are the two interfaces that are
+// genuinely VS Code-shaped, because they hold TestItem/TestController/TestRun.
 
 import { CancellationToken, TestController, TestItem, TestRun } from 'vscode';
+import type { DiscoveredTestPayload, ExecutionTestPayload } from '@nokout/big-dill-core';
 
-export type DiscoveredTestType = 'folder' | 'file' | 'class' | 'function' | 'test';
-
-export type DiscoveredTestCommon = {
-    path: string;
-    name: string;
-    type_: DiscoveredTestType;
-    id_: string;
-};
-
-export type DiscoveredTestItem = DiscoveredTestCommon & {
-    lineno: number | string;
-    runID: string;
-    /** BIG-DILL: relative path to the .feature file (e.g. "features/states/basic_states.feature") */
-    feature_path?: string;
-    /** BIG-DILL: display name for the scenario (may differ from name for outlines) */
-    scenario_name?: string;
-    /** BIG-DILL: scenario tags from the .feature file (without the @ prefix) */
-    scenario_tags?: string[];
-    /** BIG-DILL: feature-level tags from the Feature: declaration (without the @ prefix) */
-    feature_tags?: string[];
-    /** BIG-DILL: feature display name from the Feature: declaration */
-    feature_name?: string;
-};
-
-export type DiscoveredTestNode = DiscoveredTestCommon & {
-    children: (DiscoveredTestNode | DiscoveredTestItem)[];
-    lineno?: number | string;
-};
-
-export type DiscoveredTestPayload = {
-    cwd: string;
-    tests?: DiscoveredTestNode;
-    status: 'success' | 'error';
-    error?: string[];
-};
-
-export type ExecutionTestPayload = {
-    cwd: string;
-    status: 'success' | 'error';
-    result?: {
-        [testRunID: string]: {
-            test?: string;
-            outcome?: string;
-            message?: string;
-            traceback?: string;
-            subtest?: string;
-            /** BIG-DILL: custom status string from pytest_report_customstatus */
-            custom_status?: string;
-        };
-    };
-    notFound?: string[];
-    error: string;
-};
+// Re-exported so existing imports of `./types` keep working; core is the source
+// of truth for every one of these shapes.
+export type {
+    DiscoveredTestType,
+    DiscoveredTestCommon,
+    DiscoveredTestItem,
+    DiscoveredTestNode,
+    DiscoveredTestPayload,
+    ExecutionTestPayload,
+    StepParameter,
+    StepDefinition,
+    StepDefinitionPayload,
+    LintDiagnosticEntry,
+    LintDiagnosticPayload,
+} from '@nokout/big-dill-core';
 
 /** Maps TestItem ids maintained by this extension to their pytest run ids. */
 export interface IBddTestItemIndex {
@@ -75,49 +37,3 @@ export interface ITestResultResolver {
     resolveDiscovery(payload: DiscoveredTestPayload, testController: TestController, token?: CancellationToken): void;
     resolveExecution(payload: ExecutionTestPayload, run: TestRun): void;
 }
-
-// ── Step definition types (for completions and validation) ─────────────────
-
-export type StepParameter = {
-    name: string;
-    type_name: string;
-    suggested_values: string[];
-    has_validator: boolean;
-};
-
-export type StepDefinition = {
-    keyword: 'given' | 'when' | 'then' | 'step';
-    pattern: string;
-    parameters: StepParameter[];
-    /** Absolute path to the Python file where this step is defined (from Plan B). */
-    file?: string;
-    /** 1-indexed line number in the Python file (from Plan B). */
-    line?: number;
-    /** First line of the function docstring (from Plan B). */
-    summary?: string;
-    /** Tags from the Tags: docstring section (from Plan B). */
-    tags?: string[];
-    /** StepType/StepEnum class names used as parameter types (from Plan B). */
-    param_types?: string[];
-    /** Number of times this step pattern appears across workspace .feature files. Tracked by StepCache. */
-    usage_count?: number;
-};
-
-export type StepDefinitionPayload = {
-    type: 'stepDefinitions';
-    stepDefinitions: StepDefinition[];
-};
-
-// ── Lint diagnostic types ───────────────────────────────────────────────────
-
-export type LintDiagnosticEntry = {
-    path: string;
-    message: string;
-    severity: 'error' | 'warning' | 'info';
-    line: number | null;
-};
-
-export type LintDiagnosticPayload = {
-    type: 'lintDiagnostics';
-    diagnostics: LintDiagnosticEntry[];
-};

@@ -5,10 +5,10 @@
 import * as vscode from 'vscode';
 import { BddResultResolver } from './testController/resultResolver';
 import { discoverTests, runTests } from './testController/pytestRunner';
-import { StepCache } from './stepCache';
+import { StepCache } from '@nokout/big-dill-core';
 import { FeatureCompletionProvider } from './featureCompletion';
 import { FeatureDiagnostics } from './featureDiagnostics';
-import { GherkinParseCache } from './gherkinParser';
+import { GherkinParseCache } from '@nokout/big-dill-core';
 import { FeatureSemanticTokensProvider, legend } from './featureSemanticTokens';
 import { FeatureFormattingProvider } from './featureFormatter';
 import { FeatureLinter } from './featureLinter';

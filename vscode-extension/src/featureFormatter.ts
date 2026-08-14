@@ -1,6 +1,6 @@
 import type { GherkinDocument, TableRow } from '@cucumber/messages';
 import * as vscode from 'vscode';
-import { GherkinParseCache } from './gherkinParser';
+import { GherkinParseCache } from '@nokout/big-dill-core';
 
 export interface TextEditEntry {
     startLine: number;  // 0-indexed

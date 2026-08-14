@@ -1,7 +1,7 @@
 {
   "name": "big-dill",
   "displayName": "Big Dill",
-  "description": "Big Dill Driven Development — a pytest-bdd test runner and Gherkin authoring toolkit for VS Code.",
+  "description": "Big Dill Driven Development \u2014 a pytest-bdd test runner and Gherkin authoring toolkit for VS Code.",
   "version": "0.1.0",
   "publisher": "nokout",
   "engines": {
@@ -102,12 +102,12 @@
         "big-dill.pythonPath": {
           "type": "string",
           "default": "",
-          "markdownDescription": "Path to the Python interpreter used to run pytest. Takes precedence over the Python extension's selected interpreter. Leave empty to use the Python extension if installed, otherwise `python` from `PATH` — the Python extension is optional."
+          "markdownDescription": "Path to the Python interpreter used to run pytest. Takes precedence over the Python extension's selected interpreter. Leave empty to use the Python extension if installed, otherwise `python` from `PATH` \u2014 the Python extension is optional."
         },
         "big-dill.tagNamespace": {
           "type": "string",
           "default": "bdd",
-          "markdownDescription": "Namespace prefix shown before Gherkin tags in the Test Explorer filter (e.g. `bdd` → `@bdd:smoke`). Takes effect after a window reload."
+          "markdownDescription": "Namespace prefix shown before Gherkin tags in the Test Explorer filter (e.g. `bdd` \u2192 `@bdd:smoke`). Takes effect after a window reload."
         },
         "big-dill.stepDefinitionGlob": {
           "type": "string",
@@ -306,15 +306,17 @@
   },
   "scripts": {
     "compile": "tsc -p tsconfig.json",
-    "watch": "tsc -watch -p tsconfig.json",
-    "package": "vsce package --no-rewrite-relative-links",
-    "package:marketplace": "vsce package --baseImagesUrl https://raw.githubusercontent.com/nokout/big-dill/main/vscode-extension",
+    "bundle": "node esbuild.mjs",
+    "bundle:production": "node esbuild.mjs --production",
+    "watch": "node esbuild.mjs --watch",
+    "package": "vsce package --no-dependencies --no-rewrite-relative-links",
+    "package:marketplace": "vsce package --no-dependencies --baseImagesUrl https://raw.githubusercontent.com/nokout/big-dill/main/vscode-extension",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "jest",
     "test:coverage": "jest --coverage",
-    "test:integration": "npm run compile && vscode-test",
-    "vscode:prepublish": "npm run compile"
+    "test:integration": "npm run compile && npm run bundle && vscode-test",
+    "vscode:prepublish": "npm run bundle:production"
   },
   "overrides": {
     "cheerio": "1.0.0-rc.12"
@@ -327,6 +329,7 @@
     "@vscode/test-cli": "^0.0.15",
     "@vscode/test-electron": "^3.1.0",
     "@vscode/vsce": "^3.9.2",
+    "esbuild": "^0.25.12",
     "eslint": "^10.8.0",
     "jest": "^30.4.2",
     "ovsx": "^1.0.2",
@@ -335,6 +338,6 @@
     "typescript-eslint": "^8.65.0"
   },
   "dependencies": {
-    "@cucumber/gherkin": "^39.1.0"
+    "@nokout/big-dill-core": "^0.1.0"
   }
 }

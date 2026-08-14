@@ -36,13 +36,14 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: vscode-extension/package-lock.json
+          cache-dependency-path: package-lock.json
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.12'
 
+      # npm workspaces: a single install at the root wires up packages/core
+      # and vscode-extension together.
       - run: npm ci
-        working-directory: vscode-extension
 
       # Never ship something the test suites have not agreed to.
       - name: Unit tests
@@ -73,7 +74,7 @@ jobs:
           # vscode-extension, not vscode-extension/images — the README already
           # references images/<name>.png, so an extra /images makes every
           # screenshot 404. See "README screenshots" in the root README.
-          ( cd vscode-extension && npx vsce package --no-rewrite-relative-links \
+          ( cd vscode-extension && npx vsce package --no-dependencies --no-rewrite-relative-links \
               -o "../release/big-dill-${version}.vsix" )
           python -m build --outdir release ./pytest-plugin
           ( cd vscode-extension && npm sbom --sbom-format cyclonedx --omit dev ) \
@@ -126,12 +127,13 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: vscode-extension/package-lock.json
+          cache-dependency-path: package-lock.json
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: '3.12'
+      # npm workspaces: a single install at the root wires up packages/core
+      # and vscode-extension together.
       - run: npm ci
-        working-directory: vscode-extension
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: release-artifacts
@@ -191,9 +193,10 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: vscode-extension/package-lock.json
+          cache-dependency-path: package-lock.json
+      # npm workspaces: a single install at the root wires up packages/core
+      # and vscode-extension together.
       - run: npm ci
-        working-directory: vscode-extension
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: release-artifacts
