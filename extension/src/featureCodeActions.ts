@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
-import { StepCache } from '@nokout/big-dill-core';
-import { extractStepText } from './featureCompletion';
+import { StepCache, extractStepText } from '@nokout/big-dill-core';
 
 const PARAM_RE = /\{(\w+)(?::[^}]+)?\}/g;
 

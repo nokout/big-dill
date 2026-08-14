@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
-import { StepCache } from '@nokout/big-dill-core';
+import { StepCache, extractStepText } from '@nokout/big-dill-core';
 import { StepDefinition } from './testController/types';
-import { extractStepText } from './featureCompletion';
 
 const COMMENT_RE = /^\s*#/;
 const KEYWORD_RE = /^\s*(?:Given|When|Then|And|But|\*)\s+/i;

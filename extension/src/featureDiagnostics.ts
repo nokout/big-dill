@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import { runBddLint } from './testController/pytestRunner';
-import { StepCache } from '@nokout/big-dill-core';
-import { extractStepText } from './featureCompletion';
+import { StepCache, extractStepText } from '@nokout/big-dill-core';
 
 export type UnimplementedStep = {
     lineIndex: number;  // 0-indexed

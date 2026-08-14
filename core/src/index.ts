@@ -42,6 +42,17 @@ export {
     type LintConfig,
 } from './lint/rules';
 
+// ── Completion ──────────────────────────────────────────────────────────────
+export {
+    completeAt,
+    completeStepPatterns,
+    completeParameterValues,
+    extractStepText,
+    type CompletionEntry,
+    type CompletionKind,
+    type KeywordAndText,
+} from './completion/complete';
+
 // ── Document outline ────────────────────────────────────────────────────────
 export { buildSymbolTree, type SymbolNode, type SymbolNodeKind } from './symbols/outline';
 
