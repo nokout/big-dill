@@ -40,6 +40,30 @@ suite('Extension integration', () => {
         assert.strictEqual(ext?.isActive, true, 'extension should be active');
     });
 
+    // The restricted target environment cannot reach the Marketplace, so it has no
+    // Python extension. .vscode-test.mjs deliberately installs none, which makes the
+    // whole suite above a no-ms-python test — this asserts that condition explicitly
+    // so the guarantee cannot be lost by someone re-adding installExtensions.
+    test('activates without the Python extension present', () => {
+        assert.strictEqual(
+            vscode.extensions.getExtension('ms-python.python'),
+            undefined,
+            'ms-python must not be installed in the test host — it is an optional dependency',
+        );
+        assert.strictEqual(vscode.extensions.getExtension(EXTENSION_ID)?.isActive, true);
+    });
+
+    test('exposes big-dill.pythonPath for interpreter selection without ms-python', () => {
+        const config = vscode.workspace.getConfiguration('big-dill');
+        const inspected = config.inspect<string>('pythonPath');
+        assert.ok(inspected, 'big-dill.pythonPath must be a contributed setting');
+        assert.strictEqual(
+            inspected.defaultValue,
+            '',
+            'default must be empty so ms-python, then PATH, remain the fallbacks',
+        );
+    });
+
     test('registers the Gherkin language for .feature files', async () => {
         const doc = await vscode.workspace.openTextDocument(fixture('features', 'sample.feature'));
         assert.strictEqual(doc.languageId, 'feature');

@@ -50,7 +50,7 @@ Two installable pieces work together:
 | Node.js | 18 or later (20+ LTS recommended) |
 | Python | 3.10 or later |
 | VS Code stable or Insiders | 1.87 or later |
-| ms-python extension | latest |
+| ms-python extension | optional — see `big-dill.pythonPath` |
 
 > **Windows:** `build.sh` is a bash script. Run it from WSL or Git Bash.
 

@@ -31,20 +31,24 @@ VS Code's built-in Python test runner shows pytest-bdd scenarios as mangled Pyth
 ## Requirements
 
 - Python **3.10+** with [`pytest`](https://pypi.org/project/pytest/), [`pytest-bdd`](https://pypi.org/project/pytest-bdd/), and the companion plugin [`pytest-big-dill`](https://github.com/nokout/big-dill/tree/main/pytest-plugin) installed in your project environment
-- The [Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python) (`ms-python.python`) — used for interpreter selection
+- *Optional:* the [Python extension](https://marketplace.visualstudio.com/items?itemName=ms-python.python) (`ms-python.python`). If installed, its selected interpreter is used automatically. If not, set `big-dill.pythonPath`, or leave it empty to use `python` from `PATH`.
 
 ## Quick start
 
-1. Install this extension and select your project's Python interpreter (`Python: Select Interpreter`).
+1. Install this extension and point it at your project's Python interpreter — either
+   select one with the Python extension (`Python: Select Interpreter`) if you have it,
+   or set `big-dill.pythonPath` directly.
 2. Install the companion pytest plugin into that environment.
-3. Disable ms-python's own pytest tree to avoid duplicates, and point the extension at your pytest root if it isn't the workspace root:
+3. If the Python extension is installed, disable its own pytest tree to avoid a duplicate
+   view. Point the extension at your pytest root if it isn't the workspace root:
 
 ```jsonc
 // .vscode/settings.json
 {
-  "python.testing.pytestEnabled": false,
   "big-dill.enabled": true,
-  "big-dill.cwd": "./tests-directory"   // optional
+  "big-dill.pythonPath": "./.venv/bin/python",  // optional — omit to use the Python extension
+  "big-dill.cwd": "./tests-directory",          // optional
+  "python.testing.pytestEnabled": false         // only if the Python extension is installed
 }
 ```
 
@@ -57,6 +61,7 @@ All settings live under the `big-dill` namespace:
 | Setting | Default | Description |
 |---|---|---|
 | `enabled` | `true` | Enable/disable the test runner |
+| `pythonPath` | `""` | Interpreter used to run pytest. Takes precedence over the Python extension's selection; empty falls back to the Python extension if installed, then `python` on `PATH` |
 | `cwd` | `""` | Working directory for pytest discovery and runs (falls back to `python.testing.cwd`, then workspace root) |
 | `pytestArgs` | `[]` | Extra arguments for every pytest invocation |
 | `outcomeMapping` | `{}` | Map custom status strings to VS Code run states (`passed`, `failed`, `errored`, `skipped`, `enqueued`) |

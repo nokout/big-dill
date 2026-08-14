@@ -283,8 +283,28 @@ export function deactivate(): void {
     testController?.dispose();
 }
 
+/**
+ * Resolve the interpreter used to run pytest, in precedence order:
+ *
+ *   1. big-dill.pythonPath      — explicit override
+ *   2. ms-python.python         — the Python extension's selected interpreter
+ *   3. 'python' on PATH         — last resort
+ *
+ * The Python extension is deliberately *not* an extensionDependency: it can only
+ * be installed from the Marketplace, which is unreachable in some environments,
+ * and VS Code refuses to activate an extension whose declared dependencies are
+ * missing. Step 1 exists so those environments have a supported way to point at
+ * an interpreter without it.
+ */
 async function getPythonInterpreter(workspaceUri: vscode.Uri): Promise<string> {
-    // Use ms-python's public extension API to get the active Python interpreter
+    const configured = vscode.workspace
+        .getConfiguration('big-dill', workspaceUri)
+        .get<string>('pythonPath', '')
+        .trim();
+    if (configured) {
+        return configured;
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const pythonExt = vscode.extensions.getExtension<any>('ms-python.python');
     if (pythonExt) {

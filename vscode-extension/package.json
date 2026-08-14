@@ -32,9 +32,6 @@
   ],
   "icon": "icons/marketplace-icon.png",
   "main": "./dist/extension.js",
-  "extensionDependencies": [
-    "ms-python.python"
-  ],
   "capabilities": {
     "untrustedWorkspaces": {
       "supported": false,
@@ -101,6 +98,11 @@
           "type": "string",
           "default": "",
           "description": "Working directory for pytest discovery and execution. Overrides python.testing.cwd. Defaults to the workspace root when neither is set."
+        },
+        "big-dill.pythonPath": {
+          "type": "string",
+          "default": "",
+          "markdownDescription": "Path to the Python interpreter used to run pytest. Takes precedence over the Python extension's selected interpreter. Leave empty to use the Python extension if installed, otherwise `python` from `PATH` — the Python extension is optional."
         },
         "big-dill.tagNamespace": {
           "type": "string",
