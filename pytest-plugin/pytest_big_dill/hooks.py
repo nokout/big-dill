@@ -37,7 +37,15 @@ def pytest_collection_modifyitems(session, config, items):
         if scenario is None:
             continue  # not a pytest-bdd item
 
-        feature_path = os.path.relpath(scenario.feature.filename, str(config.rootdir))
+        # Resolve both sides before comparing. If one is reached through a symlink
+        # and the other is not — a workspace opened via a link, or macOS's
+        # /tmp -> /private/tmp — relpath yields "../real/features/x.feature", and
+        # the host then builds folder nodes called ".." and resolves URIs outside
+        # the workspace.
+        feature_path = os.path.relpath(
+            os.path.realpath(scenario.feature.filename),
+            os.path.realpath(str(config.rootdir)),
+        )
         item._bdd_feature_path = feature_path
         item._bdd_scenario_name = scenario.name  # default: plain scenario name
 
