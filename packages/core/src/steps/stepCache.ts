@@ -14,7 +14,7 @@ export type ParamAtPosition = {
 /** Convert a step pattern to a regex with named capture groups for each parameter. */
 function patternToRegex(pattern: string): RegExp {
     // Escape regex metacharacters except our own {} placeholders
-    const parts = pattern.split(/(\{[^}]+\})/);
+    const parts = pattern.split(/(\{[^}]{1,200}\})/);
     const regexStr = parts
         .map((part, i) => {
             if (i % 2 === 1) {
@@ -128,7 +128,7 @@ export class StepCache {
             if (!m?.groups) continue;
 
             // Split pattern into alternating [literal, placeholder, literal, ...]
-            const segments = step.pattern.split(/(\{[^}]+\})/);
+            const segments = step.pattern.split(/(\{[^}]{1,200}\})/);
 
             let pos = 0;      // cursor into lineText as we consume each segment
             let paramIdx = 0; // index into step.parameters
