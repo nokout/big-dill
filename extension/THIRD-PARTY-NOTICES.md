@@ -5,54 +5,15 @@ components listed here are **not** covered by that licence: each remains under
 its own terms, reproduced below, and nothing in `LICENSE` limits your rights
 under them.
 
-This file covers everything redistributed inside the `.vsix`. Development-only
-dependencies are not listed, because they are not shipped to users.
-
----
-
-## Adapted source
-
-### microsoft/vscode-python — MIT
-
-Upstream: https://github.com/microsoft/vscode-python
-Synced from commit `5c2c3948e1c8c8a1dfe848104773477e70d0b83b`.
-
-| Path | Nature of adaptation |
-|---|---|
-| `python_files/run_pytest.py` | Adapted |
-| `python_files/vscode_pytest/__init__.py` | Adapted |
-| `python_files/vscode_pytest/_common.py` | Verbatim, no changes |
-| `src/testController/types.ts` (compiled into `dist/`) | Adapted (payload type definitions) |
-
-```
-MIT License
-
-Copyright (c) Microsoft Corporation. All rights reserved.
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
+The extension is bundled, so these packages are not shipped as separate files —
+but their code is compiled into `dist/extension.js` and reaches every user.
+Development-only dependencies are not listed; they are not distributed.
 
 ---
 
 ## Bundled runtime dependencies
 
-The extension ships unbundled, so these packages are included in the `.vsix`:
+Compiled into `dist/extension.js`:
 
 | Package | Version | Licence |
 |---|---|---|
@@ -83,8 +44,27 @@ Copyright (c) 2018 Cucumber Ltd and contributors
 Copyright (c) 2015-2020 TypeStack
 ```
 
-The three packages above are each distributed under the MIT licence, whose full
-text is reproduced above.
+The three packages above are each distributed under the MIT licence:
+
+```
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
 
 ### reflect-metadata — Apache-2.0
 

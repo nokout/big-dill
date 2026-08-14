@@ -168,7 +168,6 @@ The repository is public, so those URLs resolve.
 | [docs/architecture.md](docs/architecture.md) | Contributors — Testing API integration, IPC, component breakdown, upstream tracking |
 | [pytest-plugin/README.md](pytest-plugin/README.md) | Users — the PyPI listing for the pytest plugin |
 | [SECURITY.md](SECURITY.md) | Everyone — trust model, supply chain, and how to report a vulnerability |
-| [UPSTREAM.md](UPSTREAM.md) | Contributors — which files are adapted from ms-python, and how to re-sync them |
 
 That table plus this file is the whole of the repo's prose. Design rationale belongs in
 `architecture.md` and user-facing behaviour in the guides; planned work and open decisions

@@ -32,8 +32,6 @@ export interface PytestOptions {
     cwd: string;
     /** Interpreter used to run pytest. */
     interpreterPath: string;
-    /** Directory holding run_pytest.py and the vscode_pytest package. */
-    pythonFilesDir: string;
     /** Extra arguments appended to every pytest invocation. */
     pytestArgs?: string[];
     /** Receives subprocess stderr as it arrives. */
@@ -47,10 +45,12 @@ export type DiscoveryResult = {
     stepDefinitions: StepDefinition[];
 };
 
-function buildPythonPath(extraDir: string): string {
-    const existing = process.env.PYTHONPATH ?? '';
-    return existing ? `${extraDir}${path.delimiter}${existing}` : extraDir;
-}
+/**
+ * Test ids are passed to the runner in a file rather than on the command line:
+ * Windows caps a command line at roughly 32,000 characters, and a few hundred
+ * scenarios exceeds it with an opaque OS error.
+ */
+const TEST_IDS_ENV = 'BIG_DILL_TEST_IDS';
 
 /**
  * Wire an AbortSignal to a running subprocess.
@@ -69,13 +69,12 @@ function onAbort(signal: AbortSignal | undefined, handler: () => void): void {
 }
 
 export async function discoverTests(opts: PytestOptions): Promise<DiscoveryResult> {
-    const { cwd, interpreterPath, pythonFilesDir, pytestArgs = [], log, signal } = opts;
+    const { cwd, interpreterPath, pytestArgs = [], log, signal } = opts;
     const ipc = await createIpcServer();
 
     const env: NodeJS.ProcessEnv = {
         ...process.env,
         TEST_RUN_PIPE: ipc.pipeName,
-        PYTHONPATH: buildPythonPath(pythonFilesDir),
     };
 
     const args = [
@@ -84,7 +83,6 @@ export async function discoverTests(opts: PytestOptions): Promise<DiscoveryResul
         '-q',
         '--rootdir', cwd,
         '--import-mode=importlib',
-        '-p', 'vscode_pytest',
         ...pytestArgs,
     ];
 
@@ -137,7 +135,7 @@ export async function discoverTests(opts: PytestOptions): Promise<DiscoveryResul
 export async function runTests(
     opts: PytestOptions & { testIds: string[] },
 ): Promise<ExecutionTestPayload[]> {
-    const { cwd, interpreterPath, pythonFilesDir, pytestArgs = [], log, signal, testIds } = opts;
+    const { cwd, interpreterPath, pytestArgs = [], log, signal, testIds } = opts;
     const ipc = await createIpcServer();
 
     // mkdtempSync atomically creates a directory with a random suffix and 0700
@@ -156,11 +154,13 @@ export async function runTests(
     const env: NodeJS.ProcessEnv = {
         ...process.env,
         TEST_RUN_PIPE: ipc.pipeName,
-        RUN_TEST_IDS_PIPE: testIdsFile,
-        PYTHONPATH: buildPythonPath(pythonFilesDir),
+        [TEST_IDS_ENV]: testIdsFile,
     };
 
-    const args = [path.join(pythonFilesDir, 'run_pytest.py'), ...pytestArgs];
+    // Deliberately no --import-mode here: discovery passes importlib and execution
+    // never has. Node ids must match between the two or results attach to nothing,
+    // and import mode is exactly what shifts them.
+    const args = ['-m', 'pytest_big_dill', '--rootdir', cwd, ...pytestArgs];
     const payloads: ExecutionTestPayload[] = [];
 
     return new Promise<ExecutionTestPayload[]>((resolve, reject) => {
@@ -199,13 +199,12 @@ export async function runTests(
 export async function runBddLint(
     opts: PytestOptions & { featureFilePath: string },
 ): Promise<LintDiagnosticEntry[]> {
-    const { cwd, interpreterPath, pythonFilesDir, pytestArgs = [], log, signal, featureFilePath } = opts;
+    const { cwd, interpreterPath, pytestArgs = [], log, signal, featureFilePath } = opts;
     const ipc = await createIpcServer();
 
     const env: NodeJS.ProcessEnv = {
         ...process.env,
         TEST_RUN_PIPE: ipc.pipeName,
-        PYTHONPATH: buildPythonPath(pythonFilesDir),
     };
 
     const args = [
@@ -213,7 +212,6 @@ export async function runBddLint(
         '--bdd-lint', featureFilePath,
         '--rootdir', cwd,
         '--import-mode=importlib',
-        '-p', 'vscode_pytest',
         ...pytestArgs,
     ];
 

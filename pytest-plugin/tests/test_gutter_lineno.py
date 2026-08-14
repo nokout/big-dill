@@ -1,33 +1,20 @@
 """
-Integration tests for the gutter-icon line number fix in vscode_pytest/create_test_node().
+Gutter-icon line numbers for BDD items.
 
-Problem (before fix):
-  create_test_node() used test_case.location[1] as lineno, which is the line in the
-  *Python* test file (the scenarios() call), not the .feature file.  VS Code uses
-  TestItem.range to place gutter icons, so the icon appeared on the wrong line.
+A host displays a scenario against its .feature file, so the item's line must be
+the Scenario keyword's line there. Using ``item.location[1]`` — the line of the
+``scenarios()`` call in the Python test file — puts gutter icons on an unrelated
+line, or past the end of the file.
 
-Fix:
-  For pytest-bdd items (those with _bdd_feature_path set), override lineno with
-  scenario.line_number — the line of the Scenario/Scenario Outline keyword in the
-  .feature file.
-
-These tests call create_test_node() directly on items captured via pytester so that
-the assertion is made against the real pytest.Item objects, not mocks.
+This was fixed once in the vendored ms-python bridge and then reintroduced when
+that bridge was replaced by ``pytest_big_dill.bridge``; these tests are what
+should catch it a third time. They run real items captured through pytester
+rather than mocks, because the bug lives in what pytest reports about an item.
 """
-import pathlib
-import sys
 
 import pytest
 
-# ---------------------------------------------------------------------------
-# Make the vscode_pytest module importable (it lives in the extension tree,
-# not installed as a package).
-# ---------------------------------------------------------------------------
-_PYTHON_FILES = pathlib.Path(__file__).parent.parent.parent / "extension" / "python_files"
-if str(_PYTHON_FILES) not in sys.path:
-    sys.path.insert(0, str(_PYTHON_FILES))
-
-from vscode_pytest import create_test_node  # noqa: E402
+from pytest_big_dill.bridge import discovery_item
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -104,14 +91,14 @@ def _collect(pytester: pytest.Pytester) -> list[pytest.Item]:
 # ---------------------------------------------------------------------------
 
 def test_plain_scenario_lineno_uses_feature_file_line(pytester: pytest.Pytester):
-    """create_test_node() must report the Scenario keyword line, not the Python line."""
+    """The payload must report the Scenario keyword line, not the Python line."""
     items = _collect(pytester)
     plain = [i for i in items if hasattr(i, "_bdd_feature_path") and not hasattr(i, "callspec")]
     assert plain, "Expected at least one plain (non-outline) BDD item"
 
     for item in plain:
-        node = create_test_node(item)
-        assert node["lineno"] == str(PLAIN_SCENARIO_LINE), (
+        node = discovery_item(item, str(item.config.rootdir))
+        assert node["lineno"] == PLAIN_SCENARIO_LINE, (
             f"Plain scenario lineno should be the feature file line {PLAIN_SCENARIO_LINE}, "
             f"got {node['lineno']!r}. "
             f"(Python file location was line {item.location[1] + 1})"
@@ -125,8 +112,8 @@ def test_plain_scenario_lineno_differs_from_python_location(pytester: pytest.Pyt
     assert plain
 
     for item in plain:
-        python_lineno = str(item.location[1] + 1) if item.location[1] is not None else ""
-        node = create_test_node(item)
+        python_lineno = item.location[1] + 1 if item.location[1] is not None else 0
+        node = discovery_item(item, str(item.config.rootdir))
         assert node["lineno"] != python_lineno, (
             f"lineno {node['lineno']!r} should differ from the Python file line "
             f"{python_lineno!r} — they happen to match, weakening the test. "
@@ -141,8 +128,8 @@ def test_outline_all_rows_use_scenario_outline_line(pytester: pytest.Pytester):
     assert len(outline) == 2, f"Expected 2 outline rows, got {len(outline)}"
 
     for item in outline:
-        node = create_test_node(item)
-        assert node["lineno"] == str(OUTLINE_SCENARIO_LINE), (
+        node = discovery_item(item, str(item.config.rootdir))
+        assert node["lineno"] == OUTLINE_SCENARIO_LINE, (
             f"Outline row lineno should be the Scenario Outline line {OUTLINE_SCENARIO_LINE}, "
             f"got {node['lineno']!r}"
         )
@@ -160,8 +147,8 @@ def test_something():
     assert plain
 
     for item in plain:
-        node = create_test_node(item)
-        expected = str(item.location[1] + 1) if item.location[1] is not None else ""
+        node = discovery_item(item, str(item.config.rootdir))
+        expected = item.location[1] + 1 if item.location[1] is not None else 0
         assert node["lineno"] == expected, (
             f"Non-BDD item lineno should be the Python file line {expected!r}, "
             f"got {node['lineno']!r}"

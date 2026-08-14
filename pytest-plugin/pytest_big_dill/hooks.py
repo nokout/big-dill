@@ -289,8 +289,17 @@ _results: dict[str, dict] = {}
 
 
 def pytest_collection_finish(session) -> None:
-    """Emit the discovered tests and step definitions to the host."""
+    """Emit the discovered tests and step definitions to the host.
+
+    Discovery is only sent for a --collect-only run. A host asks for discovery and
+    execution separately, so emitting the tree on every test run would be wasted
+    work — and the host's execution reader accepts any frame it is given, so the
+    extra payloads arrive as empty results rather than being ignored.
+    """
     if not bridge.pipe_path():
+        return
+
+    if not session.config.getoption("--collect-only", default=False):
         return
 
     rootdir = str(session.config.rootdir)
