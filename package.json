@@ -8,6 +8,8 @@
     "vscode-extension"
   ],
   "scripts": {
+    "// postinstall": "The extension resolves @nokout/big-dill-core through its package.json `types`/`main`, which point into dist/. Nothing else builds core first, so without this every consumer — CI, a fresh clone, esbuild — fails with 'Cannot find module'. Building on install makes the dependency order automatic rather than something each job has to remember.",
+    "postinstall": "npm run compile -w @nokout/big-dill-core",
     "compile": "npm run compile --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
