@@ -145,7 +145,7 @@ jobs:
           {
             echo '### Marketplace payload'
             echo '```'
-            npx vsce ls
+            npx vsce ls --no-dependencies
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 

@@ -203,10 +203,10 @@ jobs:
       # and vscode-extension together.
       - run: npm ci
       - name: Package
-        run: npx vsce package --no-rewrite-relative-links -o big-dill.vsix
+        run: npx vsce package --no-dependencies --no-rewrite-relative-links -o big-dill.vsix
         working-directory: vscode-extension
       - name: List packaged contents
-        run: npx vsce ls
+        run: npx vsce ls --no-dependencies
         working-directory: vscode-extension
       # Reviewers can download and install exactly what the PR builds.
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
