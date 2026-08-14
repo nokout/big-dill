@@ -3,7 +3,7 @@ updates:
   # Extension runtime + dev dependencies. Runtime deps ship inside the VSIX,
   # so keeping these current is a user-facing security concern.
   - package-ecosystem: npm
-    directory: /vscode-extension
+    directory: /extension
     schedule:
       interval: weekly
       day: monday

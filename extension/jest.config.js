@@ -7,7 +7,7 @@ module.exports = {
         // Resolve the core package from source rather than its built dist, so a
         // stale build cannot mask a break. Publishing is verified separately by
         // installing the packed tarball.
-        '^@nokout/big-dill-core$': '<rootDir>/../packages/core/src/index.ts',
+        '^@nokout/big-dill-core$': '<rootDir>/../core/src/index.ts',
     },
     roots: ['<rootDir>/src'],
     testMatch: ['**/__tests__/**/*.test.ts'],

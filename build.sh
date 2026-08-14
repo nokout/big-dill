@@ -9,7 +9,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-EXT_DIR="$SCRIPT_DIR/vscode-extension"
+EXT_DIR="$SCRIPT_DIR/extension"
 
 echo "==> Installing Node dependencies..."
 cd "$SCRIPT_DIR"
@@ -26,7 +26,7 @@ echo "==> Packaging extension..."
 # --no-rewrite-relative-links keeps the README's image paths pointing at the
 # images packaged inside the VSIX. Without it vsce rewrites them to
 # github.com/.../raw/HEAD URLs, which resolve to the wrong path: the images live
-# under vscode-extension/, not the repository root.
+# under extension/, not the repository root.
 ../node_modules/.bin/vsce package --no-dependencies --no-rewrite-relative-links
 
 VSIX=$(ls -t big-dill-*.vsix 2>/dev/null | head -1)

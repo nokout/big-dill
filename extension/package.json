@@ -17,7 +17,7 @@
     "type": "git",
     "url": "https://github.com/nokout/big-dill"
   },
-  "homepage": "https://github.com/nokout/big-dill/blob/main/vscode-extension/README.md",
+  "homepage": "https://github.com/nokout/big-dill/blob/main/extension/README.md",
   "bugs": {
     "url": "https://github.com/nokout/big-dill/issues"
   },
@@ -310,7 +310,7 @@
     "bundle:production": "node esbuild.mjs --production",
     "watch": "node esbuild.mjs --watch",
     "package": "vsce package --no-dependencies --no-rewrite-relative-links",
-    "package:marketplace": "vsce package --no-dependencies --baseImagesUrl https://raw.githubusercontent.com/nokout/big-dill/main/vscode-extension",
+    "package:marketplace": "vsce package --no-dependencies --baseImagesUrl https://raw.githubusercontent.com/nokout/big-dill/main/extension",
     "lint": "eslint src",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "jest",

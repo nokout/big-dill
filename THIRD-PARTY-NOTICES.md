@@ -29,10 +29,10 @@ Files adapted from this project:
 
 | Path | Nature of adaptation |
 |---|---|
-| `vscode-extension/python_files/run_pytest.py` | Adapted |
-| `vscode-extension/python_files/vscode_pytest/__init__.py` | Adapted |
-| `vscode-extension/python_files/vscode_pytest/_common.py` | Verbatim, no changes |
-| `vscode-extension/src/testController/types.ts` | Adapted (payload type definitions) |
+| `extension/python_files/run_pytest.py` | Adapted |
+| `extension/python_files/vscode_pytest/__init__.py` | Adapted |
+| `extension/python_files/vscode_pytest/_common.py` | Verbatim, no changes |
+| `extension/src/testController/types.ts` | Adapted (payload type definitions) |
 
 ```
 MIT License

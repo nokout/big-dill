@@ -29,7 +29,7 @@ VS Code Testing panel
         │  TestItem tree / run results
         ▼
 ┌─────────────────────────────────────┐
-│        vscode-extension (TS)        │
+│        extension (TS)        │
 │                                     │
 │  pytestRunner  ──spawn──►  pytest   │
 │       │          ◄─IPC─    subprocess
@@ -82,7 +82,7 @@ An installable pytest plugin (`pytest-big-dill`) that bridges pytest-bdd's data 
 
 See the [developer guide](developer-guide.md) for the full hookspec reference including the lint hooks.
 
-### `vscode-extension/python_files/vscode_pytest/` — the adapted ms-python bridge
+### `extension/python_files/vscode_pytest/` — the adapted ms-python bridge
 
 This is a modified version of the `vscode_pytest/__init__.py` file from the [microsoft/vscode-python](https://github.com/microsoft/vscode-python) extension. The original handles IPC, test tree serialisation, and result reporting for the ms-python test runner.
 
@@ -95,7 +95,7 @@ This is a modified version of the `vscode_pytest/__init__.py` file from the [mic
 
 Changes are marked `# BIG-DILL` in the source. See [UPSTREAM.md](../UPSTREAM.md) for the tracked commit and diff instructions.
 
-### `vscode-extension/src/` — the TypeScript extension
+### `extension/src/` — the TypeScript extension
 
 **`extension.ts`** — activation entry point. Creates the `TestController`, run profile, and file system watcher. Coordinates workspace discovery on activation, on `.feature` file changes, and on configuration changes.
 
@@ -110,7 +110,7 @@ Changes are marked `# BIG-DILL` in the source. See [UPSTREAM.md](../UPSTREAM.md)
 
 **`resultResolver.ts`** — receives discovery and execution payloads from the IPC server. Maps custom statuses to VS Code run states using `big-dill.outcomeMapping`. Prepends ⏳ to scenario labels mapped to the `enqueued` state and removes it when a terminal result arrives.
 
-### `vscode-extension/python_files/run_pytest.py`
+### `extension/python_files/run_pytest.py`
 
 A thin runner script (also adapted from ms-python) that reads test node IDs from a file and invokes pytest, with the `vscode_pytest` plugin active to stream results back over the named pipe.
 
@@ -206,7 +206,7 @@ Recorded so the boundary is not relitigated:
 
 ```
 big-dill/
-├── vscode-extension/
+├── extension/
 │   ├── src/                    TypeScript extension source
 │   │   └── testController/     Test controller, runner, resolver, tree builder
 │   └── python_files/           Python bridge (adapted from ms-python)
