@@ -42,6 +42,21 @@ export {
     type LintConfig,
 } from './lint/rules';
 
+// ── Document outline ────────────────────────────────────────────────────────
+export { buildSymbolTree, type SymbolNode, type SymbolNodeKind } from './symbols/outline';
+
+// ── Semantic tokens ─────────────────────────────────────────────────────────
+export {
+    buildTableTokens,
+    TOKEN_TYPES,
+    TYPE_INDEX,
+    type TokenType,
+    type TokenEntry,
+} from './tokens/semanticTokens';
+
+// ── Table formatting ────────────────────────────────────────────────────────
+export { formatTables, type TextEditEntry } from './format/tables';
+
 // ── Step indexing ───────────────────────────────────────────────────────────
 export { StepCache, type LineMatch, type ParamAtPosition } from './steps/stepCache';
 

@@ -1,5 +1,5 @@
-import { formatTables, TextEditEntry } from '../featureFormatter';
-import { parseSource } from '@nokout/big-dill-core';
+import { formatTables, TextEditEntry } from '../format/tables';
+import { parseSource } from '../gherkin/parser';
 
 function format(source: string): TextEditEntry[] {
     const { doc } = parseSource(source);

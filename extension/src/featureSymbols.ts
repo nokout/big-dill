@@ -1,44 +1,27 @@
-import type { GherkinDocument } from '@cucumber/messages';
+// Copyright (c) 2026 Nigel O'Keefe. All rights reserved.
+// Licensed under the MIT License.
+//
+// Adapter only. The outline is computed by @nokout/big-dill-core; this maps its
+// nodes onto vscode.DocumentSymbol.
+
 import * as vscode from 'vscode';
-import { GherkinParseCache } from '@nokout/big-dill-core';
+import { GherkinParseCache, buildSymbolTree, type SymbolNode } from '@nokout/big-dill-core';
 
-export function buildSymbols(doc: GherkinDocument): vscode.DocumentSymbol[] {
-    if (!doc.feature) return [];
+const KINDS: Record<SymbolNode['kind'], vscode.SymbolKind> = {
+    feature: vscode.SymbolKind.Module,
+    scenario: vscode.SymbolKind.Function,
+};
 
-    const feature = doc.feature;
-    const featureStart = (feature.location?.line ?? 1) - 1;
-    const featureRange = new vscode.Range(featureStart, 0, featureStart, Number.MAX_SAFE_INTEGER);
+function toSymbol(node: SymbolNode): vscode.DocumentSymbol {
+    // Full-width range: Gherkin constructs occupy their whole line.
+    const range = new vscode.Range(node.line, 0, node.line, Number.MAX_SAFE_INTEGER);
+    const symbol = new vscode.DocumentSymbol(node.name, node.detail, KINDS[node.kind], range, range);
+    symbol.children.push(...node.children.map(toSymbol));
+    return symbol;
+}
 
-    const featureSymbol = new vscode.DocumentSymbol(
-        feature.name || '(unnamed feature)',
-        '',
-        vscode.SymbolKind.Module,
-        featureRange,
-        featureRange,
-    );
-
-    for (const child of feature.children) {
-        const scenario = child.scenario ?? child.background;
-        if (!scenario) continue;
-
-        const lineIndex = (scenario.location?.line ?? 1) - 1;
-        const range = new vscode.Range(lineIndex, 0, lineIndex, Number.MAX_SAFE_INTEGER);
-
-        const tags = ('tags' in scenario ? scenario.tags ?? [] : [])
-            .map((t) => t.name)
-            .join(' ');
-
-        const symbol = new vscode.DocumentSymbol(
-            scenario.name || (child.background ? '(background)' : '(unnamed scenario)'),
-            tags,
-            vscode.SymbolKind.Function,
-            range,
-            range,
-        );
-        featureSymbol.children.push(symbol);
-    }
-
-    return [featureSymbol];
+export function buildSymbols(doc: Parameters<typeof buildSymbolTree>[0]): vscode.DocumentSymbol[] {
+    return buildSymbolTree(doc).map(toSymbol);
 }
 
 export class FeatureSymbolsProvider implements vscode.DocumentSymbolProvider {
