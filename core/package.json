@@ -7,9 +7,9 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/nokout/big-dill",
-    "directory": "packages/core"
+    "directory": "core"
   },
-  "homepage": "https://github.com/nokout/big-dill/blob/main/packages/core/README.md",
+  "homepage": "https://github.com/nokout/big-dill/blob/main/core/README.md",
   "bugs": {
     "url": "https://github.com/nokout/big-dill/issues"
   },

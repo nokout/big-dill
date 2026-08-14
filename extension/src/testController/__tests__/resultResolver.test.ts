@@ -222,7 +222,7 @@ test('result with unknown run ID is skipped without throwing', () => {
 // ---------------------------------------------------------------------------
 
 describe('playground settings contract', () => {
-    // __dirname = vscode-extension/src/testController/__tests__
+    // __dirname = extension/src/testController/__tests__
     // 4x ".." → the repository root
     const SETTINGS_PATH = path.join(
         __dirname,

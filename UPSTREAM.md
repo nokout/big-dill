@@ -19,10 +19,10 @@ header into it.
 
 | Our path | ms-python source path | Last-synced commit |
 |---|---|---|
-| `vscode-extension/python_files/run_pytest.py` | `python_files/run_pytest.py` | `5c2c3948` |
-| `vscode-extension/python_files/vscode_pytest/__init__.py` | `python_files/vscode_pytest/__init__.py` | `5c2c3948` |
-| `vscode-extension/python_files/vscode_pytest/_common.py` | `python_files/vscode_pytest/_common.py` | `5c2c3948` |
-| `vscode-extension/src/testController/types.ts` | `src/client/testing/testController/common/types.ts` | `5c2c3948` |
+| `extension/python_files/run_pytest.py` | `python_files/run_pytest.py` | `5c2c3948` |
+| `extension/python_files/vscode_pytest/__init__.py` | `python_files/vscode_pytest/__init__.py` | `5c2c3948` |
+| `extension/python_files/vscode_pytest/_common.py` | `python_files/vscode_pytest/_common.py` | `5c2c3948` |
+| `extension/src/testController/types.ts` | `src/client/testing/testController/common/types.ts` | `5c2c3948` |
 
 > **Note:** `types.ts` is the only adapted TypeScript file — it carries the discovery
 > and execution payload type definitions that must stay wire-compatible with the

@@ -19,7 +19,7 @@ This project is pre-1.0. Only the latest released version receives security fixe
 
 Understanding the trust model matters more than a version table here.
 
-**The VS Code extension** (`vscode-extension/`) runs with the privileges of your
+**The VS Code extension** (`extension/`) runs with the privileges of your
 editor. To discover and run tests it **spawns pytest** using the Python interpreter
 you have selected for the workspace. That executes your project's own code —
 `conftest.py`, fixtures, and step definitions — exactly as running pytest in a

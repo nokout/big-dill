@@ -23,7 +23,7 @@ import pytest
 # Make the vscode_pytest module importable (it lives in the extension tree,
 # not installed as a package).
 # ---------------------------------------------------------------------------
-_PYTHON_FILES = pathlib.Path(__file__).parent.parent.parent / "vscode-extension" / "python_files"
+_PYTHON_FILES = pathlib.Path(__file__).parent.parent.parent / "extension" / "python_files"
 if str(_PYTHON_FILES) not in sys.path:
     sys.path.insert(0, str(_PYTHON_FILES))
 

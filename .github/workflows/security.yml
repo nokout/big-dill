@@ -71,8 +71,8 @@ jobs:
           node-version: 20
           cache: npm
           cache-dependency-path: package-lock.json
-      # npm workspaces: a single install at the root wires up packages/core
-      # and vscode-extension together.
+      # npm workspaces: a single install at the root wires up core
+      # and extension together.
       - run: npm ci
       # The extension is bundled, so runtime dependencies are not shipped as
       # files — but their *code* is inlined into dist/extension.js and reaches
@@ -80,12 +80,12 @@ jobs:
       # remains exactly as meaningful. Only the packaging differs.
       - name: Audit runtime dependencies
         run: npm audit --omit=dev --audit-level=high
-        working-directory: vscode-extension
+        working-directory: extension
       # Dev dependencies never reach users; report but do not block.
       - name: Audit dev dependencies (advisory)
         continue-on-error: true
         run: npm audit --audit-level=high
-        working-directory: vscode-extension
+        working-directory: extension
 
   pip-audit:
     name: pip-audit (plugin)

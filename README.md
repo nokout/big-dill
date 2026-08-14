@@ -7,7 +7,7 @@
 
 A VS Code extension for [pytest-bdd](https://pytest-bdd.readthedocs.io/) that surfaces Gherkin scenarios as first-class citizens in the Testing panel and provides a full authoring experience for testers writing `.feature` files.
 
-**Quick links:** [Extension listing](vscode-extension/README.md) · [Overview](docs/overview.md) · [Tester guide](docs/tester-guide.md) · [Developer guide](docs/developer-guide.md) · [Architecture](docs/architecture.md) · [Lint rules](docs/lint-rules.md)
+**Quick links:** [Extension listing](extension/README.md) · [Overview](docs/overview.md) · [Tester guide](docs/tester-guide.md) · [Developer guide](docs/developer-guide.md) · [Architecture](docs/architecture.md) · [Lint rules](docs/lint-rules.md)
 
 ---
 
@@ -30,11 +30,11 @@ Features 🗂
       ⏳ A waiting scenario         @waits
 ```
 
-On top of the runner it adds Gherkin authoring tools: step completions, hover docs, go-to-definition, a step browser, structural linting, syntax highlighting, and snippets. The full feature tour with screenshots is in the [extension listing README](vscode-extension/README.md); the design deep-dive is in [docs/architecture.md](docs/architecture.md).
+On top of the runner it adds Gherkin authoring tools: step completions, hover docs, go-to-definition, a step browser, structural linting, syntax highlighting, and snippets. The full feature tour with screenshots is in the [extension listing README](extension/README.md); the design deep-dive is in [docs/architecture.md](docs/architecture.md).
 
 Two installable pieces work together:
 
-- **`vscode-extension/`** — the TypeScript extension (Testing API controller + language tooling)
+- **`extension/`** — the TypeScript extension (Testing API controller + language tooling)
 - **`pytest-plugin/`** — the `pytest-big-dill` pytest plugin (BDD metadata, display-name/status/lint hookspecs, `--bdd-lint` CLI)
 
 `playground/` is an end-to-end demo project used for manual validation and screenshots.
@@ -67,7 +67,7 @@ To build without installing:
 
 ```bash
 ./build.sh
-# Produces: vscode-extension/big-dill-*.vsix
+# Produces: extension/big-dill-*.vsix
 ```
 
 ### Set up the playground
@@ -82,7 +82,7 @@ pip install -e ../pytest-plugin  # installs the local plugin in editable mode
 
 Select the `.venv` interpreter in VS Code (`Ctrl+Shift+P` → `Python: Select Interpreter`), then open the repo root as the workspace — `.vscode/settings.json` already configures the extension for the playground.
 
-Configuration reference: see the [extension listing README](vscode-extension/README.md#settings).
+Configuration reference: see the [extension listing README](extension/README.md#settings).
 
 ---
 
@@ -92,7 +92,7 @@ For working on the extension itself, the repo ships a watch/debug workflow in `.
 
 ### Auto-build on watch
 
-`.vscode/tasks.json` defines `watch-extension`, a background task that runs the TypeScript compiler in watch mode (`npm run watch` in `vscode-extension/`). It is the default build task, so `Ctrl+Shift+B` starts it. Compile errors stream into the Problems panel as you type; output lands in `vscode-extension/dist/`.
+`.vscode/tasks.json` defines `watch-extension`, a background task that runs the TypeScript compiler in watch mode (`npm run watch` in `extension/`). It is the default build task, so `Ctrl+Shift+B` starts it. Compile errors stream into the Problems panel as you type; output lands in `extension/dist/`.
 
 The task sources `~/.nvm/nvm.sh` when present, so it also works where node is nvm-managed and the editor wasn't launched from a shell with nvm on `PATH` (e.g. the VSCodium flatpak, whose sandbox has no node of its own).
 
@@ -101,7 +101,7 @@ The task sources `~/.nvm/nvm.sh` when present, so it also works where node is nv
 Press `F5` (the "Run Extension" launch config). This:
 
 1. starts `watch-extension` automatically and waits for the first compile
-2. opens an **Extension Development Host** window with `vscode-extension/` loaded from source and `playground/` as its workspace
+2. opens an **Extension Development Host** window with `extension/` loaded from source and `playground/` as its workspace
 3. attaches the debugger — breakpoints in `src/*.ts` work via source maps
 
 VS Code cannot hot-swap a running extension's code. The iteration loop is:
@@ -117,20 +117,20 @@ Note that an installed `.vsix` is a frozen copy — it never picks up source cha
 ### Unit tests
 
 ```bash
-cd vscode-extension
+cd extension
 npx jest
 ```
 
 ### README screenshots
 
-The listing screenshots live in `vscode-extension/images/` — inside the extension
+The listing screenshots live in `extension/images/` — inside the extension
 folder so they are packaged into the VSIX — and the listing README references them
 with relative paths.
 
 Packaging must therefore pass `--no-rewrite-relative-links` (the `package` script,
 `build.sh`, and CI all do). Without it, vsce rewrites the paths to
 `github.com/<repo>/raw/HEAD/images/...`, which is the wrong path — the images are
-under `vscode-extension/`, not the repository root.
+under `extension/`, not the repository root.
 
 Relative paths render in VS Code's extension details pane and on GitHub. The
 Marketplace *web page* requires absolute HTTPS image URLs, so the Marketplace
@@ -143,10 +143,10 @@ npm run package:marketplace
 which expands to:
 
 ```bash
-vsce package --baseImagesUrl https://raw.githubusercontent.com/nokout/big-dill/main/vscode-extension
+vsce package --baseImagesUrl https://raw.githubusercontent.com/nokout/big-dill/main/extension
 ```
 
-> **The base URL stops at `vscode-extension`, not `vscode-extension/images`.** The README
+> **The base URL stops at `extension`, not `extension/images`.** The README
 > already references screenshots as `images/<name>.png`, and vsce joins the base to that
 > relative path — so including `/images` yields `…/images/images/<name>.png`, and every
 > screenshot 404s on the listing page. The `package:marketplace` script exists so this is
@@ -160,7 +160,7 @@ The repository is public, so those URLs resolve.
 
 | Document | Audience |
 |---|---|
-| [vscode-extension/README.md](vscode-extension/README.md) | Users — the marketplace listing: features, quick start, settings |
+| [extension/README.md](extension/README.md) | Users — the marketplace listing: features, quick start, settings |
 | [docs/overview.md](docs/overview.md) | Everyone — what the project does and who it's for |
 | [docs/tester-guide.md](docs/tester-guide.md) | Testers writing `.feature` files |
 | [docs/developer-guide.md](docs/developer-guide.md) | Developers implementing steps, hooks, typed steps, custom lint rules |
