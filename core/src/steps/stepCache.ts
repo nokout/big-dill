@@ -26,7 +26,7 @@ export function patternToRegex(pattern: string): RegExp {
         .map((part, i) => {
             if (i % 2 === 1) {
                 // parameter placeholder — extract name, create named capture group
-                const name = part.replace(/^\{(\w+)(?::[^}]+)?\}$/, '$1');
+                const name = part.replace(/^\{(\w+)(?::[^}]{1,200})?\}$/, '$1');
                 return `(?<${name}>.+?)`;
             }
             // literal text — escape regex metacharacters
@@ -146,7 +146,7 @@ export class StepCache {
                     pos += segments[i].length;
                 } else {
                     // parameter placeholder — the captured value starts at pos
-                    const name = segments[i].replace(/^\{(\w+)(?::[^}]+)?\}$/, '$1');
+                    const name = segments[i].replace(/^\{(\w+)(?::[^}]{1,200})?\}$/, '$1');
                     const value = m.groups[name];
                     if (value !== undefined) {
                         const valueStart = pos;
