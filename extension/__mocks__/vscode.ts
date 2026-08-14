@@ -17,10 +17,20 @@ export const workspace = {
 // without needing to wire up the full VSCode API.
 export const Uri = {
     file: jest.fn((p: string) => ({ fsPath: p, toString: () => p })),
-    joinPath: jest.fn(),
+    // Real enough to build tree paths with. Previously a bare jest.fn() returning
+    // undefined, which is part of why buildTree had no tests.
+    joinPath: jest.fn((base: { fsPath: string }, ...parts: string[]) => {
+        const joined = [base.fsPath, ...parts].join('/').replace(/\/+/g, '/');
+        return { fsPath: joined, toString: () => joined };
+    }),
 };
-export const Position = jest.fn();
-export const Range = jest.fn();
+export const Position = jest
+    .fn()
+    .mockImplementation((line: number, character: number) => ({ line, character }));
+export const Range = jest
+    .fn()
+    .mockImplementation((start: unknown, end: unknown) => ({ start, end }));
+export const TestTag = jest.fn().mockImplementation((id: string) => ({ id }));
 export const CancellationToken = {};
 
 // Completion API mocks

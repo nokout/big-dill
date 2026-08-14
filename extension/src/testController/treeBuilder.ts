@@ -106,12 +106,18 @@ export function buildTree(
         // Feature file URI (used for "go to definition" navigation)
         const featureFileUri = Uri.joinPath(cwdUri, featurePath);
 
-        // Build folder nodes for each directory component
-        const folderNode = ensureFolderPath(testController, testController, dirParts, cwdUri);
+        // Build folder nodes for each directory component. A .feature file at the
+        // workspace root has no directory parts, in which case it belongs directly
+        // to the controller — ensureFolderPath would return undefined (masked by a
+        // non-null assertion) and dereferencing it threw, taking down discovery for
+        // the whole workspace.
+        const folderChildren = dirParts.length
+            ? ensureFolderPath(testController, testController, dirParts, cwdUri).children
+            : testController.items;
 
         // Feature file node (no extension in label)
         let featureFileItem: TestItem | undefined;
-        folderNode.children.forEach((item) => {
+        folderChildren.forEach((item) => {
             if (item.id === featurePath) {
                 featureFileItem = item;
             }
@@ -124,7 +130,7 @@ export function buildTree(
             if (leaf.feature_tags?.length) {
                 featureFileItem.description = leaf.feature_tags.map((t) => `@${t}`).join(' ');
             }
-            folderNode.children.add(featureFileItem);
+            folderChildren.add(featureFileItem);
         }
 
         // Scenario leaf node
