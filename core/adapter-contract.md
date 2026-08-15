@@ -2,12 +2,11 @@
 
 How to build a host on top of `@nokout/big-dill-core`.
 
-This exists because the VS Code extension is expected to be **reimplemented**, not
-only installed. Some environments cannot reach the Marketplace but can reach npm
-and PyPI, so the engine and the pytest plugin arrive through package registries
-and only a thin editor-specific layer needs writing locally. This document is
-what that layer is written against — it should be enough on its own, without
-reading the existing extension.
+Core carries the whole engine and no editor dependency, so a host is a thin
+mapping layer: plain results in, editor types out. The VS Code extension is one
+such host, and this document describes what any other would need to do.
+
+It should be enough on its own, without reading the existing extension.
 
 ## The shape of it
 

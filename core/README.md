@@ -38,8 +38,8 @@ linting and formatting need nothing but this package.
 
 ## Building a host
 
-The VS Code extension is intended to be reimplementable rather than only
-installed — some environments can reach npm and PyPI but not the Marketplace.
+The VS Code extension is one host among possible others; nothing in this package
+assumes it.
 [`adapter-contract.md`](https://github.com/nokout/big-dill/blob/main/core/adapter-contract.md)
 documents the full API, the four substitutions that replace editor constructs,
 and what a host is expected to supply.
