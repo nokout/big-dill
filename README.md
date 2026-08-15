@@ -165,7 +165,9 @@ The repository is public, so those URLs resolve.
 | [docs/tester-guide.md](docs/tester-guide.md) | Testers writing `.feature` files |
 | [docs/developer-guide.md](docs/developer-guide.md) | Developers implementing steps, hooks, typed steps, custom lint rules |
 | [docs/lint-rules.md](docs/lint-rules.md) | Reference — every diagnostic the linter can raise |
-| [docs/architecture.md](docs/architecture.md) | Contributors — Testing API integration, IPC, component breakdown, upstream tracking |
+| [docs/architecture.md](docs/architecture.md) | Contributors — Testing API integration, IPC, component breakdown |
+| [docs/adapter-contract.md](docs/adapter-contract.md) | Anyone building a host on `@nokout/big-dill-core` — the API, and what a host must supply |
+| [core/README.md](core/README.md) | Users — the npm listing for the headless engine |
 | [pytest-plugin/README.md](pytest-plugin/README.md) | Users — the PyPI listing for the pytest plugin |
 | [SECURITY.md](SECURITY.md) | Everyone — trust model, supply chain, and how to report a vulnerability |
 
