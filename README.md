@@ -62,8 +62,8 @@ types and registers them. Core does the work and talks to the plugin. The plugin
 runs inside your pytest process and reports what it finds.
 
 Because core needs no editor, anything that runs Node can host it — a CI lint
-gate, a script, another editor. See
-[`core/adapter-contract.md`](core/adapter-contract.md) if you want to build one.
+gate, a script, another editor. [`core/README.md`](core/README.md#building-a-host)
+is the contract for building one.
 
 ## Getting started
 
@@ -118,8 +118,7 @@ cd pytest-plugin && pytest     # plugin
 | [`extension/tester-guide.md`](extension/tester-guide.md) | Writing `.feature` files with the authoring tools |
 | [`pytest-plugin/README.md`](pytest-plugin/README.md) | The PyPI listing: install, hooks, `--bdd-lint` |
 | [`pytest-plugin/developer-guide.md`](pytest-plugin/developer-guide.md) | Step definitions, typed parameters, hookspecs, custom lint rules |
-| [`core/README.md`](core/README.md) | The npm listing for the engine |
-| [`core/adapter-contract.md`](core/adapter-contract.md) | Building a host on core — the API, and what a host must supply |
+| [`core/README.md`](core/README.md) | The npm listing for the engine, and the adapter contract: the API, and what a host must supply |
 | [`docs/lint-rules.md`](docs/lint-rules.md) | Every diagnostic the linter can raise, across all three packages |
 | [`docs/architecture.md`](docs/architecture.md) | How the pieces work — Testing API integration, IPC, the wire protocol |
 | [`SECURITY.md`](SECURITY.md) | Trust model, supply chain, reporting a vulnerability |

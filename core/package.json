@@ -26,8 +26,7 @@
   "files": [
     "dist",
     "LICENSE",
-    "README.md",
-    "adapter-contract.md"
+    "README.md"
   ],
   "engines": {
     "node": ">=18"
