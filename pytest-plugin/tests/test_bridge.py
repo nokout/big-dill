@@ -8,7 +8,6 @@ what a reimplementation loses without anyone noticing.
 from __future__ import annotations
 
 import json
-import os
 import types
 
 import pytest
