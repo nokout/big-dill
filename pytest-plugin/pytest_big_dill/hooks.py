@@ -109,7 +109,9 @@ def _attach_bdd_tags(item, scenario, example_params) -> None:
         for block in getattr(scenario, "examples", []) or []:
             names = getattr(block, "example_params", [])
             for row in getattr(block, "examples", []) or []:
-                if dict(zip(names, row)) == example_params:
+                # strict=False matches the convention below: a ragged Examples
+                # table is a lint concern, not a reason to fail collection.
+                if dict(zip(names, row, strict=False)) == example_params:
                     tags |= set(getattr(block, "tags", set()) or set())
                     break
 
