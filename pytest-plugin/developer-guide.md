@@ -84,7 +84,7 @@ def pytest_big_dill_custom_status(report, config):
     return None
 ```
 
-The returned string is matched against `big-dill.outcomeMapping` in workspace settings to determine the VS Code run state. See the [README configuration reference](../README.md#configuration-reference) for valid run states.
+The returned string is matched against `big-dill.outcomeMapping` in workspace settings to determine the VS Code run state. See the [extension settings](https://github.com/nokout/big-dill/blob/main/extension/README.md#settings) for valid run states.
 
 ### `pytest_big_dill_lint_outline`
 

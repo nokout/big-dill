@@ -1,7 +1,7 @@
 # Architecture
 
 How the three packages work, and where the boundaries fall. For the API itself
-see [`core/adapter-contract.md`](../core/adapter-contract.md); for the diagnostics
+see [`core/README.md`](../core/README.md#building-a-host); for the diagnostics
 see [lint-rules.md](lint-rules.md).
 
 ## The split

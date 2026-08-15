@@ -5,8 +5,8 @@
  * @nokout/big-dill-core — the headless engine behind Big Dill.
  *
  * Nothing exported here depends on an editor. Results are plain data; mapping
- * them onto editor types is the host's responsibility. See
- * docs/adapter-contract.md for what a host must provide.
+ * them onto editor types is the host's responsibility. See the "Building a
+ * host" section of README.md for what a host must provide.
  */
 
 // ── Gherkin parsing ─────────────────────────────────────────────────────────
