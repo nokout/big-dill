@@ -23,11 +23,10 @@ see [lint-rules.md](lint-rules.md).
 throughout. The extension is an adapter: it maps that data onto VS Code types and
 registers the results.
 
-Two reasons for the boundary. The practical one is reach: some environments proxy
-npm and PyPI but not the VS Code Marketplace, so keeping the editor-specific
-artefact small means only a thin layer has to cross that boundary. The secondary
-one is that an engine which needs no editor can be used without one — a CI lint
-gate, a script, another host.
+Keeping the boundary there has two effects. The logic is testable without an
+editor stub — core holds most of the test suite and none of it needs a mock — and
+the engine is usable without an editor at all, from a CI lint gate, a script, or
+another host.
 
 ## Test discovery
 

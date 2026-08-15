@@ -61,10 +61,9 @@ The extension is a thin adapter: it maps plain results from core onto editor
 types and registers them. Core does the work and talks to the plugin. The plugin
 runs inside your pytest process and reports what it finds.
 
-That split is deliberate. The engine reaches environments the Marketplace cannot,
-and anything that can run Node can host it — a CI lint gate, another editor, a
-script. See [`core/adapter-contract.md`](core/adapter-contract.md) if you want to
-build one.
+Because core needs no editor, anything that runs Node can host it — a CI lint
+gate, a script, another editor. See
+[`core/adapter-contract.md`](core/adapter-contract.md) if you want to build one.
 
 ## Getting started
 
