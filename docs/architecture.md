@@ -2,6 +2,19 @@
 
 How Big Dill connects VS Code's Testing API to pytest-bdd. This is the design/development deep-dive; for user-facing docs see the [overview](overview.md), [tester guide](tester-guide.md), and [developer guide](developer-guide.md).
 
+> **⚠ Substantially out of date — rewrite pending.**
+>
+> This describes the structure before the engine was extracted into
+> `@nokout/big-dill-core`. In particular, the sections on `python_files/` and
+> `vscode_pytest` describe a vendored copy of ms-python's bridge that **no longer
+> exists**: discovery, execution and linting now run through `pytest-big-dill`'s
+> own bridge, and the extension ships no Python at all. The project is three
+> packages, not two, and the extension is bundled rather than shipping its
+> `node_modules`.
+>
+> For the current design of the engine and what a host must provide, see
+> [adapter-contract.md](adapter-contract.md).
+
 ---
 
 ## VS Code Testing API — the integration pattern
@@ -93,7 +106,7 @@ This is a modified version of the `vscode_pytest/__init__.py` file from the [mic
 - `create_test_node()` populates these fields from the `_bdd_*` attributes set by the pytest plugin, including Examples-block tag resolution for scenario outlines
 - `build_test_tree()` routes pytest-bdd items into feature-path-keyed stub file nodes rather than Python-file-keyed nodes, so the TypeScript tree builder receives items grouped by feature file
 
-Changes are marked `# BIG-DILL` in the source. See [UPSTREAM.md](../UPSTREAM.md) for the tracked commit and diff instructions.
+Nothing in the repository is adapted from ms-python any more; the tracking file that recorded the synced commit has been removed.
 
 ### `extension/src/` — the TypeScript extension
 
@@ -230,4 +243,4 @@ The adapted `vscode_pytest/__init__.py` tracks ms-python at a specific commit. T
 git diff 5c2c3948 HEAD -- python_files/vscode_pytest/__init__.py
 ```
 
-See [UPSTREAM.md](../UPSTREAM.md) for the full tracking table.
+Nothing is tracked against ms-python any more.
