@@ -1,165 +1,120 @@
 # Architecture
 
-How Big Dill connects VS Code's Testing API to pytest-bdd. This is the design/development deep-dive; for user-facing docs see the [overview](overview.md), [tester guide](tester-guide.md), and [developer guide](developer-guide.md).
+How the three packages work, and where the boundaries fall. For the API itself
+see [`core/adapter-contract.md`](../core/adapter-contract.md); for the diagnostics
+see [lint-rules.md](lint-rules.md).
 
-> **⚠ Substantially out of date — rewrite pending.**
->
-> This describes the structure before the engine was extracted into
-> `@nokout/big-dill-core`. In particular, the sections on `python_files/` and
-> `vscode_pytest` describe a vendored copy of ms-python's bridge that **no longer
-> exists**: discovery, execution and linting now run through `pytest-big-dill`'s
-> own bridge, and the extension ships no Python at all. The project is three
-> packages, not two, and the extension is bundled rather than shipping its
-> `node_modules`.
->
-> For the current design of the engine and what a host must provide, see
-> [adapter-contract.md](adapter-contract.md).
-
----
-
-## VS Code Testing API — the integration pattern
-
-VS Code exposes a **Testing API** that allows extensions to register arbitrary test trees and report results independently of any built-in runner. The key concepts are:
-
-| Concept | Role |
-|---|---|
-| `TestController` | Owns a tree of test items and one or more run profiles. One controller appears as one collapsible section in the Testing panel. |
-| `TestItem` | A node in the tree — can be a folder, a file, or a leaf test. Carries a label, URI, line range, description, and tags. |
-| `TestRunProfile` | Defines a way to run items in the tree (Run, Debug, Coverage). Users select which profile to use. |
-| `TestRun` | Represents a single execution. The extension calls `run.passed()`, `run.failed()`, `run.skipped()` etc. on individual items as results arrive. |
-
-Big Dill creates **one `TestController`** (labelled `pytest-bdd`) with a single Run profile. It is entirely independent of the ms-python controller — both can coexist in the same workspace, but for pytest-bdd projects you should disable ms-python's pytest runner (`python.testing.pytestEnabled: false`) to avoid a duplicate tree.
-
-This is a **subprocess-based controller**: when discovery or a run is requested, the extension spawns a Python subprocess running pytest, communicates with it over a named pipe (IPC), and translates the JSON payloads it receives into `TestItem` tree mutations and `TestRun` state calls.
-
----
-
-## How the pieces fit together
+## The split
 
 ```
-VS Code Testing panel
-        │
-        │  TestItem tree / run results
-        ▼
-┌─────────────────────────────────────┐
-│        extension (TS)        │
-│                                     │
-│  pytestRunner  ──spawn──►  pytest   │
-│       │          ◄─IPC─    subprocess
-│       ▼                    (Python) │
-│  resultResolver                     │  ◄── vscode_pytest/__init__.py
-│       │                             │       serialises collection +
-│       ▼                             │       execution results to JSON
-│   treeBuilder                       │
-│       │                             │  ◄── pytest-plugin/
-│       ▼                             │       attaches BDD metadata
-│  TestItem tree                      │       to each pytest item
-└─────────────────────────────────────┘
+  ┌──────────────────────────┐
+  │  big-dill                │   editor types, registration, display
+  │  extension/  (VSIX)      │
+  ├──────────────────────────┤
+  │  @nokout/big-dill-core   │   parsing, linting, completion, tree shape,
+  │  core/  (npm)            │   outcome decisions, pytest orchestration
+  ├──────────────────────────┤
+  │  pytest-big-dill         │   BDD metadata, hooks, lint pass,
+  │  pytest-plugin/  (PyPI)  │   discovery and execution payloads
+  └──────────────────────────┘
 ```
 
-**Discovery flow:**
-1. The extension spawns `pytest --collect-only` in a subprocess, with the `vscode_pytest` plugin loaded.
-2. pytest collects tests. The `pytest-big-dill` pytest plugin hooks into `pytest_collection_modifyitems` and attaches `_bdd_feature_path`, `_bdd_scenario_name`, tags, and feature metadata to every pytest-bdd item.
-3. `vscode_pytest/__init__.py` serialises the collected items into a JSON payload and sends it over a named pipe to the extension.
-4. `resultResolver.ts` receives the payload and calls `buildTree`, which constructs the `TestItem` hierarchy from feature paths.
+**Core never imports an editor API** — CI asserts it — and returns plain data
+throughout. The extension is an adapter: it maps that data onto VS Code types and
+registers the results.
 
-**Execution flow:**
-1. The user runs tests from the Testing panel. The extension collects the pytest node IDs of the selected items, writes them to a temp file, and spawns `run_pytest.py`.
-2. pytest runs the tests. For each result, `vscode_pytest` sends a JSON payload over the named pipe.
-3. `resultResolver.ts` maps each result's `runID` back to a `TestItem` and calls the appropriate `TestRun` method (`passed`, `failed`, `skipped`, etc.), applying any custom outcome mapping from workspace settings.
+Two reasons for the boundary. The practical one is reach: some environments proxy
+npm and PyPI but not the VS Code Marketplace, so keeping the editor-specific
+artefact small means only a thin layer has to cross that boundary. The secondary
+one is that an engine which needs no editor can be used without one — a CI lint
+gate, a script, another host.
 
----
+## Test discovery
 
-## Component breakdown
+1. The extension resolves an interpreter and working directory from its settings,
+   and hands them to core as plain options.
+2. Core opens a local pipe (a named pipe on Windows, a Unix domain socket
+   elsewhere), passes its path in `TEST_RUN_PIPE`, and spawns
+   `python -m pytest --collect-only`.
+3. `pytest-big-dill` loads automatically through its `pytest11` entry point. During
+   collection it attaches the feature path, scenario name, tags and the **scenario's
+   line in the `.feature` file** to each pytest-bdd item.
+4. At `pytest_collection_finish` it sends a discovery payload, and a second payload
+   carrying the step definitions it found.
+5. Core parses the frames and returns them. `buildTestTree` turns the payload into
+   a plain tree; the extension materialises that as `TestItem`s.
 
-### `pytest-plugin/` — pytest-big-dill
+Items are sent **flat** beneath a single root. The folder hierarchy is derived by
+`buildTestTree` from each item's `feature_path`, so nesting them in the payload
+would be a second source of truth for the same shape.
 
-An installable pytest plugin (`pytest-big-dill`) that bridges pytest-bdd's data model to the VS Code extension.
+## Test execution
 
-**What it registers:**
+Same pipe, different command: `python -m pytest_big_dill`. Test node ids arrive
+in a file named by `BIG_DILL_TEST_IDS` rather than on the command line, because
+Windows caps a command line at roughly 32,000 characters and a few hundred
+scenarios exceeds it.
 
-- `pytest_collection_modifyitems` — after pytest collects all items, iterates over them and attaches to each pytest-bdd item:
-  - `_bdd_feature_path` — path to the `.feature` file, relative to the pytest rootdir
-  - `_bdd_scenario_name` — display name for the scenario (default: `scenario.name`)
-  - Resolved from `scenario.feature.name`, `scenario.tags`, `scenario.feature.tags`, and the example row's Examples block tags
+The plugin folds each phase report — setup, call, teardown — into one result per
+test, and sends them at session end. Core turns the payload into
+`OutcomeDecision`s; the extension applies them to a `TestRun`.
 
-- `pytest_runtest_makereport` — after each test, calls the `pytest_big_dill_custom_status` hookspec and attaches any non-None result to the report as `vscode_custom_status`
+Discovery and step-definition payloads are sent **only** for `--collect-only`
+runs, so a test run produces exactly one frame.
 
-**Hookspecs it exposes to user `conftest.py`:**
+## The wire protocol
 
-- `pytest_big_dill_test_name(scenario_name, example_params, feature_name, feature_path)` → `str | None`
-  Override the display name for a scenario. Return `None` to keep the default. Commonly used to give outline rows a meaningful identifier from one of the example columns.
+One frame per message:
 
-- `pytest_big_dill_custom_status(report, config)` → `str | None`
-  Return a custom status string for a test result (e.g. `"waiting"`, `"knownError"`). The extension maps these strings to VS Code run states via `big-dill.outcomeMapping` in workspace settings.
+```
+content-length: <N>\r\n
+content-type: application/json\r\n
+\r\n
+{"jsonrpc": "2.0", "params": <payload>}
+```
 
-See the [developer guide](developer-guide.md) for the full hookspec reference including the lint hooks.
+The payload shapes live in `core/src/protocol/types.ts` and are the contract
+between the two packages. Two details are load-bearing:
 
-### `extension/python_files/vscode_pytest/` — the adapted ms-python bridge
+- **`N` counts characters, not bytes.** That is only safe because `json.dumps`
+  escapes non-ASCII by default, making the two equal. A test asserts this; do not
+  pass `ensure_ascii=False` without changing the reader.
+- **Lines are 1-based on the wire** and 0-based everywhere core returns them.
 
-This is a modified version of the `vscode_pytest/__init__.py` file from the [microsoft/vscode-python](https://github.com/microsoft/vscode-python) extension. The original handles IPC, test tree serialisation, and result reporting for the ms-python test runner.
-
-**Why adapt rather than replace:** the IPC protocol, subprocess lifecycle management, and JSON payload format are non-trivial. Adapting the upstream file gives us a working foundation and makes it tractable to track upstream security and bug fixes.
-
-**What we changed:**
-- `TestItem` TypedDict extended with `feature_path`, `scenario_name`, `scenario_tags`, `feature_tags`, and `feature_name` optional fields
-- `create_test_node()` populates these fields from the `_bdd_*` attributes set by the pytest plugin, including Examples-block tag resolution for scenario outlines
-- `build_test_tree()` routes pytest-bdd items into feature-path-keyed stub file nodes rather than Python-file-keyed nodes, so the TypeScript tree builder receives items grouped by feature file
-
-Nothing in the repository is adapted from ms-python any more; the tracking file that recorded the synced commit has been removed.
-
-### `extension/src/` — the TypeScript extension
-
-**`extension.ts`** — activation entry point. Creates the `TestController`, run profile, and file system watcher. Coordinates workspace discovery on activation, on `.feature` file changes, and on configuration changes.
-
-**`pytestRunner.ts`** — spawns pytest subprocesses for discovery and execution. Resolves the working directory from `big-dill.cwd` (falling back to `python.testing.cwd`, then workspace root). Creates and manages the named-pipe IPC server.
-
-**`treeBuilder.ts`** — transforms a `DiscoveredTestPayload` into the `TestItem` tree:
-- BDD items are organised under a folder hierarchy mirroring the `.feature` file's directory path
-- Feature file nodes use the `Feature:` declaration name from the Gherkin source
-- Folder and feature file labels are sentence-cased (underscores become spaces, first character capitalised)
-- `scenario_tags` are shown as `description` text on scenario items; `feature_tags` on feature file items
-- Path resolution uses `payload.cwd` (the actual pytest working directory) rather than the workspace root, so the tree is correct when `cwd` is a subdirectory
-
-**`resultResolver.ts`** — receives discovery and execution payloads from the IPC server. Maps custom statuses to VS Code run states using `big-dill.outcomeMapping`. Prepends ⏳ to scenario labels mapped to the `enqueued` state and removes it when a terminal result arrives.
-
-### `extension/python_files/run_pytest.py`
-
-A thin runner script (also adapted from ms-python) that reads test node IDs from a file and invokes pytest, with the `vscode_pytest` plugin active to stream results back over the named pipe.
-
-### IPC: how Python talks to TypeScript
-
-The extension creates a named pipe before spawning the subprocess and passes its path in the `TEST_RUN_PIPE` environment variable. `vscode_pytest` writes newline-delimited JSON messages to this pipe. TypeScript reads them and emits them as events. This is the same pattern used by the ms-python extension — one message per discovery payload, one per test-batch result.
-
----
+Because the ids in a discovery payload are what execution results are keyed on,
+the two commands must produce identical node ids — which is why discovery passes
+`--import-mode=importlib` and execution does not, matching how each has always
+run. Changing one without the other silently detaches every result from its tree
+node.
 
 ## Step discovery — a separate two-phase pipeline
 
-Test discovery (above) is not the same pipeline as *step* discovery, which feeds
+Test discovery is not the same pipeline as *step* discovery, which feeds
 completions, hover, go-to-definition, and the Step Browser.
 
 **Phase A — step discovery.** Triggered by saves to files matching
 `big-dill.stepDefinitionGlob` (default `**/step_defs/**/*.py`, `**/steps/**/*.py`,
-`**/conftest.py`). Runs `pytest --collect-only`; the plugin walks the fixture registry for
-functions carrying `_pytest_bdd_step_context` and emits a `stepDefinitions` payload over the
-same named pipe. Because pytest loads everything registered in the environment, this covers
-steps from installed packages as well as local ones, with no special handling. The result is
-cached in `StepCache`.
+`**/conftest.py`). Runs `pytest --collect-only`; the plugin walks the fixture
+registry for functions carrying `_pytest_bdd_step_context` and emits a
+`stepDefinitions` payload over the same pipe. Because pytest loads everything
+registered in the environment, this covers steps from installed packages as well
+as local ones, with no special handling. The result is cached in `StepCache`.
 
-**Phase B — lint.** `pytest --bdd-lint` emits `lintDiagnostics` payloads. In CLI mode the
-plugin detects the absence of `TEST_RUN_PIPE` and writes human-readable text to stdout
-instead, exiting non-zero on any error-severity diagnostic — which is what makes it usable
-as a CI gate.
+**Phase B — lint.** `pytest --bdd-lint` emits `lintDiagnostics` payloads. With no
+`TEST_RUN_PIPE` set the plugin writes human-readable text to stdout instead and
+exits non-zero on any error-severity diagnostic, which is what makes it usable as
+a CI gate.
 
-Note that the structural linter in the extension is a third, independent path: it parses
-the Gherkin AST in-process on every edit and needs no subprocess at all. It publishes to its
-own `DiagnosticCollection` (`big-dill-gherkin`) so it never overwrites the Python
-linter's results (`pytest-big-dill`).
+The structural linter is a third, independent path: core parses the Gherkin AST
+in-process on every edit and needs no subprocess at all. The extension publishes
+those to their own `DiagnosticCollection` (`big-dill-gherkin`) so they never
+overwrite the Python linter's results (`big-dill`).
 
 ### Distributed step library metadata
 
-Step definitions shipped inside a published package can supply completions *before* any
-collection run. A package author generates the metadata at packaging time:
+Step definitions shipped inside a published package can supply completions
+*before* any collection run. A package author generates the metadata at packaging
+time:
 
 ```bash
 pytest-big-dill          # writes pytest_big_dill_steps.json
@@ -172,28 +127,27 @@ and declares it via an entry point so consumers can find it:
 my-package = "my_package:pytest_big_dill_steps.json"
 ```
 
-On activation the extension enumerates registered `pytest_big_dill.steps` entry points and
-loads each file as a base layer (`loadDistributedStepMetadata` in `extension.ts`). Live
-Phase A data is merged on top, and **local step definitions always win** over distributed
-metadata for the same pattern.
+On activation the extension enumerates registered `pytest_big_dill.steps` entry
+points and loads each file as a base layer (`loadDistributedStepMetadata` in
+`extension.ts`). Live Phase A data is merged on top, and **local step definitions
+always win** over distributed metadata for the same pattern.
 
 ## Gherkin language features
 
-These are pure in-extension providers over a shared `GherkinParseCache`, which parses each
-document once per version and shares the AST across every consumer. The `@cucumber/gherkin`
-parser recovers from errors rather than throwing, so it is safe to run against a file being
-actively edited; parse errors surface in the result's `errors[]`.
+All of these are computed in core over a shared `GherkinParseCache`, which parses
+each document once per version and shares the AST. The `@cucumber/gherkin` parser
+recovers from errors rather than throwing, so it is safe to run against a file
+being actively edited; parse errors surface in the result's `errors[]`.
 
-- **Semantic tokens** (`featureSemanticTokens.ts`) — distinguishes datatables from Examples
-  tables, pipes from cell content, and quoted strings from bare values.
-- **Formatter** (`featureFormatter.ts`) — see below.
-- **Structural linter** (`featureLinter.ts`) — the rules in [lint-rules.md](lint-rules.md).
+The extension contributes only the mapping: plain diagnostics become
+`vscode.Diagnostic`, plain token positions are encoded for the highlighter, a
+plain symbol tree becomes `DocumentSymbol`s, and so on.
 
 ### Formatter rules
 
-Only table rows are rewritten; keywords, step text, tags, and blank lines are left
-untouched. If the parse produced any errors the formatter returns no edits at all, so a
-malformed file is never reflowed.
+Only table rows are rewritten; keywords, step text, tags, and blank lines are
+left untouched. If the parse produced any errors the formatter returns no edits at
+all, so a malformed file is never reflowed.
 
 | | DataTable | Examples body | Examples header |
 |---|---|---|---|
@@ -203,12 +157,24 @@ malformed file is never reflowed.
 
 A column counts as numeric when every non-empty cell matches `/^-?\d+(\.\d+)?$/`.
 
+## Packaging
+
+The extension is **bundled** with esbuild into a single `dist/extension.js` and
+ships no `node_modules`. That is what makes the npm-workspaces layout viable:
+unbundled, `vsce` walks up into the hoisted root and tries to package the whole
+development dependency graph.
+
+The npm package is deliberately *not* bundled. Bundling a library hides its
+dependency graph from `npm audit`, Dependabot and SBOM tooling, and prevents
+consumers deduplicating or overriding a transitive dependency.
+
 ## Deliberately out of scope
 
 Recorded so the boundary is not relitigated:
 
-- Phrase and convention validation for *step implementations* — the phrasing rules apply to
-  step text written by testers in `.feature` files, not to developers' Python code
+- Phrase and convention validation for *step implementations* — the phrasing rules
+  apply to step text written by testers in `.feature` files, not to developers'
+  Python code
 - Living documentation / HTML report generation
 - CI/CD integration or JUnit XML enrichment
 - Coverage gap reporting
@@ -218,29 +184,31 @@ Recorded so the boundary is not relitigated:
 ## Repository layout
 
 ```
-big-dill/
-├── extension/
-│   ├── src/                    TypeScript extension source
-│   │   └── testController/     Test controller, runner, resolver, tree builder
-│   └── python_files/           Python bridge (adapted from ms-python)
-│       ├── vscode_pytest/      IPC + serialisation layer
-│       └── run_pytest.py       Execution runner script
-├── pytest-plugin/              Installable pytest plugin (pytest-big-dill)
-│   └── pytest_big_dill/       Hook implementations and hookspecs
-└── playground/                 End-to-end demo project
-    ├── features/               .feature files used for manual validation
-    └── tests/                  pytest entry point (scenarios())
+core/                    @nokout/big-dill-core (npm)
+  src/
+    gherkin/             parsing and the per-version cache
+    lint/                the structural rules and their dispatch
+    completion/          step and parameter completion
+    steps/               step index, browser model, stubs, docs, references
+    format/  tokens/  symbols/
+    tree/                discovery payload -> plain test tree
+    results/             execution payload -> outcome decisions
+    pytest/              spawning pytest and reading payloads
+    ipc/                 the pipe server and frame parsing
+    protocol/            the wire contract shared with the plugin
+
+extension/               big-dill (VSIX)
+  src/
+    testController/      TestController, tree materialisation, run results
+    feature*.ts          one adapter per language provider
+    extension.ts         activation and registration
+
+pytest-plugin/           pytest-big-dill (PyPI)
+  pytest_big_dill/
+    hooks.py             collection, metadata, reporting, lint entry
+    bridge.py            payload construction and the pipe transport
+    step_registry.py     step discovery from the fixture registry
+    lint_runner.py       the typed-parameter lint pass
+
+playground/              demo project; every end-to-end check runs against it
 ```
-
----
-
-## Upstream tracking
-
-The adapted `vscode_pytest/__init__.py` tracks ms-python at a specific commit. To check for upstream changes:
-
-```bash
-# In a local clone of microsoft/vscode-python:
-git diff 5c2c3948 HEAD -- python_files/vscode_pytest/__init__.py
-```
-
-Nothing is tracked against ms-python any more.
