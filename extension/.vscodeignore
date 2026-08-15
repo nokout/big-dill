@@ -26,3 +26,6 @@ dist/**/*.map
 .vscode-test/**
 coverage/**
 **/*.vsix
+
+# Repo documentation — the listing README is what users see.
+tester-guide.md

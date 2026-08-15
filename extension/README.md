@@ -23,10 +23,19 @@ VS Code's built-in Python test runner shows pytest-bdd scenarios as mangled Pyth
 - **Hover docs & Go to definition** — step signature and docs on hover; `F12` jumps to the Python implementation
 - **Step Browser** — sidebar listing every step, grouped by file, step type, or tag
   ![Step Browser view](images/step-browser.png)
-- **Linting as you type** — 13 structural rules (undefined/unused Examples columns, duplicate scenario names, empty scenarios, …), configurable tag and phrasing checks, and unimplemented-step warnings. Full list: [lint rules reference](https://github.com/nokout/big-dill/blob/main/docs/lint-rules.md)
+- **Linting as you type** — 13 structural rules (undefined/unused Examples columns, duplicate scenario names, empty scenarios, …) plus configurable tag and phrasing checks, all as you type; typed-parameter and step-implementation checks arrive from `pytest --bdd-lint` on save. Full list: [lint rules reference](https://github.com/nokout/big-dill/blob/main/docs/lint-rules.md)
   ![Lint diagnostics in a feature file](images/lint-diagnostics.png)
 - **Table formatting** — `Format Document` aligns datatable and Examples columns, right-aligning numeric columns; nothing outside table rows is touched
 - **Syntax highlighting & snippets** — Gherkin keywords, tables, placeholders, embedded JSON/YAML/Python in docstrings
+
+## Where this fits
+
+This extension is the editor half. Two other pieces do the work:
+
+| | |
+|---|---|
+| [`pytest-big-dill`](https://pypi.org/project/pytest-big-dill/) | **required** — the pytest plugin that knows about your scenarios |
+| [`@nokout/big-dill-core`](https://www.npmjs.com/package/@nokout/big-dill-core) | the headless engine this extension adapts; useful on its own for CI linting |
 
 ## Requirements
 
@@ -86,8 +95,8 @@ Releases also ship a CycloneDX SBOM and SHA-256 checksums. To report a vulnerabi
 
 ## Learn more
 
-- [Tester guide](https://github.com/nokout/big-dill/blob/main/docs/tester-guide.md) — writing features with the authoring tools
-- [Developer guide](https://github.com/nokout/big-dill/blob/main/docs/developer-guide.md) — hookspecs: custom display names, statuses, typed steps, custom lint rules
+- [Tester guide](https://github.com/nokout/big-dill/blob/main/extension/tester-guide.md) — writing features with the authoring tools
+- [Developer guide](https://github.com/nokout/big-dill/blob/main/pytest-plugin/developer-guide.md) — hookspecs: custom display names, statuses, typed steps, custom lint rules
 - [Lint rules reference](https://github.com/nokout/big-dill/blob/main/docs/lint-rules.md)
 - [Repository](https://github.com/nokout/big-dill) · [License](https://github.com/nokout/big-dill/blob/main/LICENSE) · [Third-party notices](https://github.com/nokout/big-dill/blob/main/THIRD-PARTY-NOTICES.md)
 

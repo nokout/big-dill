@@ -73,4 +73,4 @@ Run the CLI pass across every feature file (exits non-zero on errors, suitable f
 pytest --bdd-lint
 ```
 
-Writing custom rules is covered in the [developer guide](developer-guide.md#pytest_big_dill_lint_outline).
+Writing custom rules is covered in the [developer guide](../pytest-plugin/developer-guide.md#pytest_big_dill_lint_outline).
