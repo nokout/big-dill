@@ -1,0 +1,31 @@
+# Only dist/extension.js ships — everything is bundled into it, so node_modules
+# is excluded by packaging with --no-dependencies rather than listed here.
+
+# Sources and build config
+src/**
+out/**
+tsconfig.json
+jest.config.js
+eslint.config.mjs
+esbuild.mjs
+.vscode-test.mjs
+__mocks__/**
+
+# Source maps are not shipped: the production bundle is minified, and a map is
+# larger than the whole rest of the VSIX combined.
+dist/**/*.map
+
+# Python bytecode. pytest writes these next to the sources whenever the plugin is
+# exercised locally, and they were silently shipping to users.
+**/__pycache__/**
+**/*.pyc
+
+# Repo/dev files
+.github/**
+.vscode/**
+.vscode-test/**
+coverage/**
+**/*.vsix
+
+# Repo documentation — the listing README is what users see.
+tester-guide.md

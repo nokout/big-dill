@@ -3,19 +3,16 @@
 [![CI](https://github.com/nokout/big-dill/actions/workflows/ci.yml/badge.svg)](https://github.com/nokout/big-dill/actions/workflows/ci.yml)
 [![Security](https://github.com/nokout/big-dill/actions/workflows/security.yml/badge.svg)](https://github.com/nokout/big-dill/actions/workflows/security.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/nokout/big-dill/badge)](https://scorecard.dev/viewer/?uri=github.com/nokout/big-dill)
-[![License: Source-Available](https://img.shields.io/badge/License-Source--Available-orange.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-A VS Code extension for [pytest-bdd](https://pytest-bdd.readthedocs.io/) that surfaces Gherkin scenarios as first-class citizens in the Testing panel and provides a full authoring experience for testers writing `.feature` files.
+**Big Dill Driven Development** — tooling for [pytest-bdd](https://pytest-bdd.readthedocs.io/)
+that treats the feature file as the specification rather than an accident of how
+the tests are written.
 
-**Quick links:** [Extension listing](vscode-extension/README.md) · [Overview](docs/overview.md) · [Tester guide](docs/tester-guide.md) · [Developer guide](docs/developer-guide.md) · [Architecture](docs/architecture.md) · [Lint rules](docs/lint-rules.md)
-
----
-
-## What it is
-
-VS Code's built-in Python test runner shows pytest-bdd scenarios as a tree of Python modules with mangled function names. This is the wrong mental model for BDD — the feature file is the specification; the Python test function is an implementation detail.
-
-Big Dill replaces that view with one that reflects the Gherkin source:
+VS Code's built-in Python test runner shows pytest-bdd scenarios as a tree of
+Python modules with mangled function names. That is the wrong mental model: the
+`.feature` file is the specification; the Python test function is an
+implementation detail. Big Dill shows the Gherkin instead —
 
 ```
 Features 🗂
@@ -30,147 +27,115 @@ Features 🗂
       ⏳ A waiting scenario         @waits
 ```
 
-On top of the runner it adds Gherkin authoring tools: step completions, hover docs, go-to-definition, a step browser, structural linting, syntax highlighting, and snippets. The full feature tour with screenshots is in the [extension listing README](vscode-extension/README.md); the design deep-dive is in [docs/architecture.md](docs/architecture.md).
+— and adds the authoring tools that make writing Gherkin bearable: step
+completion, hover documentation, go-to-definition, a step browser, structural
+linting, and table formatting.
 
-Two installable pieces work together:
+## Three packages
 
-- **`vscode-extension/`** — the TypeScript extension (Testing API controller + language tooling)
-- **`pytest-plugin/`** — the `pytest-big-dill` pytest plugin (BDD metadata, display-name/status/lint hookspecs, `--bdd-lint` CLI)
+Each is published separately and usable on its own.
 
-`playground/` is an end-to-end demo project used for manual validation and screenshots.
+| Package | Registry | What it is |
+|---|---|---|
+| [`pytest-big-dill`](pytest-plugin/) | PyPI | The pytest plugin. Attaches BDD metadata, adds display-name/status/lint hooks and a `--bdd-lint` CLI gate. **Required** — it is what knows about your scenarios. |
+| [`big-dill`](extension/) | VS Code Marketplace | The extension. A Testing panel that shows scenarios, plus the authoring tools. |
+| [`@nokout/big-dill-core`](core/) | npm | The headless engine: Gherkin parsing, linting, completion, test-tree shape, pytest orchestration. No editor dependency. |
 
----
+### How they fit together
+
+```
+  ┌─────────────────────┐        ┌──────────────────────┐
+  │  big-dill           │  uses  │  @nokout/big-dill-   │
+  │  (VS Code extension)│───────▶│  core (npm)          │
+  └─────────────────────┘        └──────────┬───────────┘
+                                            │ spawns pytest,
+                                            │ reads payloads
+                                            │ over a local pipe
+                                 ┌──────────▼───────────┐
+                                 │  pytest-big-dill     │
+                                 │  (in your venv)      │
+                                 └──────────────────────┘
+```
+
+The extension is a thin adapter: it maps plain results from core onto editor
+types and registers them. Core does the work and talks to the plugin. The plugin
+runs inside your pytest process and reports what it finds.
+
+Because core needs no editor, anything that runs Node can host it — a CI lint
+gate, a script, another editor. [`core/README.md`](core/README.md#building-a-host)
+is the contract for building one.
 
 ## Getting started
 
-### Prerequisites
+**Using it:** install [`pytest-big-dill`](pytest-plugin/) into the environment your
+tests run in, then install the [extension](extension/). The extension's
+[README](extension/README.md) covers settings and the feature tour.
 
-| Tool | Version |
-|---|---|
-| Node.js | 18 or later (20+ LTS recommended) |
-| Python | 3.10 or later |
-| VS Code stable or Insiders | 1.87 or later |
-| ms-python extension | latest |
-
-> **Windows:** `build.sh` is a bash script. Run it from WSL or Git Bash.
-
-### Build and install the extension
+**Working on it:** you need Node 18+ (20 LTS recommended), Python 3.10+, and VS
+Code 1.87+. The Python extension is optional — set `big-dill.pythonPath` if you
+do not have it.
 
 ```bash
-# From the repo root — builds the .vsix and installs it into VS Code:
-./build.sh --install
+npm ci                    # installs both npm packages and builds core
+./build.sh --install      # builds the VSIX and installs it   (bash; WSL or Git Bash on Windows)
 ```
 
-Then reload the VS Code window (`Ctrl+Shift+P` → `Developer: Reload Window`).
-
-To build without installing:
-
-```bash
-./build.sh
-# Produces: vscode-extension/big-dill-*.vsix
-```
-
-### Set up the playground
+Then set up the demo project, which every end-to-end check runs against:
 
 ```bash
 cd playground
-python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
-pip install -e .                 # installs pytest, pytest-bdd, and pytest-big-dill
-pip install -e ../pytest-plugin  # installs the local plugin in editable mode
+python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
+pip install -e ../pytest-plugin -e .
 ```
 
-Select the `.venv` interpreter in VS Code (`Ctrl+Shift+P` → `Python: Select Interpreter`), then open the repo root as the workspace — `.vscode/settings.json` already configures the extension for the playground.
+Open the repo root as your workspace — `.vscode/settings.json` already points the
+extension at `playground/`.
 
-Configuration reference: see the [extension listing README](vscode-extension/README.md#settings).
+### Iterating on the extension
 
----
-
-## Developing the extension
-
-For working on the extension itself, the repo ships a watch/debug workflow in `.vscode/` — don't rebuild and reinstall the `.vsix` on every change.
-
-### Auto-build on watch
-
-`.vscode/tasks.json` defines `watch-extension`, a background task that runs the TypeScript compiler in watch mode (`npm run watch` in `vscode-extension/`). It is the default build task, so `Ctrl+Shift+B` starts it. Compile errors stream into the Problems panel as you type; output lands in `vscode-extension/dist/`.
-
-The task sources `~/.nvm/nvm.sh` when present, so it also works where node is nvm-managed and the editor wasn't launched from a shell with nvm on `PATH` (e.g. the VSCodium flatpak, whose sandbox has no node of its own).
-
-### Extension Development Host
-
-Press `F5` (the "Run Extension" launch config). This:
-
-1. starts `watch-extension` automatically and waits for the first compile
-2. opens an **Extension Development Host** window with `vscode-extension/` loaded from source and `playground/` as its workspace
-3. attaches the debugger — breakpoints in `src/*.ts` work via source maps
-
-VS Code cannot hot-swap a running extension's code. The iteration loop is:
+Press `F5` for the **Run Extension** launch config. It starts the esbuild watcher,
+opens an Extension Development Host with `playground/` loaded, and attaches the
+debugger. The loop is:
 
 ```
-save file  →  watcher recompiles (~1 s)  →  Ctrl+R in the dev host window
+save  →  watcher rebuilds (~50 ms)  →  Ctrl+R in the dev host window
 ```
 
-`Ctrl+R` (`Developer: Reload Window`) reloads the dev host with the fresh build from `dist/`; the debugger reattaches automatically. No re-launch needed.
-
-Note that an installed `.vsix` is a frozen copy — it never picks up source changes. Iterate in the dev host, and run `./build.sh --install` only when you want to refresh the installed version.
-
-### Unit tests
+VS Code cannot hot-swap a running extension, so the reload is required. An
+installed `.vsix` is a frozen copy and never picks up source changes — iterate in
+the dev host and only run `./build.sh --install` to refresh what is installed.
 
 ```bash
-cd vscode-extension
-npx jest
+npm test --workspaces          # core + extension
+cd pytest-plugin && pytest     # plugin
 ```
 
-### README screenshots
+## Documentation
 
-The listing screenshots live in `vscode-extension/images/` — inside the extension
-folder so they are packaged into the VSIX — and the listing README references them
-with relative paths.
-
-Packaging must therefore pass `--no-rewrite-relative-links` (the `package` script,
-`build.sh`, and CI all do). Without it, vsce rewrites the paths to
-`github.com/<repo>/raw/HEAD/images/...`, which is the wrong path — the images are
-under `vscode-extension/`, not the repository root.
-
-Relative paths render in VS Code's extension details pane and on GitHub. The
-Marketplace *web page* requires absolute HTTPS image URLs, so the Marketplace
-publish step drops the flag and passes instead:
-
-```bash
-npm run package:marketplace
-```
-
-which expands to:
-
-```bash
-vsce package --baseImagesUrl https://raw.githubusercontent.com/nokout/big-dill/main/vscode-extension
-```
-
-> **The base URL stops at `vscode-extension`, not `vscode-extension/images`.** The README
-> already references screenshots as `images/<name>.png`, and vsce joins the base to that
-> relative path — so including `/images` yields `…/images/images/<name>.png`, and every
-> screenshot 404s on the listing page. The `package:marketplace` script exists so this is
-> not retyped from memory.
-
-The repository is public, so those URLs resolve.
-
----
-
-## Documentation map
-
-| Document | Audience |
+| Where | What |
 |---|---|
-| [vscode-extension/README.md](vscode-extension/README.md) | Users — the marketplace listing: features, quick start, settings |
-| [docs/overview.md](docs/overview.md) | Everyone — what the project does and who it's for |
-| [docs/tester-guide.md](docs/tester-guide.md) | Testers writing `.feature` files |
-| [docs/developer-guide.md](docs/developer-guide.md) | Developers implementing steps, hooks, typed steps, custom lint rules |
-| [docs/lint-rules.md](docs/lint-rules.md) | Reference — every diagnostic the linter can raise |
-| [docs/architecture.md](docs/architecture.md) | Contributors — Testing API integration, IPC, component breakdown, upstream tracking |
-| [pytest-plugin/README.md](pytest-plugin/README.md) | Users — the PyPI listing for the pytest plugin |
-| [SECURITY.md](SECURITY.md) | Everyone — trust model, supply chain, and how to report a vulnerability |
-| [UPSTREAM.md](UPSTREAM.md) | Contributors — which files are adapted from ms-python, and how to re-sync them |
+| [`extension/README.md`](extension/README.md) | The Marketplace listing: features, screenshots, settings |
+| [`extension/tester-guide.md`](extension/tester-guide.md) | Writing `.feature` files with the authoring tools |
+| [`pytest-plugin/README.md`](pytest-plugin/README.md) | The PyPI listing: install, hooks, `--bdd-lint` |
+| [`pytest-plugin/developer-guide.md`](pytest-plugin/developer-guide.md) | Step definitions, typed parameters, hookspecs, custom lint rules |
+| [`core/README.md`](core/README.md) | The npm listing for the engine, and the adapter contract: the API, and what a host must supply |
+| [`docs/lint-rules.md`](docs/lint-rules.md) | Every diagnostic the linter can raise, across all three packages |
+| [`docs/architecture.md`](docs/architecture.md) | How the pieces work — Testing API integration, IPC, the wire protocol |
+| [`SECURITY.md`](SECURITY.md) | Trust model, supply chain, reporting a vulnerability |
 
-That table plus this file is the whole of the repo's prose. Design rationale belongs in
-`architecture.md` and user-facing behaviour in the guides; planned work and open decisions
-live in [GitHub issues](https://github.com/nokout/big-dill/issues), not in files.
-Superseded specs and plans are not kept — git history has them.
+Documentation about a package lives with that package. Only genuinely
+cross-cutting material is in `docs/`. Planned work and open decisions live in
+[GitHub issues](https://github.com/nokout/big-dill/issues) rather than in files,
+and superseded specs are not kept — git history has them.
+
+## Packaging note
+
+Marketplace listing images must be absolute HTTPS URLs, so publishing uses
+`npm run package:marketplace`. Its `--baseImagesUrl` stops at `extension`, **not**
+`extension/images`: the listing already references `images/<name>.png`, and vsce
+joins the base to that relative path, so an extra `/images` makes every screenshot
+404. The script exists so this is not retyped from memory.
+
+## License
+
+MIT — see [`LICENSE`](LICENSE) and [`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md).

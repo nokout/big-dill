@@ -19,7 +19,7 @@ This project is pre-1.0. Only the latest released version receives security fixe
 
 Understanding the trust model matters more than a version table here.
 
-**The VS Code extension** (`vscode-extension/`) runs with the privileges of your
+**The VS Code extension** (`extension/`) runs with the privileges of your
 editor. To discover and run tests it **spawns pytest** using the Python interpreter
 you have selected for the workspace. That executes your project's own code —
 `conftest.py`, fixtures, and step definitions — exactly as running pytest in a
@@ -39,9 +39,14 @@ define in your own `conftest.py`.
 
 ## Supply chain
 
-- The extension ships **unbundled**, so its runtime dependencies are distributed
-  inside the VSIX. CI audits those strictly (`npm audit --omit=dev`, failing on
-  high severity) on every push, pull request, and weekly.
+- The extension is **bundled**: its runtime dependencies are compiled into
+  `dist/extension.js` rather than shipped as files, but their code still reaches
+  every user. CI audits the dependency graph strictly (`npm audit --omit=dev`,
+  failing on high severity) on every push, pull request, and weekly — packaging
+  changes what ships, not what is audited.
+- The engine is published separately as `@nokout/big-dill-core` and is *not*
+  bundled, so consumers keep the ability to audit, deduplicate and override its
+  dependencies.
 - Development-only dependencies are audited too, but advisory-only — they never
   reach users. Current known advisories are all transitive under `@vscode/vsce`
   (the packaging tool) and are not present in shipped code.

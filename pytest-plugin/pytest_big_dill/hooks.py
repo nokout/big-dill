@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from . import bridge
 from .hookspec import BigDillHookSpec
 from .lint_runner import interpolate_scenario, validate_step_params
 from .lint_types import LintDiagnostic
@@ -36,7 +37,15 @@ def pytest_collection_modifyitems(session, config, items):
         if scenario is None:
             continue  # not a pytest-bdd item
 
-        feature_path = os.path.relpath(scenario.feature.filename, str(config.rootdir))
+        # Resolve both sides before comparing. If one is reached through a symlink
+        # and the other is not — a workspace opened via a link, or macOS's
+        # /tmp -> /private/tmp — relpath yields "../real/features/x.feature", and
+        # the host then builds folder nodes called ".." and resolves URIs outside
+        # the workspace.
+        feature_path = os.path.relpath(
+            os.path.realpath(scenario.feature.filename),
+            os.path.realpath(str(config.rootdir)),
+        )
         item._bdd_feature_path = feature_path
         item._bdd_scenario_name = scenario.name  # default: plain scenario name
 
@@ -57,6 +66,65 @@ def pytest_collection_modifyitems(session, config, items):
             item._bdd_scenario_name = custom_name
             # item.nodeid is intentionally left unchanged — used for execution tracking
 
+        # The host anchors this item at the .feature file, so the line must be the
+        # Scenario keyword's line there — not location[1], which is the line of the
+        # scenarios() call in the Python file. Getting this wrong puts gutter icons
+        # on an unrelated line, or past the end of the file.
+        line_number = getattr(scenario, "line_number", None)
+        if isinstance(line_number, int):
+            item._bdd_line_number = line_number
+
+        _attach_bdd_tags(item, scenario, example_params)
+
+
+def _send_execution_results(session) -> None:
+    """Report results to the host, unless this was a discovery-only run.
+
+    Tests that were selected but produced no report — a crash during collection,
+    say — are reported as notFound so the host can mark them rather than leave
+    them silently pending.
+    """
+    if not bridge.pipe_path() or session.config.getoption("--collect-only", default=False):
+        return
+
+    selected = [item.nodeid for item in getattr(session, "items", [])]
+    not_found = [nodeid for nodeid in selected if nodeid not in _results]
+
+    bridge.send_message(
+        bridge.execution_payload(_results, str(session.config.rootdir), not_found)
+    )
+
+
+def _attach_bdd_tags(item, scenario, example_params) -> None:
+    """Record the tags and feature name a host needs to label this item.
+
+    A Scenario Outline row carries the tags of the *specific* Examples block it
+    came from, as well as the scenario's own, so `@alpha_examples` on one block
+    does not leak onto rows from another. The row is identified by matching its
+    parameter values, since pytest-bdd does not record which block produced it.
+    """
+    tags = set(getattr(scenario, "tags", set()) or set())
+
+    if example_params:
+        for block in getattr(scenario, "examples", []) or []:
+            names = getattr(block, "example_params", [])
+            for row in getattr(block, "examples", []) or []:
+                # strict=False matches the convention below: a ragged Examples
+                # table is a lint concern, not a reason to fail collection.
+                if dict(zip(names, row, strict=False)) == example_params:
+                    tags |= set(getattr(block, "tags", set()) or set())
+                    break
+
+    if tags:
+        item._bdd_scenario_tags = sorted(tags)
+
+    feature = getattr(scenario, "feature", None)
+    if feature is not None:
+        if getattr(feature, "tags", None):
+            item._bdd_feature_tags = sorted(feature.tags)
+        if getattr(feature, "name", None):
+            item._bdd_feature_name = feature.name
+
 
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
@@ -70,6 +138,8 @@ def pytest_runtest_makereport(item, call):
 
 
 def pytest_sessionfinish(session, exitstatus):
+    _send_execution_results(session)
+
     opt = session.config.getoption("--bdd-lint", default=None)
     if opt is None:
         return
@@ -209,11 +279,6 @@ def _emit_stdout(diagnostics: list[tuple[str, LintDiagnostic]]) -> None:
 
 def _emit_ipc(diagnostics: list[tuple[str, LintDiagnostic]]) -> None:
     """Send lint diagnostics to VS Code via the existing IPC pipe."""
-    try:
-        from vscode_pytest import send_message
-    except ImportError:
-        return
-
     payload = {
         "type": "lintDiagnostics",
         "diagnostics": [
@@ -226,26 +291,50 @@ def _emit_ipc(diagnostics: list[tuple[str, LintDiagnostic]]) -> None:
             for path, d in diagnostics
         ],
     }
-    send_message(payload)
+    bridge.send_message(payload)
+
+
+# Accumulated across the run, keyed by node id.
+_results: dict[str, dict] = {}
 
 
 def pytest_collection_finish(session) -> None:
-    """Emit step definitions over IPC after collection (VS Code mode only)."""
-    import os
-    if not os.environ.get('TEST_RUN_PIPE'):
+    """Emit the discovered tests and step definitions to the host.
+
+    Discovery is only sent for a --collect-only run. A host asks for discovery and
+    execution separately, so emitting the tree on every test run would be wasted
+    work — and the host's execution reader accepts any frame it is given, so the
+    extra payloads arrive as empty results rather than being ignored.
+    """
+    if not bridge.pipe_path():
         return
+
+    if not session.config.getoption("--collect-only", default=False):
+        return
+
+    rootdir = str(session.config.rootdir)
+    bridge.send_message(bridge.discovery_payload(session.items, rootdir))
 
     step_defs = collect_step_definitions(session)
-    if not step_defs:
-        return
+    if step_defs:
+        bridge.send_message({"type": "stepDefinitions", "stepDefinitions": step_defs})
 
-    try:
-        from vscode_pytest import send_message
-    except ImportError:
-        return
 
-    payload = {
-        "type": "stepDefinitions",
-        "stepDefinitions": step_defs,
-    }
-    send_message(payload)  # type: ignore[arg-type]
+def pytest_runtest_logreport(report) -> None:
+    """Fold each phase report into the results sent at session end."""
+    if bridge.pipe_path():
+        bridge.record_report(_results, report)
+
+
+def pytest_internalerror(excrepr, excinfo) -> None:  # noqa: ARG001
+    bridge.record_error(f"pytest internal error: {excrepr}")
+
+
+def pytest_keyboard_interrupt(excinfo) -> None:  # noqa: ARG001
+    bridge.record_error("run interrupted")
+
+
+def pytest_exception_interact(node, call, report) -> None:  # noqa: ARG001
+    """Record collection-time failures, which produce no test report."""
+    if report is not None and getattr(report, "when", None) == "collect":
+        bridge.record_error(f"collection error in {getattr(node, 'nodeid', node)}: {call.excinfo}")

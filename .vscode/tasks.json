@@ -6,7 +6,7 @@
       "type": "shell",
       "command": "[ -f \"$HOME/.nvm/nvm.sh\" ] && . \"$HOME/.nvm/nvm.sh\"; npm run watch",
       "options": {
-        "cwd": "${workspaceFolder}/vscode-extension"
+        "cwd": "${workspaceFolder}/extension"
       },
       "isBackground": true,
       "problemMatcher": "$tsc-watch",

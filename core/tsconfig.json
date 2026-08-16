@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "ES2020",
+    "lib": ["ES2020"],
+    "outDir": "dist",
+    "rootDir": "src",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+    "composite": true,
+    // Keep the incremental build info inside the output directory. By default it
+    // sits next to tsconfig.json, so deleting dist/ leaves tsc believing it is
+    // already up to date — it then exits successfully having emitted nothing, and
+    // every consumer fails with "Cannot find module". This is what broke CI.
+    "tsBuildInfoFile": "./dist/.tsbuildinfo"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "src/**/__tests__/**"]
+}
