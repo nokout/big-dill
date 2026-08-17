@@ -9,7 +9,28 @@
         "cwd": "${workspaceFolder}/extension"
       },
       "isBackground": true,
-      "problemMatcher": "$tsc-watch",
+      "problemMatcher": {
+        "owner": "typescript",
+        "source": "esbuild",
+        "fileLocation": ["relative", "${workspaceFolder}/extension"],
+        "pattern": [
+          {
+            "regexp": "^✘ \\[ERROR\\] (.*)$",
+            "message": 1
+          },
+          {
+            "regexp": "^\\s+(\\S+):(\\d+):(\\d+):$",
+            "file": 1,
+            "line": 2,
+            "column": 3
+          }
+        ],
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "^\\[watch\\] build started",
+          "endsPattern": "^\\[watch\\] build finished"
+        }
+      },
       "presentation": {
         "reveal": "never",
         "group": "watchers"

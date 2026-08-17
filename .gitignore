@@ -27,4 +27,4 @@ Thumbs.db
 
 # Git worktrees
 .worktrees/
-.claude/worktrees/
+**/.claude

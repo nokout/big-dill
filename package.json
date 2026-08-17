@@ -1,5 +1,6 @@
 {
   "name": "big-dill-workspace",
+  "version": "0.0.0",
   "private": true,
   "description": "Monorepo root. Not published — see core and extension.",
   "license": "MIT",
@@ -8,6 +9,7 @@
     "extension"
   ],
   "scripts": {
+    "// version": "Never published (private: true), but npm sbom needs some version to generate a PURL for the workspace root — without one, `npm sbom` fails for every workspace member with EINVALIDPURLTYPE, not just this package.",
     "// postinstall": "The extension resolves @nokout/big-dill-core through its package.json `types`/`main`, which point into dist/. Nothing else builds core first, so without this every consumer — CI, a fresh clone, esbuild — fails with 'Cannot find module'. Building on install makes the dependency order automatic rather than something each job has to remember.",
     "postinstall": "npm run compile -w @nokout/big-dill-core",
     "compile": "npm run compile --workspaces --if-present",

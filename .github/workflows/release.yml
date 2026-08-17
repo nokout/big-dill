@@ -5,13 +5,15 @@ on:
     tags:
       - 'v*'         # extension release
       - 'plugin-v*'  # pytest plugin release
+      - 'core-v*'    # core release
   workflow_dispatch:
     inputs:
       publish:
         description: >-
-          Publish for real to the Marketplace, Open VSX and PyPI.
-          Leave false for a dry run. Requires the protected `release`
-          environment and its secrets to be configured first.
+          Publish for real to npm and PyPI. Leave false for a dry run.
+          Marketplace and Open VSX publishing is on hold for now — see the
+          `publish` job. Requires the protected `release` environment and its
+          secrets to be configured first.
         type: boolean
         default: false
 
@@ -66,6 +68,7 @@ jobs:
           mkdir -p release
           version="${GITHUB_REF_NAME#v}"
           version="${version#plugin-v}"
+          version="${version#core-v}"
 
           # --no-rewrite-relative-links keeps the README pointing at the images
           # packaged inside the VSIX, which is what the extension details pane
@@ -77,8 +80,11 @@ jobs:
           ( cd extension && npx vsce package --no-dependencies --no-rewrite-relative-links \
               -o "../release/big-dill-${version}.vsix" )
           python -m build --outdir release ./pytest-plugin
+          ( cd core && npm pack --pack-destination ../release )
           ( cd extension && npm sbom --sbom-format cyclonedx --omit dev ) \
             > release/sbom-extension.cdx.json
+          ( cd core && npm sbom --sbom-format cyclonedx --omit dev ) \
+            > release/sbom-core.cdx.json
 
           ( cd release && sha256sum -- * > SHA256SUMS.txt )
           echo "--- staged:"; ls -l release
@@ -93,6 +99,7 @@ jobs:
             release/*.vsix
             release/*.whl
             release/*.tar.gz
+            release/*.tgz
 
       - name: Upload release artifacts
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -171,6 +178,27 @@ jobs:
           python -m pip install --upgrade pip twine
           python -m twine check release/*.whl release/*.tar.gz
 
+      - name: Files that would be published to npm (core)
+        run: |
+          {
+            echo '### npm payload (@nokout/big-dill-core)'
+            echo '```'
+            tar -tzf release/nokout-big-dill-core-*.tgz
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Regression guard for the tarball-bloat issue this was fixed for:
+      # local build state has no business in a published package.
+      - name: Assert core tarball excludes build state
+        run: |
+          if tar -tzf release/nokout-big-dill-core-*.tgz | grep -q '\.tsbuildinfo$'; then
+            echo "::error::core tarball contains a .tsbuildinfo file — check core/package.json's files field"
+            exit 1
+          fi
+
+      - name: Validate core package (dry run)
+        run: npm publish release/nokout-big-dill-core-*.tgz --dry-run
+
       - name: Verify checksums
         working-directory: release
         run: sha256sum -c SHA256SUMS.txt --ignore-missing
@@ -186,7 +214,7 @@ jobs:
     environment: release
     permissions:
       contents: read
-      id-token: write   # PyPI Trusted Publishing
+      id-token: write   # npm + PyPI Trusted Publishing
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
@@ -202,21 +230,41 @@ jobs:
           name: release-artifacts
           path: release
 
-      - name: Publish to Visual Studio Marketplace
-        env:
-          VSCE_PAT: ${{ secrets.VSCE_PAT }}
-        working-directory: extension
-        run: |
-          vsix=$(ls ../release/*.vsix)
-          npx vsce publish --packagePath "$vsix"
+      # Marketplace and Open VSX publishing is on hold for now — the extension
+      # isn't ready to ship yet. Building and staging the VSIX (in the `build`
+      # job above) and drafting the GitHub Release still happen regardless;
+      # only the actual registry publish is disabled. Uncomment both steps
+      # below, together, when it's time.
+      #
+      # - name: Publish to Visual Studio Marketplace
+      #   env:
+      #     VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      #   working-directory: extension
+      #   run: |
+      #     vsix=$(ls ../release/*.vsix)
+      #     npx vsce publish --packagePath "$vsix"
+      #
+      # - name: Publish to Open VSX
+      #   env:
+      #     OVSX_PAT: ${{ secrets.OVSX_PAT }}
+      #   working-directory: extension
+      #   run: |
+      #     vsix=$(ls ../release/*.vsix)
+      #     npx ovsx publish "$vsix"
 
-      - name: Publish to Open VSX
-        env:
-          OVSX_PAT: ${{ secrets.OVSX_PAT }}
-        working-directory: extension
+      # OIDC trusted publishing needs a recent npm CLI; the version bundled
+      # with actions/setup-node's Node 20 predates it.
+      - name: Update npm
+        run: npm install -g npm@latest
+
+      # Trusted Publishing: no stored token — identity comes from the OIDC
+      # claim, same model as the PyPI publish below. Requires a trusted
+      # publisher configured for @nokout/big-dill-core on npm, linked to this
+      # repo, this workflow file, and the `release` environment.
+      - name: Publish core to npm
         run: |
-          vsix=$(ls ../release/*.vsix)
-          npx ovsx publish "$vsix"
+          tarball=$(ls release/nokout-big-dill-core-*.tgz)
+          npm publish "$tarball" --provenance
 
       # gh-action-pypi-publish uploads everything in packages-dir, so isolate the
       # Python distributions from the VSIX, SBOM and checksums staged alongside.

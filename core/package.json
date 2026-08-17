@@ -25,6 +25,9 @@
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
+    "!dist/.tsbuildinfo",
+    "src",
+    "!src/__tests__/**",
     "LICENSE",
     "README.md"
   ],
