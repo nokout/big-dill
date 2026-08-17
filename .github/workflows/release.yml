@@ -196,8 +196,11 @@ jobs:
             exit 1
           fi
 
+      # A bare relative path with exactly one slash and no leading "./" is
+      # ambiguous to npm: it parses "release/foo.tgz" as GitHub shorthand
+      # (owner/repo) rather than a local file, and tries to git-clone it.
       - name: Validate core package (dry run)
-        run: npm publish release/nokout-big-dill-core-*.tgz --dry-run
+        run: npm publish ./release/nokout-big-dill-core-*.tgz --dry-run
 
       - name: Verify checksums
         working-directory: release
@@ -266,7 +269,7 @@ jobs:
       # repo, this workflow file, and the `release` environment.
       - name: Publish core to npm
         run: |
-          tarball=$(ls release/nokout-big-dill-core-*.tgz)
+          tarball=$(ls ./release/nokout-big-dill-core-*.tgz)
           npm publish "$tarball" --provenance
 
       # gh-action-pypi-publish uploads everything in packages-dir, so isolate the
