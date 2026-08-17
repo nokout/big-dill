@@ -217,9 +217,12 @@ jobs:
       id-token: write   # npm + PyPI Trusted Publishing
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # npm's OIDC trusted publishing needs Node >=22.14.0 (npm >=11.5.1) —
+      # newer than the Node 20 the other jobs build/test against. Only this
+      # job's runtime needs to move; nothing here is published as Node 20.
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
           cache-dependency-path: package-lock.json
       # npm workspaces: a single install at the root wires up core
@@ -252,8 +255,8 @@ jobs:
       #     vsix=$(ls ../release/*.vsix)
       #     npx ovsx publish "$vsix"
 
-      # OIDC trusted publishing needs a recent npm CLI; the version bundled
-      # with actions/setup-node's Node 20 predates it.
+      # Requires npm >=11.5.1 for OIDC support — newer than what Node 22
+      # currently bundles by default.
       - name: Update npm
         run: npm install -g npm@latest
 
