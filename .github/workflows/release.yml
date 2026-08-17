@@ -123,12 +123,6 @@ jobs:
     name: Publish dry run
     needs: build
     runs-on: ubuntu-latest
-    # TEMPORARY: id-token here only for the OIDC diagnostic step below while
-    # we debug why the live npm publish gets ENEEDAUTH. Remove both once
-    # resolved — this job has no other reason to mint an OIDC token.
-    permissions:
-      contents: read
-      id-token: write
     env:
       # Read into the job env so the step-level `if:` can test them. A step
       # cannot see env vars defined on itself.
@@ -138,7 +132,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: 22
+          node-version: 20
           cache: npm
           cache-dependency-path: package-lock.json
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -151,28 +145,6 @@ jobs:
         with:
           name: release-artifacts
           path: release
-
-      # TEMPORARY diagnostic — see the removal note on this job's permissions.
-      - name: Diagnose npm OIDC readiness
-        run: |
-          echo "--- npm/node versions before update ---"
-          npm --version
-          node --version
-          npm install -g npm@latest
-          echo "--- npm version after update ---"
-          npm --version
-
-          echo "--- requesting a raw GitHub OIDC token (no audience) ---"
-          token=$(curl -sS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-            "$ACTIONS_ID_TOKEN_REQUEST_URL" | jq -r '.value')
-          if [ -z "$token" ] || [ "$token" = "null" ]; then
-            echo "::error::failed to obtain an OIDC token at all"
-            exit 1
-          fi
-          payload=$(echo "$token" | cut -d. -f2 | tr '_-' '/+')
-          case $(( ${#payload} % 4 )) in 2) payload="$payload==";; 3) payload="$payload=";; esac
-          echo "--- decoded claims ---"
-          echo "$payload" | base64 -d | jq '{iss, aud, sub, repository, repository_owner, workflow_ref, environment, ref, job_workflow_ref}'
 
       - name: Files that would be published to the Marketplace
         working-directory: extension
@@ -291,14 +263,39 @@ jobs:
       - name: Update npm
         run: npm install -g npm@latest
 
+      # `npm publish <path-to-tarball>` was silently skipping OIDC entirely
+      # (ENEEDAUTH, no auth attempt logged) — npm's trusted-publishing docs
+      # don't cover that form, only `npm publish` run from inside the package
+      # directory. Switching to that documented form costs us the guarantee
+      # that we publish the exact bytes staged/attested in the build job, so
+      # the step below re-earns it: pack is deterministic from the same
+      # commit, so a shasum mismatch here means something changed between
+      # build and publish, and that's worth failing loudly over.
+      - name: Verify core package matches the attested build artifact
+        run: |
+          cd core
+          built_sha=$(grep 'nokout-big-dill-core-.*\.tgz' ../release/SHA256SUMS.txt | awk '{print $1}')
+          fresh_sha=$(npm pack --dry-run --json 2>/dev/null | jq -r '.[0].shasum')
+          echo "attested (build job): $built_sha"
+          echo "fresh (this job):     $fresh_sha"
+          if [ "$built_sha" != "$fresh_sha" ]; then
+            echo "::error::core package contents differ between the build and publish jobs — refusing to publish an unattested artifact"
+            exit 1
+          fi
+
       # Trusted Publishing: no stored token — identity comes from the OIDC
       # claim, same model as the PyPI publish below. Requires a trusted
       # publisher configured for @nokout/big-dill-core on npm, linked to this
       # repo, this workflow file, and the `release` environment.
       - name: Publish core to npm
         run: |
-          tarball=$(ls ./release/nokout-big-dill-core-*.tgz)
-          npm publish "$tarball" --provenance
+          cd core
+          npm publish --provenance || {
+            echo "::group::npm debug log"
+            cat "$HOME"/.npm/_logs/*-debug-0.log 2>/dev/null || true
+            echo "::endgroup::"
+            exit 1
+          }
 
       # gh-action-pypi-publish uploads everything in packages-dir, so isolate the
       # Python distributions from the VSIX, SBOM and checksums staged alongside.
