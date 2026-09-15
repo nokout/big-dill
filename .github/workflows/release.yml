@@ -47,14 +47,6 @@ jobs:
       # and extension together.
       - run: npm ci
 
-      # Pinned to the exact version the publish job installs (see its "Update
-      # npm" step). The publish job re-packs core and diffs the shasum against
-      # what this job attests; different npm major versions pack non-identical
-      # tarball bytes from identical source, which made that check fail even
-      # though nothing about the package had changed.
-      - name: Update npm
-        run: npm install -g npm@11.6.0
-
       # Never ship something the test suites have not agreed to.
       - name: Unit tests
         run: npm run test:coverage
@@ -234,11 +226,6 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 22
-          cache: npm
-          cache-dependency-path: package-lock.json
-      # npm workspaces: a single install at the root wires up core
-      # and extension together.
-      - run: npm ci
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: release-artifacts
@@ -268,49 +255,40 @@ jobs:
 
       # Requires npm >=11.5.1 for OIDC support — newer than what Node 22
       # currently bundles by default. Pinned rather than floated to `@latest`:
-      # that previously landed an npm whose `pack --dry-run --json` output
-      # broke the verification step below in a way that was hard to diagnose
-      # after the fact. Bump this deliberately, not automatically.
+      # an unpinned bump has broken the publish step here before in ways that
+      # were hard to diagnose after the fact. Bump this deliberately, not
+      # automatically.
       - name: Update npm
         run: npm install -g npm@11.6.0
+
+      # A repack-and-diff verification lived here previously, but core/dist
+      # is gitignored and rebuilt fresh by `postinstall` on every `npm ci` —
+      # this job's own recompile landed at a different wall-clock time than
+      # the build job's, so npm packed different mtimes into the tarball and
+      # the shasums never matched even when the source was identical. The
+      # checksum check below is the same one publish-dry-run already runs;
+      # it confirms the downloaded artifact is byte-identical to what the
+      # build job attested, with no recompiling involved.
+      - name: Verify downloaded artifact matches the attested build
+        working-directory: release
+        run: sha256sum -c SHA256SUMS.txt --ignore-missing
 
       # `npm publish <path-to-tarball>` was silently skipping OIDC entirely
       # (ENEEDAUTH, no auth attempt logged) — npm's trusted-publishing docs
       # don't cover that form, only `npm publish` run from inside the package
-      # directory. Switching to that documented form costs us the guarantee
-      # that we publish the exact bytes staged/attested in the build job, so
-      # the step below re-earns it: pack is deterministic from the same
-      # commit, so a shasum mismatch here means something changed between
-      # build and publish, and that's worth failing loudly over.
-      - name: Verify core package matches the attested build artifact
-        run: |
-          cd core
-          built_sha=$(grep 'nokout-big-dill-core-.*\.tgz' ../release/SHA256SUMS.txt | awk '{print $1}')
-          # No `2>/dev/null` here: if npm's --json output is ever malformed
-          # again, npm's own stderr is the diagnostic that explains why, and
-          # command substitution only captures stdout anyway.
-          pack_output=$(npm pack --dry-run --json)
-          fresh_sha=$(jq -r '.[0].shasum' <<< "$pack_output") || {
-            echo "::error::npm pack --dry-run --json did not return the expected shape"
-            echo "::group::npm pack output"
-            echo "$pack_output"
-            echo "::endgroup::"
-            exit 1
-          }
-          echo "attested (build job): $built_sha"
-          echo "fresh (this job):     $fresh_sha"
-          if [ "$built_sha" != "$fresh_sha" ]; then
-            echo "::error::core package contents differ between the build and publish jobs — refusing to publish an unattested artifact"
-            exit 1
-          fi
-
+      # directory. Extracting the already-attested tarball and publishing
+      # from inside it gets the documented form without recompiling core, so
+      # we publish the exact bytes verified above rather than fresh output.
+      #
       # Trusted Publishing: no stored token — identity comes from the OIDC
       # claim, same model as the PyPI publish below. Requires a trusted
       # publisher configured for @nokout/big-dill-core on npm, linked to this
       # repo, this workflow file, and the `release` environment.
       - name: Publish core to npm
         run: |
-          cd core
+          mkdir -p /tmp/core-publish
+          tar -xzf release/nokout-big-dill-core-*.tgz -C /tmp/core-publish
+          cd /tmp/core-publish/package
           npm publish --provenance || {
             echo "::group::npm debug log"
             cat "$HOME"/.npm/_logs/*-debug-0.log 2>/dev/null || true
