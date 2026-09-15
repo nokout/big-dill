@@ -259,9 +259,12 @@ jobs:
       #     npx ovsx publish "$vsix"
 
       # Requires npm >=11.5.1 for OIDC support — newer than what Node 22
-      # currently bundles by default.
+      # currently bundles by default. Pinned rather than floated to `@latest`:
+      # that previously landed an npm whose `pack --dry-run --json` output
+      # broke the verification step below in a way that was hard to diagnose
+      # after the fact. Bump this deliberately, not automatically.
       - name: Update npm
-        run: npm install -g npm@latest
+        run: npm install -g npm@11.6.0
 
       # `npm publish <path-to-tarball>` was silently skipping OIDC entirely
       # (ENEEDAUTH, no auth attempt logged) — npm's trusted-publishing docs
@@ -275,7 +278,17 @@ jobs:
         run: |
           cd core
           built_sha=$(grep 'nokout-big-dill-core-.*\.tgz' ../release/SHA256SUMS.txt | awk '{print $1}')
-          fresh_sha=$(npm pack --dry-run --json 2>/dev/null | jq -r '.[0].shasum')
+          # No `2>/dev/null` here: if npm's --json output is ever malformed
+          # again, npm's own stderr is the diagnostic that explains why, and
+          # command substitution only captures stdout anyway.
+          pack_output=$(npm pack --dry-run --json)
+          fresh_sha=$(jq -r '.[0].shasum' <<< "$pack_output") || {
+            echo "::error::npm pack --dry-run --json did not return the expected shape"
+            echo "::group::npm pack output"
+            echo "$pack_output"
+            echo "::endgroup::"
+            exit 1
+          }
           echo "attested (build job): $built_sha"
           echo "fresh (this job):     $fresh_sha"
           if [ "$built_sha" != "$fresh_sha" ]; then
