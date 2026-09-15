@@ -47,6 +47,14 @@ jobs:
       # and extension together.
       - run: npm ci
 
+      # Pinned to the exact version the publish job installs (see its "Update
+      # npm" step). The publish job re-packs core and diffs the shasum against
+      # what this job attests; different npm major versions pack non-identical
+      # tarball bytes from identical source, which made that check fail even
+      # though nothing about the package had changed.
+      - name: Update npm
+        run: npm install -g npm@11.6.0
+
       # Never ship something the test suites have not agreed to.
       - name: Unit tests
         run: npm run test:coverage
