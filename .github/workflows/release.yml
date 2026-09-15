@@ -284,12 +284,17 @@ jobs:
       # claim, same model as the PyPI publish below. Requires a trusted
       # publisher configured for @nokout/big-dill-core on npm, linked to this
       # repo, this workflow file, and the `release` environment.
+      # --ignore-scripts: the extracted tarball has no tsconfig.json or
+      # devDependencies (only what package.json's `files` ships), so
+      # `prepublishOnly`'s `npm run compile` has nothing to compile against
+      # and fails. That's fine — dist/ is already built; the whole point of
+      # publishing from the extracted tarball is to skip rebuilding it.
       - name: Publish core to npm
         run: |
           mkdir -p /tmp/core-publish
           tar -xzf release/nokout-big-dill-core-*.tgz -C /tmp/core-publish
           cd /tmp/core-publish/package
-          npm publish --provenance || {
+          npm publish --provenance --ignore-scripts || {
             echo "::group::npm debug log"
             cat "$HOME"/.npm/_logs/*-debug-0.log 2>/dev/null || true
             echo "::endgroup::"
