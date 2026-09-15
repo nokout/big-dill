@@ -307,15 +307,26 @@ jobs:
       # claim, same model as the PyPI publish below. Requires a trusted
       # publisher configured for @nokout/big-dill-core on npm, linked to this
       # repo, this workflow file, and the `release` environment.
+      # A re-run of this job (e.g. retrying the PyPI step after this one
+      # already succeeded) hits npm's "cannot publish over the previously
+      # published version" error on a second attempt at the same version.
+      # That's not a real failure -- the verify step above already confirmed
+      # this is the same attested artifact -- so it's treated as success
+      # rather than blocking the PyPI publish below.
       - name: Publish core to npm
         run: |
           cd core
-          npm publish --provenance || {
-            echo "::group::npm debug log"
-            cat "$HOME"/.npm/_logs/*-debug-0.log 2>/dev/null || true
-            echo "::endgroup::"
-            exit 1
-          }
+          if npm publish --provenance 2>&1 | tee /tmp/npm-publish.log; then
+            exit 0
+          fi
+          if grep -qi 'cannot publish over the previously published version' /tmp/npm-publish.log; then
+            echo "::notice::@nokout/big-dill-core is already published at this version — treating as success."
+            exit 0
+          fi
+          echo "::group::npm debug log"
+          cat "$HOME"/.npm/_logs/*-debug-0.log 2>/dev/null || true
+          echo "::endgroup::"
+          exit 1
 
       # gh-action-pypi-publish uploads everything in packages-dir, so isolate the
       # Python distributions from the VSIX, SBOM and checksums staged alongside.
